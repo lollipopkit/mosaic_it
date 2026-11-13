@@ -485,7 +485,7 @@ class _EditorPageState extends State<EditorPage> {
                     tooltip: MaterialLocalizations.of(context)
                         .backButtonTooltip,
                     onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                    icon: const Icon(Icons.chevron_left, size: 28),
                   ),
                   IconButton(
                     tooltip: _l.undo,
@@ -503,7 +503,11 @@ class _EditorPageState extends State<EditorPage> {
                   IconButton.filled(
                     tooltip: _l.export,
                     onPressed: idle ? _openExport : null,
-                    icon: const Icon(Icons.ios_share, size: 20),
+                    // The glyph's box sits high in its square.
+                    icon: const Padding(
+                      padding: EdgeInsets.only(top: 3),
+                      child: Icon(Icons.ios_share, size: 20),
+                    ),
                   ),
                 ],
               ),
@@ -545,7 +549,7 @@ class _EditorPageState extends State<EditorPage> {
                 onSelect: (i) => _s.index = i,
               ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+              padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
               child: Row(
                 children: [
                   IconButton.filledTonal(
