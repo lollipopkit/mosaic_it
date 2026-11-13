@@ -90,7 +90,12 @@ class BoxEditor extends StatefulWidget {
     this.merging = false,
     this.mergeFrom,
     this.onMergePick,
+    this.fitPadding = EdgeInsets.zero,
   });
+
+  /// Kept clear when the image is fitted: what floats over the editor. The
+  /// image still pans under it.
+  final EdgeInsets fitPadding;
 
   final EditSession session;
   final EditorKind kind;
@@ -262,12 +267,11 @@ class _BoxEditorState extends State<BoxEditor> {
   void _fit(Size viewport) {
     if (_fittedFor == _size) return;
     _fittedFor = _size;
-    final s = (viewport.width / _size.width).clamp(
-      0.0,
-      viewport.height / _size.height,
-    );
-    final dx = (viewport.width - _size.width * s) / 2;
-    final dy = (viewport.height - _size.height * s) / 2;
+    final pad = widget.fitPadding;
+    final area = pad.deflateSize(viewport);
+    final s = (area.width / _size.width).clamp(0.0, area.height / _size.height);
+    final dx = pad.left + (area.width - _size.width * s) / 2;
+    final dy = pad.top + (area.height - _size.height * s) / 2;
     _fitScale = s;
     _view.value = Matrix4.identity()
       ..translateByDouble(dx, dy, 0, 1)

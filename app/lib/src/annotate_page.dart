@@ -386,7 +386,12 @@ class _AnnotatePageState extends State<AnnotatePage> {
                       child: Center(child: Chip(label: Text(_l.annotateHint))),
                     ),
                   if (_mergeFrom != null)
-                    MergeHint(onCancel: () => _mergePick(null)),
+                    Positioned(
+                      left: 10,
+                      right: 10,
+                      top: 8,
+                      child: MergeHint(onCancel: () => _mergePick(null)),
+                    ),
                 ],
               ),
             ),

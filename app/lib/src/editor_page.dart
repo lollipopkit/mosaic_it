@@ -3,7 +3,8 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:file_selector/file_selector.dart';
-import 'package:fl_lib/fl_lib.dart' show ContextMenuAction, showContextMenu;
+import 'package:fl_lib/fl_lib.dart'
+    show ContextMenuAction, Frosted, showContextMenu;
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -464,165 +465,245 @@ class _EditorPageState extends State<EditorPage> {
 
   // --- layout -------------------------------------------------------------
 
+  /// Heights of what floats over the image, without the safe area.
+  static const _topBar = 64.0, _toolBar = 68.0, _strip = BatchStrip.height;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final inset = MediaQuery.paddingOf(context);
     final shot = _s.shot;
     final active = _s.active;
     final selected = shot.boxes.where((b) => b.selected).length;
     final idle = _busy == null;
-    const big = ButtonStyle(fixedSize: WidgetStatePropertyAll(Size.square(60)));
+    final batch = _s.shots.length > 1;
+    Widget round(Widget button) => Frosted(
+      shape: const CircleBorder(),
+      child: SizedBox.square(dimension: 48, child: Center(child: button)),
+    );
     return Scaffold(
       backgroundColor: scheme.surfaceContainerLowest,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-              child: Row(
-                children: [
-                  IconButton.filledTonal(
-                    tooltip: MaterialLocalizations.of(context)
-                        .backButtonTooltip,
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: const Icon(Icons.chevron_left, size: 28),
-                  ),
-                  IconButton(
-                    tooltip: _l.undo,
-                    icon: const Icon(Icons.undo),
-                    onPressed: _s.canUndo ? _s.undo : null,
-                  ),
-                  IconButton(
-                    tooltip: _l.redo,
-                    icon: const Icon(Icons.redo),
-                    onPressed: _s.canRedo ? _s.redo : null,
-                  ),
-                  const Spacer(),
-                  Chip(label: Text(_l.selectedOf(selected, shot.boxes.length))),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                    tooltip: _l.export,
-                    onPressed: idle ? _openExport : null,
-                    // The glyph's box sits high in its square.
-                    icon: const Padding(
-                      padding: EdgeInsets.only(top: 3),
-                      child: Icon(Icons.ios_share, size: 20),
-                    ),
-                  ),
-                ],
+      body: Stack(
+        key: _viewKey,
+        children: [
+          Positioned.fill(
+            child: BoxEditor(
+              key: ValueKey(shot),
+              session: _s,
+              kind: EditorKind.redact,
+              drawing: _drawing && !_merging,
+              fill: widget.settings.fill,
+              onLongPress: _boxMenu,
+              merging: _merging,
+              mergeFrom: _mergeFrom,
+              onMergePick: _mergePick,
+              fitPadding: EdgeInsets.fromLTRB(
+                12,
+                inset.top + _topBar,
+                12,
+                inset.bottom + _toolBar + (batch ? _strip : 0) + 8,
               ),
             ),
-            SizedBox(
-              height: 2,
-              child: idle ? null : const LinearProgressIndicator(),
-            ),
-            if (shot.cameraPhoto)
-              MaterialBanner(
-                content: Text(_l.cameraPhoto),
-                actions: const [SizedBox.shrink()],
-              ),
-            Expanded(
-              child: Stack(
-                key: _viewKey,
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            child: SafeArea(
+              bottom: false,
+              child: Column(
                 children: [
-                  Positioned.fill(
-                    child: BoxEditor(
-                      key: ValueKey(shot),
-                      session: _s,
-                      kind: EditorKind.redact,
-                      drawing: _drawing && !_merging,
-                      fill: widget.settings.fill,
-                      onLongPress: _boxMenu,
-                      merging: _merging,
-                      mergeFrom: _mergeFrom,
-                      onMergePick: _mergePick,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                    child: Row(
+                      children: [
+                        round(
+                          IconButton(
+                            tooltip: MaterialLocalizations.of(context)
+                                .backButtonTooltip,
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            // The glyphs are drawn off their boxes' centres.
+                            icon: Transform.translate(
+                              offset: const Offset(-2, 0),
+                              child: const Icon(
+                                Icons.arrow_back_ios_new,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Frosted(
+                          child: Row(
+                            children: [
+                              IconButton(
+                                tooltip: _l.undo,
+                                icon: const Icon(Icons.undo),
+                                onPressed: _s.canUndo ? _s.undo : null,
+                              ),
+                              IconButton(
+                                tooltip: _l.redo,
+                                icon: const Icon(Icons.redo),
+                                onPressed: _s.canRedo ? _s.redo : null,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                        Frosted(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 9,
+                            ),
+                            child: Text(
+                              _l.selectedOf(selected, shot.boxes.length),
+                              style: const TextStyle(
+                                fontFeatures: [ui.FontFeature.tabularFigures()],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton.filled(
+                          style: const ButtonStyle(
+                            fixedSize: WidgetStatePropertyAll(Size.square(48)),
+                          ),
+                          tooltip: _l.export,
+                          onPressed: idle ? _openExport : null,
+                          icon: Transform.translate(
+                            offset: const Offset(0, -2),
+                            child: const Icon(Icons.ios_share, size: 20),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  if (_merging) MergeHint(onCancel: () => _mergePick(null)),
-                ],
-              ),
-            ),
-            if (_s.shots.length > 1)
-              BatchStrip(
-                shots: _s.shots,
-                index: _s.index,
-                onSelect: (i) => _s.index = i,
-              ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
-              child: Row(
-                children: [
-                  IconButton.filledTonal(
-                    style: big,
-                    tooltip: _l.fillStyle,
-                    onPressed: () => showFillSheet(
-                      context,
-                      widget.settings,
-                      () => setState(() {}),
-                    ),
-                    icon: FillSwatch(
-                      style: widget.settings.fillStyle,
-                      color: widget.settings.fillColor,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Container(
-                      height: 60,
-                      padding: const EdgeInsets.all(5),
-                      decoration: ShapeDecoration(
-                        color: scheme.secondaryContainer.withValues(alpha: .4),
-                        shape: const StadiumBorder(),
-                      ),
-                      child: Row(
-                        children: [
-                          ToolButton(
-                            icon: Icons.highlight_alt,
-                            label: _l.modeDraw,
-                            selected: _drawing && !_merging,
-                            onTap: () => setState(() {
-                              _drawing = _merging || !_drawing;
-                              _merging = false;
-                              _mergeFrom = null;
-                            }),
-                          ),
-                          ToolButton(
-                            icon: Icons.filter_none,
-                            label: _l.similar,
-                            onTap: active == null || !idle
-                                ? null
-                                : () => _findSimilar(active),
-                          ),
-                          ToolButton(
-                            icon: Icons.join_inner,
-                            label: _l.merge,
-                            selected: _merging,
-                            onTap: () => _merging
-                                ? _mergePick(null)
-                                : _startMerge(active),
-                          ),
-                        ],
+                  if (!idle) const LinearProgressIndicator(minHeight: 2),
+                  if (shot.cameraPhoto)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Frosted(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text(_l.cameraPhoto),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Badge.count(
-                    count: selected,
-                    backgroundColor: scheme.primary,
-                    textColor: scheme.onPrimary,
-                    child: IconButton.filledTonal(
-                      style: big,
-                      tooltip: _l.regionsTooltip,
-                      onPressed: () => showRegionSheet(context, _s),
-                      icon: const Icon(Icons.tune),
+                  if (_merging)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                      child: MergeHint(onCancel: () => _mergePick(null)),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  if (batch)
+                    BatchStrip(
+                      shots: _s.shots,
+                      index: _s.index,
+                      onSelect: (i) => _s.index = i,
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+                    child: Row(
+                      children: [
+                        Frosted(
+                          shape: const CircleBorder(),
+                          child: SizedBox.square(
+                            dimension: 52,
+                            child: IconButton(
+                              tooltip: _l.fillStyle,
+                              onPressed: () => showFillSheet(
+                                context,
+                                widget.settings,
+                                () => setState(() {}),
+                              ),
+                              icon: FillSwatch(
+                                style: widget.settings.fillStyle,
+                                color: widget.settings.fillColor,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Frosted(
+                            child: Container(
+                              height: 52,
+                              padding: const EdgeInsets.all(3),
+                              child: Row(
+                                children: [
+                                  ToolButton(
+                                    icon: Icons.highlight_alt,
+                                    label: _l.modeDraw,
+                                    selected: _drawing && !_merging,
+                                    onTap: () => setState(() {
+                                      _drawing = _merging || !_drawing;
+                                      _merging = false;
+                                      _mergeFrom = null;
+                                    }),
+                                  ),
+                                  ToolButton(
+                                    icon: Icons.filter_none,
+                                    label: _l.similar,
+                                    onTap: active == null || !idle
+                                        ? null
+                                        : () => _findSimilar(active),
+                                  ),
+                                  ToolButton(
+                                    icon: Icons.join_inner,
+                                    label: _l.merge,
+                                    selected: _merging,
+                                    onTap: () => _merging
+                                        ? _mergePick(null)
+                                        : _startMerge(active),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Badge.count(
+                          count: selected,
+                          // Inside the button's top right, on its circle.
+                          offset: const Offset(-10, 6),
+                          backgroundColor: scheme.primary,
+                          textColor: scheme.onPrimary,
+                          child: Frosted(
+                            shape: const CircleBorder(),
+                            child: SizedBox.square(
+                              dimension: 52,
+                              child: IconButton(
+                                tooltip: _l.regionsTooltip,
+                                onPressed: () => showRegionSheet(context, _s),
+                                icon: const Icon(Icons.tune),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -699,6 +780,9 @@ class BatchStrip extends StatelessWidget {
 
   static const _height = 68.0;
 
+  /// Its height in the layout.
+  static const height = _height + 16;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -707,7 +791,7 @@ class BatchStrip extends StatelessWidget {
     // Thumbnail, its frame and the room for its badge.
     double extent(Shot s) => thumb(s) + 25;
     return SizedBox(
-      height: _height + 16,
+      height: height,
       child: LayoutBuilder(
         builder: (context, c) {
           final total = shots.fold(0.0, (w, s) => w + extent(s));

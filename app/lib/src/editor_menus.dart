@@ -48,33 +48,28 @@ class MergeHint extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
-    return Positioned(
-      left: 10,
-      right: 10,
-      top: 8,
-      child: Material(
-        color: scheme.inverseSurface,
-        borderRadius: BorderRadius.circular(12),
-        elevation: 4,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  l.mergeHint,
-                  style: TextStyle(color: scheme.onInverseSurface),
-                ),
+    return Material(
+      color: scheme.inverseSurface,
+      borderRadius: BorderRadius.circular(12),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 4, 4, 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                l.mergeHint,
+                style: TextStyle(color: scheme.onInverseSurface),
               ),
-              TextButton(
-                onPressed: onCancel,
-                style: TextButton.styleFrom(
-                  foregroundColor: scheme.inversePrimary,
-                ),
-                child: Text(l.cancel),
+            ),
+            TextButton(
+              onPressed: onCancel,
+              style: TextButton.styleFrom(
+                foregroundColor: scheme.inversePrimary,
               ),
-            ],
-          ),
+              child: Text(l.cancel),
+            ),
+          ],
         ),
       ),
     );
