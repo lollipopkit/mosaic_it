@@ -1,0 +1,28 @@
+# Shipped-artifact license policy (docs/design.md §9), same list as the root
+# deny.toml for Rust. Checked with `dart run license_checker check-licenses -c license_config.yaml`.
+permittedLicenses:
+  - Apache-2.0
+  - MIT
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - ISC
+  - Zlib
+  - MPL-2.0
+rejectedLicenses:
+  - GPL-2.0
+  # GPL-3.0 is not listed: the checker reads this list before approvedPackages,
+  # so a listed licence cannot be approved. Unlisted, any GPL-3.0 package still
+  # fails as "needs approval" unless approved below.
+  - LGPL-2.1
+  - LGPL-3.0
+  - AGPL-3.0
+# Flutter SDK packages carry no LICENSE file of their own; the SDK is BSD-3-Clause.
+packageLicenseOverride:
+  flutter_test: BSD-3-Clause
+  flutter_web_plugins: BSD-3-Clause
+  flutter_localizations: BSD-3-Clause
+# First-party, not third-party (docs/design.md §9): fl_lib is lollipopkit's own
+# library, GPL-3.0, which the AGPL-3.0 app may combine with (GPLv3 §13).
+approvedPackages:
+  GPL-3.0:
+    - fl_lib

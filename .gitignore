@@ -1,0 +1,8 @@
+.DS_Store
+/target/
+/models/**/*.onnx
+/models/**/*.onnx.json
+/models/**/*.mlpackage
+.claude/worktrees/
+*.log
+models/manifest.toml.signed

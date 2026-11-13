@@ -1,0 +1,5 @@
+"CFBundleDisplayName" = "碼住";
+"CFBundleName" = "碼住";
+"NSPhotoLibraryUsageDescription" = "顯示你的截圖和照片，以便打碼或標註。圖片只留在這台裝置上。";
+"NSCameraUsageDescription" = "掃描 QR 碼。碼住不會拍攝或保存照片。";
+"NSFaceIDUsageDescription" = "使用 Face ID 解鎖碼住。";

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+. Collected training data holds unredacted originals. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="app_flutter/collected/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="app_flutter/collected/" />
+    </device-transfer>
+</data-extraction-rules>

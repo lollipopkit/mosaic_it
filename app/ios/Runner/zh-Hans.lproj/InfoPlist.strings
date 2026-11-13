@@ -1,0 +1,5 @@
+"CFBundleDisplayName" = "码住";
+"CFBundleName" = "码住";
+"NSPhotoLibraryUsageDescription" = "显示你的截图和照片，以便打码或标注。图片只留在这台设备上。";
+"NSCameraUsageDescription" = "扫描二维码。码住不会拍摄或保存照片。";
+"NSFaceIDUsageDescription" = "使用面容 ID 解锁码住。";

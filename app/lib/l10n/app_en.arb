@@ -1,0 +1,630 @@
+{
+  "@@locale": "en",
+  "appTitle": "MosaicIt",
+  "loadingModel": "Loading model…",
+  "modelFileType": "Model",
+  "@modelFileType": {
+    "description": "File picker group label for model files"
+  },
+  "useModel": "Use model",
+  "imagesFileType": "Images",
+  "@imagesFileType": {
+    "description": "File picker group label for images"
+  },
+  "detecting": "Detecting…",
+  "detectingProgress": "Detecting {current}/{total}…",
+  "@detectingProgress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "chooseModelFirst": "Choose a model first",
+  "findingSimilar": "Finding similar…",
+  "similarSelected": "{found} similar regions selected ({added} new)",
+  "@similarSelected": {
+    "placeholders": {
+      "found": {
+        "type": "int"
+      },
+      "added": {
+        "type": "int"
+      }
+    }
+  },
+  "similarSelectedAcross": "{found} similar regions selected ({added} new) across {images} images",
+  "@similarSelectedAcross": {
+    "placeholders": {
+      "found": {
+        "type": "int"
+      },
+      "added": {
+        "type": "int"
+      },
+      "images": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewButton": "Review",
+  "@reviewButton": {
+    "description": "Confirm button of the label file picker"
+  },
+  "openingLabels": "Opening labels…",
+  "noImagesIn": "No images in {name}",
+  "@noImagesIn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "saving": "Saving…",
+  "exportHere": "Export here",
+  "exportStoppedAt": "Export stopped at {name}",
+  "@exportStoppedAt": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "exportedTo": "Exported to {path}",
+  "@exportedTo": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportedToNoAudio": "Exported to {path} (no audio)",
+  "@exportedToNoAudio": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "exportedImages": "{count, plural, =1{Exported 1 image} other{Exported {count} images}}",
+  "@exportedImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "checkingImage": "Checking {name}…",
+  "@checkingImage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "checkingAndExporting": "Checking and exporting…",
+  "cancel": "Cancel",
+  "exportAnyway": "Export anyway",
+  "reviewPseudoLabels": "Review pseudo-labels (folder with coco.json)",
+  "regionsTooltip": "Regions",
+  "notCalibrated": "Model is not calibrated: pre-selection uses a fixed threshold.",
+  "calibratedUnverified": "Calibrated on unverified data ({domain}): the recall guarantee does not apply yet.",
+  "@calibratedUnverified": {
+    "placeholders": {
+      "domain": {
+        "type": "String"
+      }
+    }
+  },
+  "calibratedFor": "Calibrated for {domain} images. Other kinds of images are outside the guarantee.",
+  "@calibratedFor": {
+    "placeholders": {
+      "domain": {
+        "type": "String"
+      }
+    }
+  },
+  "cameraPhoto": "This is a camera photo; the detector is made for screenshots, so its boxes here are unreliable.",
+  "modeDraw": "Draw",
+  "fillLabel": "Fill",
+  "fillSolid": "Solid colour",
+  "fillBlocks": "Grey mosaic",
+  "fillNoise": "Noise",
+  "verifyNext": "Verify & next",
+  "export": "Export",
+  "pickOneModel": "Pick exactly one .onnx model",
+  "pickSidecar": "Also pick {name}.json",
+  "@pickSidecar": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "analysing": "Analysing",
+  "followingRegion": "Following the region",
+  "exporting": "Exporting",
+  "busyFrames": "{label}… {count} frames",
+  "@busyFrames": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "redactingSpan": "Redacting it {start} – {end}",
+  "@redactingSpan": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "exportCheckFailedAt": "Export check failed at {time}",
+  "@exportCheckFailedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "videoRegionsVisible": "{count, plural, =1{1 private-looking region is still visible there ({classes}).} other{{count} private-looking regions are still visible there ({classes}).}}",
+  "@videoRegionsVisible": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "classes": {
+        "type": "String"
+      }
+    }
+  },
+  "showFrame": "Show frame",
+  "drawMissedRegion": "Draw a region the detector missed",
+  "tracksSummary": "{on} of {total} tracks redacted · {keyframes} keyframes",
+  "@tracksSummary": {
+    "placeholders": {
+      "on": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "keyframes": {
+        "type": "int"
+      }
+    }
+  },
+  "keepAudio": "Keep audio",
+  "keepAudioHint": "Voices and notification sounds are not checked",
+  "goToFirstAppearance": "Go to first appearance",
+  "classPersonName": "Name",
+  "@classPersonName": {
+    "description": "Label of the person_name region class"
+  },
+  "classAddress": "Address",
+  "@classAddress": {
+    "description": "Label of the address region class"
+  },
+  "classPhone": "Phone",
+  "@classPhone": {
+    "description": "Label of the phone region class"
+  },
+  "classEmail": "Email",
+  "@classEmail": {
+    "description": "Label of the email region class"
+  },
+  "classIdNumber": "ID number",
+  "@classIdNumber": {
+    "description": "Label of the id_number region class"
+  },
+  "classBankCard": "Bank card",
+  "@classBankCard": {
+    "description": "Label of the bank_card region class"
+  },
+  "classPlate": "Plate",
+  "@classPlate": {
+    "description": "Label of the plate region class"
+  },
+  "classAccountId": "Account",
+  "@classAccountId": {
+    "description": "Label of the account_id region class"
+  },
+  "classAvatar": "Avatar",
+  "@classAvatar": {
+    "description": "Label of the avatar region class"
+  },
+  "classFace": "Face",
+  "@classFace": {
+    "description": "Label of the face region class (faces in photos, from the built-in face detector)"
+  },
+  "classQr": "QR code",
+  "@classQr": {
+    "description": "Label of the qr region class"
+  },
+  "classBarcode": "Barcode",
+  "@classBarcode": {
+    "description": "Label of the barcode region class"
+  },
+  "classManual": "Manual",
+  "@classManual": {
+    "description": "Label of the manual region class"
+  },
+  "noLabelsIn": "No coco.json in {name}",
+  "@noLabelsIn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "savedModelFailed": "The saved model could not be loaded; choose a model again. ({error})",
+  "@savedModelFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fillSurround": "Background colour",
+  "fillTinted": "Colour mosaic",
+  "settings": "Settings",
+  "classFinance": "Finance",
+  "@classFinance": {
+    "description": "Label of the finance region class: personal money amounts (balance, transfer, income)"
+  },
+  "collectTitle": "Collect training data",
+  "collectSubtitle": "Keep each exported image, the detected boxes and your choices on this device to train future models. Nothing is uploaded.",
+  "collectStats": "{count} images · {size}",
+  "@collectStats": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "collectDelete": "Delete collected data",
+  "collectDeleteConfirm": "Delete all collected images and choices from this device?",
+  "delete": "Delete",
+  "collectFailed": "Could not save training data: {error}",
+  "@collectFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "labelsSaved": "Saved labels for {count} images",
+  "@labelsSaved": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undo": "Undo",
+  "@undo": {
+    "description": "Toolbar button: undo the last change to the boxes."
+  },
+  "redo": "Redo",
+  "@redo": {
+    "description": "Toolbar button: redo the change just undone."
+  },
+  "similar": "Similar",
+  "@similar": {
+    "description": "Short button: find areas that look like the chosen box, in this image and the others opened with it."
+  },
+  "thisImage": "This image",
+  "@thisImage": {
+    "description": "Segment in the regions panel: show only the image on screen."
+  },
+  "allImagesCount": "All {count} images",
+  "@allImagesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "Segment in the regions panel: show every opened image."
+  },
+  "exportCheckTitle": "{count, plural, =1{1 area may still be readable} other{{count} areas may still be readable}}",
+  "@exportCheckTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "Title of a sheet after export: the safety check still found this many areas that can be read in the redacted output."
+  },
+  "exportCheckBody": "After redaction, the check still found these areas in the output.",
+  "@exportCheckBody": {
+    "description": "Explains the sheet: after hiding the chosen areas, the automatic check looked at the output and found these areas again."
+  },
+  "redactThemAndExport": "Redact them and export",
+  "@redactThemAndExport": {
+    "description": "Main button: hide those areas too, then export."
+  },
+  "showThem": "Show them",
+  "@showThem": {
+    "description": "Button: close the sheet and show those areas in the image so the user can decide."
+  },
+  "pickClass": "Choose a class",
+  "@pickClass": {
+    "description": "Title of a list: choose what kind of private information this box holds."
+  },
+  "annotateOf": "Annotate {index} / {total}",
+  "@annotateOf": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    },
+    "description": "Title bar while annotating (labelling images by hand to make training data): which image of the queue, e.g. 'Annotate 2 / 5'."
+  },
+  "suggestions": "Suggestions",
+  "@suggestions": {
+    "description": "Toggle chip while annotating: show the detector's boxes as suggestions the user can accept."
+  },
+  "skip": "Skip",
+  "@skip": {
+    "description": "Button while annotating: leave this image undecided and go to the next."
+  },
+  "nothingPrivate": "Nothing private",
+  "@nothingPrivate": {
+    "description": "Button while annotating: this image contains no private information; save it as such."
+  },
+  "next": "Next",
+  "@next": {
+    "description": "Main button while annotating: save the boxes of this image and go to the next image."
+  },
+  "annotateHint": "Tap a text line to box it, or drag to draw",
+  "@annotateHint": {
+    "description": "Hint over the image while annotating: tap a line of text to put a box on it, or drag a finger to draw a box."
+  },
+  "annotationData": "Annotation data",
+  "@annotationData": {
+    "description": "Page title and menu item: the training data the user made by annotating images on this device."
+  },
+  "statLabeled": "Labelled",
+  "@statLabeled": {
+    "description": "Count label: images annotated with boxes."
+  },
+  "statEmpty": "Nothing private",
+  "@statEmpty": {
+    "description": "Count label and tag: images marked as containing nothing private."
+  },
+  "statSkipped": "Skipped",
+  "@statSkipped": {
+    "description": "Count label and tag: images skipped while annotating."
+  },
+  "boxesPerClass": "Boxes per class",
+  "@boxesPerClass": {
+    "description": "Section header: number of boxes for each kind of private information."
+  },
+  "imagesHeader": "Images",
+  "@imagesHeader": {
+    "description": "Section header: list of annotated images."
+  },
+  "boxCount": "{count, plural, =1{1 box} other{{count} boxes}}",
+  "@boxCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "Tag on an annotated image: how many boxes it has."
+  },
+  "exportAll": "Export all",
+  "@exportAll": {
+    "description": "Button: share all annotation data as one file."
+  },
+  "deleteAll": "Delete all",
+  "@deleteAll": {
+    "description": "Menu item: delete all annotation data."
+  },
+  "annotateDeleteConfirm": "Delete all annotations and their images from this device?",
+  "@annotateDeleteConfirm": {
+    "description": "Confirmation before deleting all annotations and their images from this phone."
+  },
+  "noAnnotations": "No annotations yet. Select images and choose Annotate.",
+  "@noAnnotations": {
+    "description": "Empty state: nothing annotated yet; select images in the gallery and tap Annotate."
+  },
+  "filterScreenshots": "Screenshots",
+  "@filterScreenshots": {
+    "description": "Gallery filter chip: the Screenshots album."
+  },
+  "filterAll": "All",
+  "@filterAll": {
+    "description": "Gallery filter chip: all photos."
+  },
+  "filterVideos": "Videos",
+  "@filterVideos": {
+    "description": "Gallery filter chip: videos."
+  },
+  "albums": "Albums",
+  "@albums": {
+    "description": "Gallery filter chip that opens a list of albums."
+  },
+  "limitedAccess": "MosaicIt can see only some of your photos",
+  "@limitedAccess": {
+    "description": "Banner: the user allowed access to only some photos (iOS limited photo access)."
+  },
+  "manage": "Manage",
+  "@manage": {
+    "description": "Button on that banner: choose which photos the app may see."
+  },
+  "selectedImages": "{count} selected",
+  "@selectedImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "Title bar while selecting photos in the gallery: how many are selected."
+  },
+  "redactImages": "{count, plural, =1{Redact 1 image} other{Redact {count} images}}",
+  "@redactImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "Main button after selecting photos: hide private information in them (redact)."
+  },
+  "annotate": "Annotate",
+  "@annotate": {
+    "description": "Button after selecting photos: label them by hand to make training data (annotate)."
+  },
+  "badgeRedacted": "Redacted",
+  "@badgeRedacted": {
+    "description": "Small tag on a gallery thumbnail: this photo was already redacted and exported."
+  },
+  "badgeAnnotated": "Annotated",
+  "@badgeAnnotated": {
+    "description": "Small tag on a gallery thumbnail: this photo was already annotated."
+  },
+  "photosDenied": "MosaicIt needs access to your photos to show them here. Photos never leave this device.",
+  "@photosDenied": {
+    "description": "Shown when the app has no photo access: why it needs it, and that photos never leave the phone."
+  },
+  "openSettings": "Open Settings",
+  "@openSettings": {
+    "description": "Button: open the system Settings app to grant photo access."
+  },
+  "openFiles": "Open files",
+  "@openFiles": {
+    "description": "Menu item on desktop: open image files from disk."
+  },
+  "noPhotos": "No photos here",
+  "@noPhotos": {
+    "description": "Empty gallery: no photos in this album."
+  },
+  "loading": "Loading…",
+  "@loading": {
+    "description": "Progress text while photos load."
+  },
+  "appearance": "Appearance",
+  "@appearance": {
+    "description": "Settings section header: look of the app."
+  },
+  "theme": "Theme",
+  "@theme": {
+    "description": "Settings row and page title: app theme (colours, light/dark)."
+  },
+  "appIcon": "App icon",
+  "@appIcon": {
+    "description": "Settings row: choose the app's home screen icon."
+  },
+  "aspectRatioGrid": "Aspect ratio grid",
+  "@aspectRatioGrid": {
+    "description": "Gallery menu, checkable: show each photo whole in its grid cell instead of cropped to a square."
+  },
+  "modelDownloadFailed": "The model could not be downloaded",
+  "@modelDownloadFailed": {
+    "description": "Gallery notice: the detector model, downloaded on first launch, could not be fetched (offline or server error)."
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Button: try the failed download again."
+  },
+  "autoUpdateModel": "Update the model automatically",
+  "@autoUpdateModel": {
+    "description": "Settings switch: download newer detector models when they are published."
+  },
+  "threshold": "Threshold",
+  "@threshold": {
+    "description": "Settings row: how confident the detector must be to pre-select a region (a lower threshold pre-selects more regions)."
+  },
+  "thresholdLow": "Low",
+  "@thresholdLow": {
+    "description": "Threshold preset: low (pre-selects more regions)."
+  },
+  "thresholdMedium": "Medium",
+  "@thresholdMedium": {
+    "description": "Threshold preset: medium (the model's own thresholds)."
+  },
+  "thresholdHigh": "High",
+  "@thresholdHigh": {
+    "description": "Threshold preset: high (pre-selects fewer regions)."
+  },
+  "redaction": "Redaction",
+  "@redaction": {
+    "description": "Settings section header: how private areas are hidden."
+  },
+  "style": "Style",
+  "@style": {
+    "description": "Settings row: the redaction style (solid colour, mosaic, ...)."
+  },
+  "selectedByDefault": "Selected by default",
+  "@selectedByDefault": {
+    "description": "Settings row under Redaction: which region classes are pre-selected for redaction after detection; the others are shown as unselected suggestions."
+  },
+  "dataPrivacy": "Data and privacy",
+  "@dataPrivacy": {
+    "description": "Settings section header: data and privacy."
+  },
+  "localOnly": "Kept on this device only, never in iCloud or backups.",
+  "@localOnly": {
+    "description": "Note under collected data: it stays on this phone, never in iCloud or backups."
+  },
+  "model": "Model",
+  "@model": {
+    "description": "Settings section header: the detection model."
+  },
+  "importModel": "Import another model",
+  "@importModel": {
+    "description": "Settings row: import a different detection model file."
+  },
+  "advanced": "Advanced",
+  "@advanced": {
+    "description": "Subtitle marking the row as an advanced option."
+  },
+  "about": "About",
+  "@about": {
+    "description": "Settings section header: about the app."
+  },
+  "licenses": "Open-source licences",
+  "@licenses": {
+    "description": "Settings row: open-source licences of the libraries used."
+  },
+  "merge": "Merge",
+  "@merge": {
+    "description": "Box menu item: join this box with another box as one value printed over several lines (e.g. an address broken over two lines)."
+  },
+  "split": "Split",
+  "@split": {
+    "description": "Box menu item: undo a merge; each line becomes a value of its own again."
+  },
+  "mergeHint": "Tap another box to make it part of the same value",
+  "@mergeHint": {
+    "description": "Banner while merging: tap another box to make it part of the same value as the selected one."
+  },
+  "classOrganization": "Organization",
+  "@classOrganization": {
+    "description": "Class of private information: the name of a group chat, shop, company or other organization."
+  },
+  "classDeviceId": "Device ID",
+  "@classDeviceId": {
+    "description": "Class of private information: a device or network identifier (IP or MAC address, IMEI, serial number, advertising ID)."
+  },
+  "classSecret": "Secret",
+  "@classSecret": {
+    "description": "Class of private information: a credential shown in clear text (password, API key or token, private key, recovery phrase, one-time code)."
+  }
+}

@@ -1,0 +1,4 @@
+[submodule "app/packages/fl_lib"]
+	path = app/packages/fl_lib
+	url = https://github.com/lollipopkit/fl_lib
+	branch = main

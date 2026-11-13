@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 and older. Collected training data holds unredacted originals. -->
+<full-backup-content>
+    <exclude domain="root" path="app_flutter/collected/" />
+</full-backup-content>

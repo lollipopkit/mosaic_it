@@ -1,0 +1,116 @@
+# Model releases pinned by BLAKE3. Weights are not committed. Check files with
+#   unseen models verify <model.onnx>...
+# and add entries with `unseen models hash` (steps: docs/release.md). The sidecar (<file>.json) holds the
+# classes and calibration, so recalibrating changes its hash.
+#
+# `models/publish.sh` uploads an entry's files to its `url` and this file,
+# signed, to https://pub.lolli.tech/models/unseen/manifest.signed, where the app
+# looks for a newer release. `format` (default 1) is raised when a release
+# needs a newer app.
+#
+# 0.1.0 to 0.3.2 were trained on synthetic screenshots only and were not
+# published (10 classes; 0.3.2 is 0.3.1's weights with a new calibration).
+#
+# 0.4.0: 15 classes (adds finance, organization, device_id and secret),
+# trained on synthetic and labelled real screenshots (docs/model.md). The
+# sidecar selects every class at 0.45 with no review band and certifies none.
+
+[[model]]
+name = "unseen-det"
+version = "0.1.0"
+variant = "tiled"
+file = "unseen-det-tile.onnx"
+blake3 = "f328db7e528a837dfc8cbf24ecdb1e1c2c5253db7b9654e5696c56cfcdd8603a"
+sidecar_blake3 = "8ef6c1a87e1ce4766e129739bdf1fa7116b1f0459f2ddca0fdcf87709113a1b3"
+url = ""
+
+[[model]]
+name = "unseen-det"
+version = "0.1.0"
+variant = "dynamic"
+file = "unseen-det.onnx"
+blake3 = "c47659e305c79106386d5113befeecc3c03369b6abe26b7a344562c87bae30d2"
+sidecar_blake3 = "c078b71aca6fb03cea7b774aec97fae7810802ebd544150fe03817c6483a63de"
+url = ""
+
+[[model]]
+name = "unseen-det"
+version = "0.2.0"
+variant = "tiled"
+file = "unseen-det-tile.onnx"
+blake3 = "e3c2e366206370392e38e00496ff80470d2a649e863da203309781f0e67585f8"
+sidecar_blake3 = "ba57cbb66b48dcd27800f00f5179897efd1dd5f565d1ac494c1355e251a6e2a4"
+url = ""
+
+[[model]]
+name = "unseen-det"
+version = "0.2.0"
+variant = "dynamic"
+file = "unseen-det.onnx"
+blake3 = "5e343e169395e7e43c478c6e6506797b162a6ac19ca057239f4995cae6d90bc3"
+sidecar_blake3 = "7b9982718557e9c022eb963632137fb099bba12e938ce52679a9cf8c9aa64bb6"
+url = ""
+
+[[model]]
+name = "unseen-det"
+version = "0.3.0"
+variant = "tiled"
+file = "unseen-det-tile.onnx"
+blake3 = "993c08ccd0af5889d30e6b9dfce31001ae449cfb71ad1a69e8334bbd17a0a960"
+sidecar_blake3 = "0e4f18246636e6252a5d7013d18457af60a3a31888f76d70661a20820e0320a2"
+url = ""
+
+[[model]]
+name = "unseen-det"
+version = "0.3.0"
+variant = "dynamic"
+file = "unseen-det.onnx"
+blake3 = "2236abd1b5ba4625a139021ebf46eaadde8e3f1bb2532232b598540cae9694d8"
+sidecar_blake3 = "5a59917fc920799203adb03cd3464f41d7485f722e2109171f38eb399616a9a5"
+url = ""
+
+[[model]]
+name = "unseen-det"
+version = "0.3.1"
+variant = "tiled"
+file = "unseen-det-tile.onnx"
+blake3 = "6096443515f6f1e2a22964a62b6171159435b5968ee793473308909afe114a37"
+sidecar_blake3 = "883cdaa0aa31dbc0abc2085a1523852de4594f5d9fe275a3a4c7a5d332029ff4"
+url = ""
+
+[[model]]
+name = "unseen-det"
+version = "0.3.1"
+variant = "dynamic"
+file = "unseen-det.onnx"
+blake3 = "89e5155016561b87c9634edc71753e755b1fa31627abcbbe530f72124dce986e"
+sidecar_blake3 = "e27a62008ed9d6c7b688fe93a291c8bde146b1fd2a08b6977475c46ea1591321"
+url = ""
+
+[[model]]
+name = "unseen-det"
+version = "0.3.2"
+variant = "tiled"
+file = "unseen-det-tile.onnx"
+blake3 = "6096443515f6f1e2a22964a62b6171159435b5968ee793473308909afe114a37"
+sidecar_blake3 = "96d3941e639a9744afd69fe764253f98539dc9862b96acf9cc5751b74a038316"
+url = ""
+
+[[model]]
+name = "unseen-det"
+version = "0.3.2"
+variant = "dynamic"
+file = "unseen-det.onnx"
+blake3 = "89e5155016561b87c9634edc71753e755b1fa31627abcbbe530f72124dce986e"
+sidecar_blake3 = "f56126131be889086836ff8487173d1c416f229559b69f418ef8aa2ca8a6e64c"
+url = ""
+
+
+[[model]]
+name = "unseen-det"
+version = "0.4.0"
+variant = "tiled"
+file = "unseen-det-tile.onnx"
+blake3 = "f002b8b865cc5f9ff0bdd57b8965566e92cec1c1d93875300b7ae66436b910f9"
+sidecar_blake3 = "f73aca8e7a69d3e493ea667431a8f7cdc70c895690ceaac3bb78322a69fbda0c"
+url = "https://pub.lolli.tech/models/unseen/0.4.0"

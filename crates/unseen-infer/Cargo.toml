@@ -1,0 +1,22 @@
+[package]
+name = "unseen-infer"
+description = "Inference backends for unseen-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = ["ort"]
+ort = ["dep:ort"]
+coreml = ["ort", "ort/coreml"]
+cuda = ["ort", "ort/cuda"]
+directml = ["ort", "ort/directml"]
+xnnpack = ["ort", "ort/xnnpack"]
+qnn = ["ort", "ort/qnn"]
+nnapi = ["ort", "ort/nnapi"]
+
+[dependencies]
+unseen-core.workspace = true
+ndarray.workspace = true
+ort = { workspace = true, optional = true }

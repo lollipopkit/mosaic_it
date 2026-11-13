@@ -1,0 +1,36 @@
+[package]
+name = "unseen-ffi"
+description = "flutter_rust_bridge API surface for the MosaicIt app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[dependencies]
+unseen-core.workspace = true
+unseen-infer.workspace = true
+unseen-media.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true
+image.workspace = true
+flutter_rust_bridge = "=2.13.0"
+
+# Apple platforms get the CoreML execution provider; it falls back to CPU at
+# runtime when unavailable.
+[target.'cfg(target_vendor = "apple")'.dependencies]
+unseen-infer = { workspace = true, features = ["coreml"] }
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSURL", "NSValue", "NSError", "NSArray", "NSDictionary", "NSEnumerator"] }
+objc2-vision = { version = "0.3", default-features = false, features = ["std", "VNRequest", "VNRequestHandler", "VNRecognizeTextRequest", "VNObservation", "VNTypes", "objc2-core-foundation"] }
+objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFCGTypes"] }
+
+# Android gets NNAPI, the only EP in ORT's prebuilt Android binaries; XNNPACK
+# and QNN need ONNX Runtime built from source.
+[target.'cfg(target_os = "android")'.dependencies]
+unseen-infer = { workspace = true, features = ["nnapi"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

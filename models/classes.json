@@ -1,0 +1,20 @@
+{
+  "_comment": "Canonical class list. Ids are stable: append only, never reorder or reuse. Shared by the training code and the Rust core.",
+  "classes": [
+    { "id": 0,  "name": "person_name", "group": "context" },
+    { "id": 1,  "name": "address",     "group": "context" },
+    { "id": 2,  "name": "phone",       "group": "format" },
+    { "id": 3,  "name": "email",       "group": "format" },
+    { "id": 4,  "name": "id_number",   "group": "format" },
+    { "id": 5,  "name": "bank_card",   "group": "format" },
+    { "id": 6,  "name": "plate",       "group": "format" },
+    { "id": 7,  "name": "account_id",  "group": "format" },
+    { "id": 8,  "name": "avatar",      "group": "visual" },
+    { "id": 9,  "name": "qr",          "group": "visual" },
+    { "id": 10, "name": "barcode",     "group": "visual" },
+    { "id": 11, "name": "finance",     "group": "context" },
+    { "id": 12, "name": "organization", "group": "context" },
+    { "id": 13, "name": "device_id",   "group": "format" },
+    { "id": 14, "name": "secret",      "group": "format" }
+  ]
+}
