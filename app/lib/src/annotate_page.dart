@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fl_lib/fl_lib.dart' show ContextMenuAction, showContextMenu;
 import 'package:material_ui/material_ui.dart';
 
 import '../l10n/app_localizations.dart';
@@ -7,7 +8,7 @@ import 'boxes.dart';
 import 'collect.dart';
 import 'edit_session.dart';
 import 'editor.dart';
-import 'editor_page.dart';
+import 'editor_menus.dart';
 import 'l10n.dart';
 import 'label_set.dart';
 import 'rust/api.dart';
@@ -103,7 +104,9 @@ class _AnnotatePageState extends State<AnnotatePage> {
   bool _suggest = false;
   final _suggested = <Shot>{};
   String? _busy;
-  (EditBox, Rect)? _menu;
+
+  /// The editor's area, to place a box's menu under the box.
+  final _viewKey = GlobalKey();
 
   /// Text lines per shot, found on first view.
   final _lines = <Shot, List<Rect>>{};
@@ -150,9 +153,38 @@ class _AnnotatePageState extends State<AnnotatePage> {
     _prepare();
   }
 
-  void _changed() {
-    if (_menu case (final b, _) when _s?.active != b) _menu = null;
-    setState(() {});
+  void _changed() => setState(() {
+    // A merge starts from a box of the shown shot (gone after a shot
+    // switch, delete or undo).
+    if (_mergeFrom case final m? when !(_s?.shot.boxes.contains(m) ?? false)) {
+      _mergeFrom = null;
+    }
+  });
+
+  /// The menu of [b], under its place [r] in the editor.
+  void _boxMenu(EditBox b, Rect r) {
+    final s = _s!;
+    final view = _viewKey.currentContext?.findRenderObject() as RenderBox?;
+    showContextMenu(context, at: view?.localToGlobal(r.bottomCenter), [
+      classAction(_l, b, () => _boxClass(b)),
+      ContextMenuAction(
+        text: _l.merge,
+        icon: Icons.join_inner,
+        onTap: () => setState(() => _mergeFrom = b),
+      ),
+      if (b.group != null)
+        ContextMenuAction(
+          text: _l.split,
+          icon: Icons.call_split,
+          onTap: () => s.split(b),
+        ),
+      ContextMenuAction(
+        text: _l.delete,
+        icon: Icons.delete_outline,
+        destructive: true,
+        onTap: () => s.remove(b),
+      ),
+    ]);
   }
 
   void _toast(String text) =>
@@ -327,26 +359,23 @@ class _AnnotatePageState extends State<AnnotatePage> {
             child: ColoredBox(
               color: scheme.surfaceContainerHighest,
               child: Stack(
+                key: _viewKey,
                 children: [
                   Positioned.fill(
-                    child: Listener(
-                      onPointerDown: (_) {
-                        if (_menu != null) setState(() => _menu = null);
-                      },
-                      child: BoxEditor(
-                        key: ValueKey(shot),
-                        session: s,
-                        kind: EditorKind.annotate,
-                        // One finger draws (or moves the active box); two
-                        // fingers zoom and pan. Not while picking merges.
-                        drawing: _mergeFrom == null,
-                        drawClass: _class,
-                        textLines: _lines[shot] ?? const [],
-                        onLineTap: _addLine,
-                        onLongPress: (b, r) => setState(() => _menu = (b, r)),
-                        mergeFrom: _mergeFrom,
-                        onMergePick: _mergePick,
-                      ),
+                    child: BoxEditor(
+                      key: ValueKey(shot),
+                      session: s,
+                      kind: EditorKind.annotate,
+                      // One finger draws (or moves the active box); two
+                      // fingers zoom and pan. Not while picking merges.
+                      drawing: _mergeFrom == null,
+                      merging: _mergeFrom != null,
+                      drawClass: _class,
+                      textLines: _lines[shot] ?? const [],
+                      onLineTap: _addLine,
+                      onLongPress: _boxMenu,
+                      mergeFrom: _mergeFrom,
+                      onMergePick: _mergePick,
                     ),
                   ),
                   if (shot.boxes.isEmpty && (_lines[shot]?.isNotEmpty ?? false))
@@ -356,27 +385,13 @@ class _AnnotatePageState extends State<AnnotatePage> {
                       bottom: 12,
                       child: Center(child: Chip(label: Text(_l.annotateHint))),
                     ),
-                  if (_menu case (final b, final r))
-                    BoxMenu(
-                      at: r,
-                      actions: [
-                        (
-                          '${classLabel(_l, b.className)} ▾',
-                          () => _boxClass(b),
-                        ),
-                        (
-                          _l.merge,
-                          () => setState(() {
-                            _menu = null;
-                            _mergeFrom = b;
-                          }),
-                        ),
-                        if (b.group != null) (_l.split, () => s.split(b)),
-                        (_l.delete, () => s.remove(b)),
-                      ],
-                    ),
                   if (_mergeFrom != null)
-                    MergeHint(onCancel: () => _mergePick(null)),
+                    Positioned(
+                      left: 10,
+                      right: 10,
+                      top: 8,
+                      child: MergeHint(onCancel: () => _mergePick(null)),
+                    ),
                 ],
               ),
             ),

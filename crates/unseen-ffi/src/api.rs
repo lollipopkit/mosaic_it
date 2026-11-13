@@ -302,7 +302,8 @@ impl Session {
 
     /// Redacts `rects`, runs the export self-check and writes `out_path`
     /// (format from its extension, no metadata) if the check passes or
-    /// `force` is set.
+    /// `force` is set. `max_side` scales the written image down so its longer
+    /// side is at most that many pixels; the check runs at full size.
     pub fn redact_and_export(
         &self,
         image_path: String,
@@ -310,6 +311,7 @@ impl Session {
         rects: Vec<PixelRect>,
         fill: Fill,
         force: bool,
+        max_side: Option<u32>,
     ) -> Result<ExportOutcome> {
         let src = open(&image_path)?;
         let boxes = boxes_of(&rects);
@@ -326,7 +328,7 @@ impl Session {
         let check = export_check(&mut self.lock(), &src, &out, prev.as_ref(), &boxes, PAD, style)?;
         let written = check.passed() || force;
         if written {
-            out.save(&out_path).with_context(|| format!("writing {out_path}"))?;
+            write_image(&out, Path::new(&out_path), max_side).with_context(|| format!("writing {out_path}"))?;
         }
         Ok(ExportOutcome {
             written,
@@ -338,6 +340,37 @@ impl Session {
             correlated: check.correlated.iter().map(|&i| i as u32).collect(),
         })
     }
+}
+
+/// JPEG quality of exported images: no visible artefacts on UI text.
+const JPEG_QUALITY: u8 = 92;
+
+/// Writes `img` in the format of `path`'s extension, scaled down to `max_side`.
+fn write_image(img: &image::RgbImage, path: &Path, max_side: Option<u32>) -> Result<()> {
+    let scaled;
+    let img = match max_side {
+        Some(m) if img.width().max(img.height()) > m => {
+            let k = m as f64 / img.width().max(img.height()) as f64;
+            let (w, h) = (
+                ((img.width() as f64 * k).round() as u32).max(1),
+                ((img.height() as f64 * k).round() as u32).max(1),
+            );
+            scaled = image::imageops::resize(img, w, h, image::imageops::FilterType::Lanczos3);
+            &scaled
+        }
+        _ => img,
+    };
+    let jpeg = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .is_some_and(|e| e.eq_ignore_ascii_case("jpg") || e.eq_ignore_ascii_case("jpeg"));
+    if jpeg {
+        let out = std::io::BufWriter::new(std::fs::File::create(path)?);
+        image::codecs::jpeg::JpegEncoder::new_with_quality(out, JPEG_QUALITY).encode_image(img)?;
+    } else {
+        img.save(path)?;
+    }
+    Ok(())
 }
 
 /// Every class a box can have, in id order: models/classes.json, the list
@@ -726,5 +759,24 @@ mod tests {
         let c = super::label_classes();
         assert_eq!(c.first().map(String::as_str), Some("person_name"));
         assert!(c.contains(&"finance".to_string()));
+    }
+
+    #[test]
+    fn write_image_scales_down_and_encodes_by_extension() {
+        let dir = std::env::temp_dir().join(format!("unseen-write-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let img = image::RgbImage::from_pixel(400, 100, image::Rgb([10, 200, 30]));
+        for (name, max, size, format) in [
+            ("a.png", None, (400, 100), image::ImageFormat::Png),
+            ("b.JPG", Some(200), (200, 50), image::ImageFormat::Jpeg),
+            ("c.png", Some(1000), (400, 100), image::ImageFormat::Png),
+        ] {
+            let p = dir.join(name);
+            super::write_image(&img, &p, max).unwrap();
+            let r = image::ImageReader::open(&p).unwrap().with_guessed_format().unwrap();
+            assert_eq!(r.format(), Some(format), "{name}");
+            assert_eq!(r.into_dimensions().unwrap(), size, "{name}");
+        }
+        std::fs::remove_dir_all(dir).unwrap();
     }
 }

@@ -7,7 +7,7 @@ import 'frb_generated.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `analysed`, `boxes_of`, `keyframe_file`, `keyframe_file`, `lock`, `open`, `pixel_rect`, `region`
+// These functions are ignored because they are not marked as `pub`: `analysed`, `boxes_of`, `keyframe_file`, `keyframe_file`, `lock`, `open`, `pixel_rect`, `region`, `write_image`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `fmt`, `from`
 
 /// What export would draw over each of `rects`, for the editor to overlay.
@@ -91,13 +91,15 @@ abstract class Session implements RustOpaqueInterface {
 
   /// Redacts `rects`, runs the export self-check and writes `out_path`
   /// (format from its extension, no metadata) if the check passes or
-  /// `force` is set.
+  /// `force` is set. `max_side` scales the written image down so its longer
+  /// side is at most that many pixels; the check runs at full size.
   Future<ExportOutcome> redactAndExport({
     required String imagePath,
     required String outPath,
     required List<PixelRect> rects,
     required Fill fill,
     required bool force,
+    int? maxSide,
   });
 
   /// Classes detected but not pre-selected, and skipped by the export check.

@@ -742,15 +742,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
-  icons_plus:
-    dependency: transitive
-    description:
-      path: "."
-      ref: main
-      resolved-ref: "42670d29c8c1cffb7203dd110e0009ba98709667"
-      url: "https://github.com/lollipopkit/icons_plus"
-    source: git
-    version: "5.0.0"
   image:
     dependency: "direct dev"
     description:

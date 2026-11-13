@@ -31,7 +31,6 @@
   "calibratedFor": "已针对 {domain} 图片进行校准。其他类型的图片不在保证范围内。",
   "cameraPhoto": "这是一张相机照片；检测器专为截图设计，因此此处的框选不可靠。",
   "modeDraw": "绘制",
-  "fillLabel": "填充",
   "fillSolid": "纯色",
   "fillBlocks": "灰色马赛克",
   "fillNoise": "噪点",

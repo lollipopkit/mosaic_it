@@ -31,7 +31,6 @@
   "calibratedFor": "{domain} 画像用にキャリブレーションされました。他の種類の画像は保証の対象外です。",
   "cameraPhoto": "これはカメラ写真です。検出器はスクリーンショット用に作られているため、ここでのボックスは信頼できません。",
   "modeDraw": "描画",
-  "fillLabel": "塗りつぶし",
   "fillSolid": "単色",
   "fillBlocks": "グレーのモザイク",
   "fillNoise": "ノイズ",

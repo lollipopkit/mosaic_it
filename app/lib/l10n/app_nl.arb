@@ -31,7 +31,6 @@
   "calibratedFor": "Gekalibreerd voor {domain}-afbeeldingen. Andere soorten afbeeldingen vallen buiten de garantie.",
   "cameraPhoto": "Dit is een camerfoto; de detector is gemaakt voor screenshots, dus de kaders hier zijn onbetrouwbaar.",
   "modeDraw": "Tekenen",
-  "fillLabel": "Vulling",
   "fillSolid": "Effen kleur",
   "fillBlocks": "Grijs mozaïek",
   "fillNoise": "Ruis",

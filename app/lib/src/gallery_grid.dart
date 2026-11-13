@@ -194,6 +194,7 @@ class _GalleryGridState extends State<GalleryGrid> {
                       key: ValueKey(a.id),
                       asset: a,
                       order: widget.selected.indexOf(a) + 1,
+                      selecting: widget.selected.isNotEmpty,
                       pixels: _pixels[_zoom],
                       whole: whole,
                       onTap: () {
@@ -219,6 +220,7 @@ class _Cell extends StatelessWidget {
     super.key,
     required this.asset,
     required this.order,
+    required this.selecting,
     required this.pixels,
     required this.whole,
     required this.onTap,
@@ -229,6 +231,9 @@ class _Cell extends StatelessWidget {
 
   /// 1-based position in the selection, 0 when not selected.
   final int order;
+
+  /// Some cell is selected: the others show where a tap selects them.
+  final bool selecting;
 
   /// Thumbnail short side in pixels.
   final int pixels;
@@ -292,6 +297,20 @@ class _Cell extends StatelessWidget {
               ),
             ),
           ],
+          if (order == 0 && selecting)
+            Positioned(
+              right: 6,
+              top: 6,
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1.5),
+                  color: Colors.black.withValues(alpha: .15),
+                ),
+              ),
+            ),
           if (mark != null)
             Positioned(
               left: 4,

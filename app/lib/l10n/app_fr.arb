@@ -31,7 +31,6 @@
   "calibratedFor": "Calibré pour les images {domain}. Les autres types d'images sont hors garantie.",
   "cameraPhoto": "Ceci est une photo d'appareil photo ; le détecteur est conçu pour les captures d'écran, ses cadres sont donc peu fiables ici.",
   "modeDraw": "Dessiner",
-  "fillLabel": "Remplissage",
   "fillSolid": "Couleur unie",
   "fillBlocks": "Mosaïque grise",
   "fillNoise": "Bruit",

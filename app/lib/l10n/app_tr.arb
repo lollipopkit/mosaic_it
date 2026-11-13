@@ -31,7 +31,6 @@
   "calibratedFor": "{domain} görselleri için kalibre edildi. Diğer türdeki görseller garanti kapsamı dışındadır.",
   "cameraPhoto": "Bu bir kamera fotoğrafıdır; algılayıcı ekran görüntüleri için yapıldığından buradaki kutuları güvenilir değildir.",
   "modeDraw": "Çiz",
-  "fillLabel": "Doldur",
   "fillSolid": "Düz renk",
   "fillBlocks": "Gri mozaik",
   "fillNoise": "Gürültü",

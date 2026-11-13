@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:file_selector/file_selector.dart';
+import 'package:fl_lib/fl_lib.dart' show EmptyPane, StringUrlX;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
@@ -63,6 +64,7 @@ class _HomePageState extends State<HomePage> {
   final _selected = <AssetEntity>[];
 
   static const _pageSize = 120;
+  static const _repo = 'https://github.com/lollipopkit/mosaic_it';
   static final _mobile = Platform.isIOS || Platform.isAndroid;
 
   AppLocalizations get _l => AppLocalizations.of(context);
@@ -72,12 +74,24 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadModel();
-      _openLibrary();
+      _checkLibrary();
     });
+    _lifecycle = AppLifecycleListener(
+      onResume: () {
+        final p = _permission;
+        if (p != null && p != PermissionState.notDetermined && !p.hasAccess) {
+          _checkLibrary();
+        }
+      },
+    );
   }
+
+  /// Access granted in Settings shows the library on return.
+  late final AppLifecycleListener _lifecycle;
 
   @override
   void dispose() {
+    _lifecycle.dispose();
     PhotoManager.removeChangeCallback(_libraryChanged);
     PhotoManager.stopChangeNotify();
     super.dispose();
@@ -197,6 +211,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   // --- library --------------------------------------------------------------
+
+  /// Opens the library when access was decided before; otherwise the user
+  /// is told why it is asked for first, and asks with a tap.
+  Future<void> _checkLibrary() async {
+    final p = await PhotoManager.getPermissionState(
+      requestOption: const PermissionRequestOption(),
+    );
+    if (!mounted) return;
+    if (p == PermissionState.notDetermined) {
+      setState(() => _permission = p);
+    } else {
+      await _openLibrary();
+    }
+  }
 
   Future<void> _openLibrary() async {
     final p = await PhotoManager.requestPermissionExtend();
@@ -535,21 +563,48 @@ class _HomePageState extends State<HomePage> {
     final p = _permission;
     if (p == null) return const Center(child: CircularProgressIndicator());
     if (!p.hasAccess) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(_l.photosDenied, textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: PhotoManager.openSetting,
-                child: Text(_l.openSettings),
+      final ask = p == PermissionState.notDetermined;
+      return Column(
+        children: [
+          Expanded(
+            child: EmptyPane(
+              icon: ask
+                  ? Icons.photo_library_outlined
+                  : Icons.hide_image_outlined,
+              title: ask ? _l.introTitle : _l.photosOffTitle,
+              label: ask ? _l.introBody : _l.photosDenied,
+              action: FilledButton(
+                onPressed: ask ? _openLibrary : PhotoManager.openSetting,
+                child: Text(ask ? _l.allowPhotoAccess : _l.openSettings),
               ),
-            ],
+            ),
           ),
-        ),
+          SafeArea(
+            top: false,
+            minimum: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: Column(
+              children: [
+                Card.filled(
+                  child: ListTile(
+                    leading: const Icon(Icons.code),
+                    title: Text(_l.openSource),
+                    subtitle: Text(_repo.replaceFirst('https://', '')),
+                    trailing: const Icon(Icons.north_east),
+                    onTap: () => _repo.launchUrl(),
+                  ),
+                ),
+                if (_progress case final v?)
+                  Card.filled(
+                    child: ListTile(
+                      leading: const Icon(Icons.download),
+                      title: Text(_l.downloadingDetector),
+                      subtitle: Text(_l.percent((v * 100).floor())),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       );
     }
     return Column(

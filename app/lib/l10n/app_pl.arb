@@ -31,7 +31,6 @@
   "calibratedFor": "Skalibrowany dla obrazów {domain}. Inne rodzaje obrazów są poza gwarancją.",
   "cameraPhoto": "To zdjęcie z aparatu; detektor jest przeznaczony do zrzutów ekranu, więc jego ramki tutaj są nieprawdziwe.",
   "modeDraw": "Rysuj",
-  "fillLabel": "Wypełnienie",
   "fillSolid": "Jednolity kolor",
   "fillBlocks": "Szara mozaika",
   "fillNoise": "Szum",

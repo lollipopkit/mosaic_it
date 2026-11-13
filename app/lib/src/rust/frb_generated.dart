@@ -100,6 +100,7 @@ abstract class RustLibApi extends BaseApi {
     required List<PixelRect> rects,
     required Fill fill,
     required bool force,
+    int? maxSide,
   });
 
   void crateApiSessionSetOffClasses({
@@ -334,6 +335,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required List<PixelRect> rects,
     required Fill fill,
     required bool force,
+    int? maxSide,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -348,6 +350,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_list_pixel_rect(rects, serializer);
           sse_encode_box_autoadd_fill(fill, serializer);
           sse_encode_bool(force, serializer);
+          sse_encode_opt_box_autoadd_u_32(maxSide, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -360,7 +363,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiSessionRedactAndExportConstMeta,
-        argValues: [that, imagePath, outPath, rects, fill, force],
+        argValues: [that, imagePath, outPath, rects, fill, force, maxSide],
         apiImpl: this,
       ),
     );
@@ -369,7 +372,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   TaskConstMeta get kCrateApiSessionRedactAndExportConstMeta =>
       const TaskConstMeta(
         debugName: "Session_redact_and_export",
-        argNames: ["that", "imagePath", "outPath", "rects", "fill", "force"],
+        argNames: [
+          "that",
+          "imagePath",
+          "outPath",
+          "rects",
+          "fill",
+          "force",
+          "maxSide",
+        ],
       );
 
   @override
@@ -1080,6 +1091,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
   VideoExportOptions dco_decode_box_autoadd_video_export_options(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_video_export_options(raw);
@@ -1310,6 +1327,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ModelUpdate? dco_decode_opt_box_autoadd_model_update(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_model_update(raw);
+  }
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_32(raw);
   }
 
   @protected
@@ -1608,6 +1631,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_32(deserializer));
+  }
+
+  @protected
   VideoExportOptions sse_decode_box_autoadd_video_export_options(
     SseDeserializer deserializer,
   ) {
@@ -1892,6 +1921,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_model_update(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_u_32(deserializer));
     } else {
       return null;
     }
@@ -2235,6 +2275,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_video_export_options(
     VideoExportOptions self,
     SseSerializer serializer,
@@ -2502,6 +2548,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_32(self, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_pixel_rect(PixelRect self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_f_32(self.left, serializer);
@@ -2646,13 +2702,15 @@ class SessionImpl extends RustOpaque implements Session {
 
   /// Redacts `rects`, runs the export self-check and writes `out_path`
   /// (format from its extension, no metadata) if the check passes or
-  /// `force` is set.
+  /// `force` is set. `max_side` scales the written image down so its longer
+  /// side is at most that many pixels; the check runs at full size.
   Future<ExportOutcome> redactAndExport({
     required String imagePath,
     required String outPath,
     required List<PixelRect> rects,
     required Fill fill,
     required bool force,
+    int? maxSide,
   }) => RustLib.instance.api.crateApiSessionRedactAndExport(
     that: this,
     imagePath: imagePath,
@@ -2660,6 +2718,7 @@ class SessionImpl extends RustOpaque implements Session {
     rects: rects,
     fill: fill,
     force: force,
+    maxSide: maxSide,
   );
 
   /// Classes detected but not pre-selected, and skipped by the export check.

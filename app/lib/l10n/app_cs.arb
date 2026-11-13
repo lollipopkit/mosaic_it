@@ -31,7 +31,6 @@
   "calibratedFor": "Kalibrovaný pro obrázky {domain}. Jiné typy obrázků jsou mimo záruku.",
   "cameraPhoto": "Toto je foto z kamery; detektor je určen pro snímky obrazovky, takže jeho rámečky zde nejsou spolehlivé.",
   "modeDraw": "Kreslit",
-  "fillLabel": "Vyplnit",
   "fillSolid": "Plná barva",
   "fillBlocks": "Šedá mozaika",
   "fillNoise": "Šum",
