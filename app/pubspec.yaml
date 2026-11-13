@@ -33,12 +33,12 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   flutter_rust_bridge: 2.13.0
   file_selector: ^1.1.0
   path_provider: ^2.1.6
   flutter_rust_bridge_hooks: 2.13.0
-  code_assets: ^2.1.0
+  code_assets: ^2.2.0
   image_picker: ^1.2.4
   share_plus: ^13.3.1
   flutter_localizations:
@@ -51,7 +51,7 @@ dependencies:
   # Zips the collected training data for the share sheet.
   archive: ^4.3.0
   # Material as a package (fl_lib's widgets and themes are built on it).
-  material_ui: ^1.5.0
+  material_ui: ^1.11.0
   photo_manager: ^3.12.0
   # Downloads the detector model and its manifest (fl_lib's HTTP client).
   dio: ^5.4.2+1
