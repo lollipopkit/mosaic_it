@@ -1,0 +1,30 @@
+version: 2
+
+# Every update in one pull request.
+multi-ecosystem-groups:
+  all:
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore"
+
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    patterns: ["*"]
+    multi-ecosystem-group: all
+
+  - package-ecosystem: pub
+    directory: /app
+    patterns: ["*"]
+    multi-ecosystem-group: all
+
+  - package-ecosystem: github-actions
+    directory: /
+    patterns: ["*"]
+    multi-ecosystem-group: all
+
+  - package-ecosystem: gitsubmodule
+    directory: /
+    patterns: ["*"]
+    multi-ecosystem-group: all
