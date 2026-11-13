@@ -9,6 +9,61 @@ import 'edit_session.dart';
 import 'l10n.dart';
 import 'rust/api.dart';
 
+/// [patches] as images where they go, in image pixels.
+Future<List<(Rect, ui.Image)>> decodePatches(List<PreviewPatch> patches) =>
+    Future.wait(
+      patches.map((p) async {
+        final done = Completer<ui.Image>();
+        ui.decodeImageFromPixels(
+          p.rgba,
+          p.width,
+          p.height,
+          ui.PixelFormat.rgba8888,
+          done.complete,
+        );
+        return (
+          Rect.fromLTWH(
+            p.left.toDouble(),
+            p.top.toDouble(),
+            p.width.toDouble(),
+            p.height.toDouble(),
+          ),
+          await done.future,
+        );
+      }),
+    );
+
+/// A dashed rectangle with [width] screen-pixel strokes; [px] is one screen
+/// pixel in canvas units.
+void drawDashedRect(
+  Canvas canvas,
+  Rect r,
+  Color color,
+  double px,
+  double width,
+) {
+  final paint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = width * px
+    ..color = color;
+  final dash = 5 * px;
+  final gap = 3.5 * px;
+  void line(Offset a, Offset b) {
+    final len = (b - a).distance;
+    if (len == 0) return;
+    final dir = (b - a) / len;
+    for (var t = 0.0; t < len; t += dash + gap) {
+      final e = t + dash < len ? t + dash : len;
+      canvas.drawLine(a + dir * t, a + dir * e, paint);
+    }
+  }
+
+  line(r.topLeft, r.topRight);
+  line(r.topRight, r.bottomRight);
+  line(r.bottomRight, r.bottomLeft);
+  line(r.bottomLeft, r.topLeft);
+}
+
 /// What the editor is for: redacting (detections, shown as they will be
 /// hidden) or annotating (labelled boxes, shown in their class colours).
 enum EditorKind { redact, annotate }
@@ -32,6 +87,7 @@ class BoxEditor extends StatefulWidget {
     this.onLongPress,
     this.textLines = const [],
     this.onLineTap,
+    this.merging = false,
     this.mergeFrom,
     this.onMergePick,
   });
@@ -54,9 +110,11 @@ class BoxEditor extends StatefulWidget {
   final List<Rect> textLines;
   final ValueChanged<Rect>? onLineTap;
 
-  /// Set while the user picks boxes to merge with this one: a tap on a box
-  /// calls [onMergePick] with it instead of selecting it, a tap elsewhere
-  /// with null (merging ends).
+  /// The user picks boxes to merge: a tap on a box calls [onMergePick] with
+  /// it instead of selecting it, a tap elsewhere with null (merging ends).
+  final bool merging;
+
+  /// The box the merge starts from, highlighted.
   final EditBox? mergeFrom;
   final ValueChanged<EditBox?>? onMergePick;
 
@@ -180,38 +238,15 @@ class _BoxEditorState extends State<BoxEditor> {
         ],
         fill: f,
       );
-      final images = await Future.wait(patches.map(_decode));
+      final next = await decodePatches(patches);
       if (!mounted || key != _previewKey) {
-        for (final im in images) {
+        for (final (_, im) in next) {
           im.dispose();
         }
         return;
       }
-      _setPreviews([
-        for (final (i, p) in patches.indexed)
-          (
-            Rect.fromLTWH(
-              p.left.toDouble(),
-              p.top.toDouble(),
-              p.width.toDouble(),
-              p.height.toDouble(),
-            ),
-            images[i],
-          ),
-      ]);
+      _setPreviews(next);
     });
-  }
-
-  static Future<ui.Image> _decode(PreviewPatch p) {
-    final done = Completer<ui.Image>();
-    ui.decodeImageFromPixels(
-      p.rgba,
-      p.width,
-      p.height,
-      ui.PixelFormat.rgba8888,
-      done.complete,
-    );
-    return done.future;
   }
 
   void _setPreviews(List<(Rect, ui.Image)> next) {
@@ -236,7 +271,7 @@ class _BoxEditorState extends State<BoxEditor> {
     _fitScale = s;
     _view.value = Matrix4.identity()
       ..translateByDouble(dx, dy, 0, 1)
-      ..scaleByDouble(s, s, 1, 1);
+      ..scaleByDouble(s, s, s, 1);
   }
 
   static double _area(Rect r) => r.width * r.height;
@@ -379,7 +414,7 @@ class _BoxEditorState extends State<BoxEditor> {
   void _tap(TapUpDetails d) {
     final p = d.localPosition;
     final shown = _hit(p);
-    if (widget.mergeFrom != null) {
+    if (widget.merging) {
       widget.onMergePick?.call(shown);
       return;
     }
@@ -487,11 +522,19 @@ class _BoxEditorState extends State<BoxEditor> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.file(
-                      _shot.image,
-                      key: ValueKey(_shot.image.path),
-                      fit: BoxFit.fill,
-                      filterQuality: FilterQuality.medium,
+                    // Rounded by a constant amount on screen.
+                    ListenableBuilder(
+                      listenable: _view,
+                      builder: (context, image) => ClipRRect(
+                        borderRadius: BorderRadius.circular(13 / _zoom),
+                        child: image,
+                      ),
+                      child: Image.file(
+                        _shot.image,
+                        key: ValueKey(_shot.image.path),
+                        fit: BoxFit.fill,
+                        filterQuality: FilterQuality.medium,
+                      ),
                     ),
                     ListenableBuilder(
                       listenable: _view,
@@ -517,6 +560,7 @@ class _BoxEditorState extends State<BoxEditor> {
                           label: (c) => classLabel(l10n, c),
                           previews: _previews,
                           accent: scheme.primary,
+                          score: (s) => s.toStringAsFixed(2),
                         ),
                       ),
                     ),
@@ -545,6 +589,7 @@ class _BoxPainter extends CustomPainter {
     required this.label,
     required this.previews,
     required this.accent,
+    required this.score,
   });
 
   final EditorKind kind;
@@ -572,16 +617,20 @@ class _BoxPainter extends CustomPainter {
   /// Redaction previews of the selected boxes (redact).
   final List<(Rect, ui.Image)> previews;
   final Color accent;
-
-  /// Outline of a detection the user has not selected: a suggestion.
-  static const suggestionColor = Color(0xFFFF9F1A);
+  final String Function(double) score;
 
   @override
   void paint(Canvas canvas, Size size) {
     // Constant on-screen widths whatever the zoom.
     final px = 1 / zoom;
     for (final l in lines) {
-      _dashed(canvas, l.inflate(2 * px), accent.withValues(alpha: .7), px, 1.2);
+      drawDashedRect(
+        canvas,
+        l.inflate(2 * px),
+        accent.withValues(alpha: .7),
+        px,
+        1.2,
+      );
     }
     if (kind == EditorKind.redact) {
       for (final (r, im) in previews) {
@@ -592,8 +641,33 @@ class _BoxPainter extends CustomPainter {
           Paint()..filterQuality = FilterQuality.none,
         );
       }
-      for (final b in [...boxes, ...hidden]) {
-        if (!b.selected) _dashed(canvas, b.rect, suggestionColor, px, 1.5);
+      // Selected: the fill and the class colour around it. Not selected: a
+      // dashed suggestion, fainter below the review threshold.
+      for (final b in boxes) {
+        final c = classColor(b.className);
+        if (b.selected) {
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              b.rect.inflate(px),
+              Radius.circular(3 * px),
+            ),
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 1.5 * px
+              ..color = c,
+          );
+        } else {
+          drawDashedRect(canvas, b.rect, c, px, 1.5);
+        }
+      }
+      for (final b in hidden) {
+        drawDashedRect(
+          canvas,
+          b.rect,
+          classColor(b.className).withValues(alpha: .55),
+          px,
+          1.2,
+        );
       }
     } else {
       // Labels grow with the zoom (up to 3x) so they stay readable.
@@ -621,7 +695,7 @@ class _BoxPainter extends CustomPainter {
         final c = classColor(b.className);
         if (!b.selected) {
           // A suggestion not yet accepted.
-          _dashed(canvas, b.rect, c, px, 1.5);
+          drawDashedRect(canvas, b.rect, c, px, 1.5);
           continue;
         }
         canvas
@@ -649,28 +723,57 @@ class _BoxPainter extends CustomPainter {
       }
     }
     if (active case final a?) {
+      // Redact: in the class colour, labelled with class and score.
+      final c = kind == EditorKind.redact ? classColor(a.className) : accent;
       canvas.drawRect(
         a.rect,
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2 * px
-          ..color = accent,
+          ..color = c,
       );
-      for (final c in [
+      if (kind == EditorKind.redact) {
+        final tp = TextPainter(
+          text: TextSpan(
+            text: [
+              label(a.className),
+              if (a.score case final s?) score(s),
+            ].join(' '),
+            style: TextStyle(
+              fontSize: 12 * px,
+              fontWeight: FontWeight.w500,
+              color: c.computeLuminance() > .4 ? Colors.black : Colors.white,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        final chip = Rect.fromLTWH(
+          a.rect.left,
+          a.rect.top - tp.height - 4 * px,
+          tp.width + 10 * px,
+          tp.height + 2 * px,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(chip, Radius.circular(4 * px)),
+          Paint()..color = c,
+        );
+        tp.paint(canvas, chip.topLeft + Offset(5 * px, px));
+      }
+      for (final h in [
         a.rect.topLeft,
         a.rect.topRight,
         a.rect.bottomLeft,
         a.rect.bottomRight,
       ]) {
         canvas
-          ..drawCircle(c, 6 * px, Paint()..color = Colors.white)
+          ..drawCircle(h, 6 * px, Paint()..color = Colors.white)
           ..drawCircle(
-            c,
+            h,
             6 * px,
             Paint()
               ..style = PaintingStyle.stroke
               ..strokeWidth = 2 * px
-              ..color = accent,
+              ..color = c,
           );
       }
     }
@@ -683,7 +786,7 @@ class _BoxPainter extends CustomPainter {
           ..color = accent,
       );
     }
-    if (drawing case final d?) _dashed(canvas, d, accent, px, 2);
+    if (drawing case final d?) drawDashedRect(canvas, d, accent, px, 2);
   }
 
   static void _dashedLine(
@@ -703,36 +806,6 @@ class _BoxPainter extends CustomPainter {
       final e = t + 4 * px < len ? t + 4 * px : len;
       canvas.drawLine(a + dir * t, a + dir * e, paint);
     }
-  }
-
-  /// A dashed rectangle with [width] screen pixels strokes.
-  static void _dashed(
-    Canvas canvas,
-    Rect r,
-    Color color,
-    double px,
-    double width,
-  ) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = width * px
-      ..color = color;
-    final dash = 5 * px;
-    final gap = 3.5 * px;
-    void line(Offset a, Offset b) {
-      final len = (b - a).distance;
-      if (len == 0) return;
-      final dir = (b - a) / len;
-      for (var t = 0.0; t < len; t += dash + gap) {
-        final e = t + dash < len ? t + dash : len;
-        canvas.drawLine(a + dir * t, a + dir * e, paint);
-      }
-    }
-
-    line(r.topLeft, r.topRight);
-    line(r.topRight, r.bottomRight);
-    line(r.bottomRight, r.bottomLeft);
-    line(r.bottomLeft, r.topLeft);
   }
 
   @override

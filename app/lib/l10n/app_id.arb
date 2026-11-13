@@ -31,7 +31,6 @@
   "calibratedFor": "Dikalibrasi untuk gambar {domain}. Jenis gambar lainnya di luar jaminan.",
   "cameraPhoto": "Ini adalah foto kamera; detektor dibuat untuk tangkapan layar, sehingga kotak di sini tidak dapat diandalkan.",
   "modeDraw": "Gambar",
-  "fillLabel": "Isi",
   "fillSolid": "Warna solid",
   "fillBlocks": "Mozaik abu-abu",
   "fillNoise": "Derau",

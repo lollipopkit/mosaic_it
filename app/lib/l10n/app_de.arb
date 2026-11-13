@@ -31,7 +31,6 @@
   "calibratedFor": "Für {domain}-Bilder kalibriert. Andere Bildtypen fallen nicht unter die Garantie.",
   "cameraPhoto": "Dies ist ein Kamerabild; der Detektor ist für Screenshots ausgelegt, daher sind die Rahmen hier unzuverlässig.",
   "modeDraw": "Zeichnen",
-  "fillLabel": "Füllung",
   "fillSolid": "Volltonfarbe",
   "fillBlocks": "Graues Mosaik",
   "fillNoise": "Rauschen",

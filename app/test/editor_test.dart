@@ -227,6 +227,7 @@ void main() {
           child: BoxEditor(
             session: s,
             kind: EditorKind.annotate,
+            merging: true,
             mergeFrom: a,
             onMergePick: picked.add,
           ),

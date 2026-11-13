@@ -31,7 +31,6 @@
   "calibratedFor": "Calibrado para imagens de {domain}. Outros tipos de imagens estão fora da garantia.",
   "cameraPhoto": "Esta é uma fotografia de câmara; o detetor foi feito para capturas de ecrã, pelo que as suas caixas aqui são pouco fiáveis.",
   "modeDraw": "Desenhar",
-  "fillLabel": "Preenchimento",
   "fillSolid": "Cor sólida",
   "fillBlocks": "Mosaico cinzento",
   "fillNoise": "Ruído",

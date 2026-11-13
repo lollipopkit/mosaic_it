@@ -31,7 +31,6 @@
   "calibratedFor": "已針對 {domain} 圖片進行校準。其他類型的圖片不在保證範圍內。",
   "cameraPhoto": "這是相機照片；偵測器是為截圖設計的，因此此處的框選結果不可靠。",
   "modeDraw": "繪製",
-  "fillLabel": "填充",
   "fillSolid": "純色",
   "fillBlocks": "灰色馬賽克",
   "fillNoise": "雜訊",

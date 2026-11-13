@@ -14,6 +14,13 @@ import 'l10n.dart';
 import 'rust/api.dart';
 import 'store.dart';
 
+import 'package:fl_lib/fl_lib.dart'
+    show
+        SegmentedTab,
+        SegmentedTabs,
+        SheetChoiceTile,
+        SheetScaffold,
+        showResizableSheet;
 import 'package:fl_lib/theme.dart';
 
 /// App-wide settings, backed by [SettingStore].
@@ -25,7 +32,14 @@ class AppSettings {
     this.autoUpdateModel = true,
     this.threshold = ThresholdPreset.medium,
     this.offClasses = defaultOffClasses,
+    this.exportFormat = ExportFormat.png,
+    this.exportMaxSide = 0,
   });
+
+  ExportFormat exportFormat;
+
+  /// Longest side of exported images in pixels; 0 keeps the original size.
+  int exportMaxSide;
 
   /// How every selected box is hidden, in the editor and on export.
   FillStyle fillStyle;
@@ -71,6 +85,10 @@ class AppSettings {
           ThresholdPreset.values.asNameMap()[_store.threshold.get()] ??
           ThresholdPreset.medium,
       offClasses: _store.offClasses.get().toSet(),
+      exportFormat:
+          ExportFormat.values.asNameMap()[_store.exportFormat.get()] ??
+          ExportFormat.png,
+      exportMaxSide: _store.exportMaxSide.get(),
     );
   }
 
@@ -81,6 +99,8 @@ class AppSettings {
     _store.autoUpdateModel.set(autoUpdateModel),
     _store.threshold.set(threshold.name),
     _store.offClasses.set(offClasses.toList()),
+    _store.exportFormat.set(exportFormat.name),
+    _store.exportMaxSide.set(exportMaxSide),
   ]);
 
   /// Moves settings.json (versions before the SQLite store) into the store.
@@ -101,6 +121,17 @@ class AppSettings {
     await f.delete();
   }
 }
+
+enum ExportFormat {
+  png('png'),
+  jpeg('jpg');
+
+  const ExportFormat(this.extension);
+  final String extension;
+}
+
+/// Longest sides offered for exported images; 0 keeps the original size.
+const exportSides = [0, 2560, 1920, 1280];
 
 /// Fill colours offered for solid redaction, 0xRRGGBB.
 const fillSwatches = [
@@ -217,23 +248,8 @@ class _SettingsPageState extends State<SettingsPage> {
     FillStyle.noise => t.fillNoise,
   };
 
-  Future<void> _pickStyle() => showModalBottomSheet<void>(
-    context: context,
-    showDragHandle: true,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setSheet) => SafeArea(
-        child: SingleChildScrollView(
-          child: FillPicker(
-            settings: widget.settings,
-            onChanged: () {
-              _set((_) {});
-              setSheet(() {});
-            },
-          ),
-        ),
-      ),
-    ),
-  );
+  Future<void> _pickStyle() =>
+      showFillSheet(context, widget.settings, () => setState(() {}));
 
   Future<void> _pickClasses() => showModalBottomSheet<void>(
     context: context,
@@ -306,19 +322,17 @@ class _SettingsPageState extends State<SettingsPage> {
           ListTile(
             leading: const Icon(Icons.tune),
             title: Text(t.threshold),
-            trailing: SegmentedButton(
-              showSelectedIcon: false,
-              style: const ButtonStyle(visualDensity: VisualDensity.compact),
+            trailing: SegmentedTabs<ThresholdPreset>(
               segments: [
                 for (final (v, label) in [
                   (ThresholdPreset.low, t.thresholdLow),
                   (ThresholdPreset.medium, t.thresholdMedium),
                   (ThresholdPreset.high, t.thresholdHigh),
                 ])
-                  ButtonSegment(value: v, label: Text(label)),
+                  SegmentedTab(value: v, label: label),
               ],
-              selected: {s.threshold},
-              onSelectionChanged: (v) => _set((s) => s.threshold = v.single),
+              selected: s.threshold,
+              onSelected: (v) => _set((s) => s.threshold = v),
             ),
           ),
           if (widget.classes.isNotEmpty)
@@ -409,7 +423,30 @@ class _AppearancePageState extends State<_AppearancePage> {
   }
 }
 
-/// Fill style radio list and, for a solid fill, the colour swatches.
+/// The fill styles and colours, saving each change to [settings].
+Future<void> showFillSheet(
+  BuildContext context,
+  AppSettings settings,
+  VoidCallback onChanged,
+) => showResizableSheet<void>(
+  context,
+  builder: (context) => StatefulBuilder(
+    builder: (context, setSheet) => SheetScaffold(
+      title: Text(AppLocalizations.of(context).fillStyle),
+      contentPadding: EdgeInsets.zero,
+      child: FillPicker(
+        settings: settings,
+        onChanged: () {
+          settings.save();
+          setSheet(() {});
+          onChanged();
+        },
+      ),
+    ),
+  ),
+);
+
+/// Fill styles, each beside a sample of it, and the colours of a solid fill.
 class FillPicker extends StatelessWidget {
   const FillPicker({
     super.key,
@@ -425,61 +462,199 @@ class FillPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
     final s = settings;
+    Widget header(String label) => Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+      child: Text(
+        label,
+        style: text.labelLarge?.copyWith(color: scheme.onSurfaceVariant),
+      ),
+    );
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        RadioGroup<FillStyle>(
-          groupValue: s.fillStyle,
-          onChanged: (v) {
-            if (v == null) return;
-            s.fillStyle = v;
-            onChanged();
-          },
-          child: Column(
-            children: [
-              for (final (v, label) in [
-                (FillStyle.solid, t.fillSolid),
-                (FillStyle.surround, t.fillSurround),
-                (FillStyle.blocks, t.fillBlocks),
-                (FillStyle.tinted, t.fillTinted),
-                (FillStyle.noise, t.fillNoise),
-              ])
-                RadioListTile(value: v, title: Text(label), dense: true),
-            ],
+        for (final (v, label) in [
+          (FillStyle.solid, t.fillSolid),
+          (FillStyle.surround, t.fillSurround),
+          (FillStyle.blocks, t.fillBlocks),
+          (FillStyle.tinted, t.fillTinted),
+          (FillStyle.noise, t.fillNoise),
+        ])
+          SheetChoiceTile(
+            leading: FillSwatch(style: v, color: s.fillColor),
+            title: label,
+            selected: v == s.fillStyle,
+            onTap: () {
+              s.fillStyle = v;
+              onChanged();
+            },
           ),
-        ),
-        if (s.fillStyle == FillStyle.solid)
+        if (s.fillStyle == FillStyle.solid) ...[
+          const Divider(indent: 16, endIndent: 16),
+          header(t.colour),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: Wrap(
-              spacing: 10,
+              spacing: 6,
+              runSpacing: 6,
               children: [
                 for (final c in fillSwatches)
-                  GestureDetector(
+                  _ColourDot(
+                    color: Color(0xFF000000 | c),
+                    selected: c == s.fillColor,
+                    ring: scheme.primary,
                     onTap: () {
                       s.fillColor = c;
                       onChanged();
                     },
-                    child: CircleAvatar(
-                      radius: 14,
-                      backgroundColor: Color(0xFF000000 | c),
-                      child: c == s.fillColor
-                          ? Icon(
-                              Icons.check,
-                              size: 16,
-                              color:
-                                  Color(0xFF000000 | c).computeLuminance() > 0.5
-                                  ? Colors.black
-                                  : Colors.white,
-                            )
-                          : null,
-                    ),
                   ),
               ],
             ),
           ),
+        ],
       ],
     );
   }
+}
+
+class _ColourDot extends StatelessWidget {
+  const _ColourDot({
+    required this.color,
+    required this.selected,
+    required this.ring,
+    required this.onTap,
+  });
+
+  final Color color;
+  final bool selected;
+  final Color ring;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    selected: selected,
+    button: true,
+    child: InkResponse(
+      onTap: onTap,
+      radius: 24,
+      child: Container(
+        width: 40,
+        height: 40,
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: selected ? ring : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+      ),
+    ),
+  );
+}
+
+/// A small sample of how [style] hides a region.
+class FillSwatch extends StatelessWidget {
+  const FillSwatch({
+    super.key,
+    required this.style,
+    required this.color,
+    this.size = 30,
+  });
+
+  final FillStyle style;
+
+  /// 0xRRGGBB of a solid fill.
+  final int color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final outline = Theme.of(context).colorScheme.outlineVariant;
+    return Container(
+      width: size,
+      height: size,
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(size / 4),
+        border: Border.all(color: outline),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(size / 4),
+        child: CustomPaint(painter: _SwatchPainter(style, color)),
+      ),
+    );
+  }
+}
+
+class _SwatchPainter extends CustomPainter {
+  _SwatchPainter(this.style, this.color);
+
+  final FillStyle style;
+  final int color;
+
+  static const _tinted = [
+    Color(0xFFE5484D),
+    Color(0xFFF76B15),
+    Color(0xFFE2B33C),
+    Color(0xFF30A46C),
+    Color(0xFF12A594),
+    Color(0xFF0090FF),
+    Color(0xFF3E63DD),
+    Color(0xFF8E4EC6),
+    Color(0xFFD6409F),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    void grid(int n, Color Function(int x, int y) at) {
+      final c = size.width / n;
+      for (var y = 0; y < n; y++) {
+        for (var x = 0; x < n; x++) {
+          canvas.drawRect(
+            Rect.fromLTWH(x * c, y * c, c, c),
+            Paint()..color = at(x, y),
+          );
+        }
+      }
+    }
+
+    switch (style) {
+      case FillStyle.solid:
+        canvas.drawRect(
+          Offset.zero & size,
+          Paint()..color = Color(0xFF000000 | color),
+        );
+      case FillStyle.surround:
+        canvas.drawRect(
+          Offset.zero & size,
+          Paint()..color = const Color(0xFF1F1F25),
+        );
+      case FillStyle.blocks:
+        grid(
+          4,
+          (x, y) => (x + y).isEven
+              ? const Color(0xFF3A3A3A)
+              : const Color(0xFF707070),
+        );
+      case FillStyle.tinted:
+        grid(3, (x, y) => _tinted[y * 3 + x]);
+      case FillStyle.noise:
+        grid(
+          10,
+          (x, y) => (x * 7 + y * 13) % 3 == 0
+              ? const Color(0xFF262626)
+              : const Color(0xFF4C4C4C),
+        );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_SwatchPainter old) =>
+      old.style != style || old.color != color;
 }

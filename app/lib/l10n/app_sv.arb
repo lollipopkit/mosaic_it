@@ -31,7 +31,6 @@
   "calibratedFor": "Kalibrerad för {domain}-bilder. Andra typer av bilder ligger utanför garantin.",
   "cameraPhoto": "Detta är ett kamerabild; detektorn är gjord för skärmdumpar, så rutor här är opålitliga.",
   "modeDraw": "Rita",
-  "fillLabel": "Fyll",
   "fillSolid": "Enfärgad",
   "fillBlocks": "Grå mosaik",
   "fillNoise": "Brus",

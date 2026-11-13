@@ -129,7 +129,6 @@
   },
   "cameraPhoto": "This is a camera photo; the detector is made for screenshots, so its boxes here are unreliable.",
   "modeDraw": "Draw",
-  "fillLabel": "Fill",
   "fillSolid": "Solid colour",
   "fillBlocks": "Grey mosaic",
   "fillNoise": "Noise",
@@ -626,5 +625,115 @@
   "classSecret": "Secret",
   "@classSecret": {
     "description": "Class of private information: a credential shown in clear text (password, API key or token, private key, recovery phrase, one-time code)."
+  },
+  "selectedOf": "{selected} / {total} selected",
+  "@selectedOf": {
+    "description": "Editor top bar: selected regions of the shown image",
+    "placeholders": {
+      "selected": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "fillStyle": "Fill style",
+  "colour": "Colour",
+  "exportSummary": "{images, plural, =1{1 image} other{{images} images}} · {regions, plural, =1{1 region} other{{regions} regions}}",
+  "@exportSummary": {
+    "placeholders": {
+      "images": {
+        "type": "num"
+      },
+      "regions": {
+        "type": "num"
+      }
+    }
+  },
+  "share": "Share",
+  "saveToPhotos": "Save to Photos",
+  "saveAs": "Save…",
+  "saveAndDeleteOriginals": "Save and delete originals",
+  "originalsToRecentlyDeleted": "Originals go to Recently Deleted",
+  "@originalsToRecentlyDeleted": {
+    "description": "iOS"
+  },
+  "originalsToTrash": "Originals go to the trash",
+  "@originalsToTrash": {
+    "description": "Android"
+  },
+  "exportFormat": "Format",
+  "exportSize": "Size",
+  "sizeOriginal": "Original",
+  "sizePixels": "{px} px",
+  "@sizePixels": {
+    "description": "Longest side of an exported image",
+    "placeholders": {
+      "px": {
+        "type": "int"
+      }
+    }
+  },
+  "savedToPhotos": "{count, plural, =1{Saved 1 image to Photos} other{Saved {count} images to Photos}}",
+  "@savedToPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "originalsNotDeleted": "The originals were kept: {error}",
+  "@originalsNotDeleted": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectAll": "All",
+  "@selectAll": {
+    "description": "Select every region"
+  },
+  "selectNone": "None",
+  "@selectNone": {
+    "description": "Select no region"
+  },
+  "suggested": "suggested",
+  "@suggested": {
+    "description": "A region the model found but did not select"
+  },
+  "scoreValue": "Score {score}",
+  "@scoreValue": {
+    "placeholders": {
+      "score": {
+        "type": "String"
+      }
+    }
+  },
+  "exportCheckBodyOf": "After redaction, the check still found these areas in the output of image {index}.",
+  "@exportCheckBodyOf": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "reasonNotSelected": "not selected",
+  "reasonBoxTooSmall": "box too small",
+  "reasonFillShowsThrough": "fill shows through",
+  "introTitle": "Choose screenshots to redact",
+  "introBody": "MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.",
+  "allowPhotoAccess": "Allow photo access",
+  "photosOffTitle": "Photo access is off",
+  "openSource": "Open source",
+  "downloadingDetector": "Downloading the detector",
+  "percent": "{value}%",
+  "@percent": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
   }
 }

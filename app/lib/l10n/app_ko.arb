@@ -31,7 +31,6 @@
   "calibratedFor": "{domain} 이미지에 대해 보정됨. 다른 유형의 이미지는 보증 범위 밖입니다.",
   "cameraPhoto": "이것은 카메라 사진입니다. 감지기는 스크린샷용으로 만들어졌으므로 여기의 박스는 신뢰할 수 없습니다.",
   "modeDraw": "그리기",
-  "fillLabel": "채우기",
   "fillSolid": "단색",
   "fillBlocks": "회색 모자이크",
   "fillNoise": "노이즈",

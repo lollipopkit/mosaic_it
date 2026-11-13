@@ -31,7 +31,6 @@
   "calibratedFor": "Kalibrálva {domain} típusú képekre. Más típusú képek nem tartoznak a garancia körébe.",
   "cameraPhoto": "Ez egy fényképezőgépes felvétel; az érzékelő képernyőfotókra készült, ezért itt a keretei nem megbízhatóak.",
   "modeDraw": "Rajzolás",
-  "fillLabel": "Kitöltés",
   "fillSolid": "Egyszínű",
   "fillBlocks": "Szürke mozaik",
   "fillNoise": "Zaj",

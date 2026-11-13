@@ -31,7 +31,6 @@
   "calibratedFor": "Kalibrert for {domain}-bilder. Andre typer bilder ligger utenfor garantien.",
   "cameraPhoto": "Dette er et kamerafoto; detektoren er laget for skjermbilder, så boksene her er upålitelige.",
   "modeDraw": "Tegn",
-  "fillLabel": "Fyll",
   "fillSolid": "Ensfarget",
   "fillBlocks": "Grå mosaikk",
   "fillNoise": "Støy",

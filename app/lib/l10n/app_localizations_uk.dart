@@ -137,9 +137,6 @@ class AppLocalizationsUk extends AppLocalizations {
   String get modeDraw => 'Малювання';
 
   @override
-  String get fillLabel => 'Заповнення';
-
-  @override
   String get fillSolid => 'Суцільний колір';
 
   @override
@@ -568,4 +565,132 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get classSecret => 'Секретні дані';
+
+  @override
+  String selectedOf(int selected, int total) {
+    return '$selected / $total selected';
+  }
+
+  @override
+  String get fillStyle => 'Fill style';
+
+  @override
+  String get colour => 'Colour';
+
+  @override
+  String exportSummary(num images, num regions) {
+    String _temp0 = intl.Intl.pluralLogic(
+      images,
+      locale: localeName,
+      other: '$images images',
+      one: '1 image',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      regions,
+      locale: localeName,
+      other: '$regions regions',
+      one: '1 region',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get saveToPhotos => 'Save to Photos';
+
+  @override
+  String get saveAs => 'Save…';
+
+  @override
+  String get saveAndDeleteOriginals => 'Save and delete originals';
+
+  @override
+  String get originalsToRecentlyDeleted => 'Originals go to Recently Deleted';
+
+  @override
+  String get originalsToTrash => 'Originals go to the trash';
+
+  @override
+  String get exportFormat => 'Format';
+
+  @override
+  String get exportSize => 'Size';
+
+  @override
+  String get sizeOriginal => 'Original';
+
+  @override
+  String sizePixels(int px) {
+    return '$px px';
+  }
+
+  @override
+  String savedToPhotos(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Saved $count images to Photos',
+      one: 'Saved 1 image to Photos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String originalsNotDeleted(String error) {
+    return 'The originals were kept: $error';
+  }
+
+  @override
+  String get selectAll => 'All';
+
+  @override
+  String get selectNone => 'None';
+
+  @override
+  String get suggested => 'suggested';
+
+  @override
+  String scoreValue(String score) {
+    return 'Score $score';
+  }
+
+  @override
+  String exportCheckBodyOf(int index) {
+    return 'After redaction, the check still found these areas in the output of image $index.';
+  }
+
+  @override
+  String get reasonNotSelected => 'not selected';
+
+  @override
+  String get reasonBoxTooSmall => 'box too small';
+
+  @override
+  String get reasonFillShowsThrough => 'fill shows through';
+
+  @override
+  String get introTitle => 'Choose screenshots to redact';
+
+  @override
+  String get introBody =>
+      'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.';
+
+  @override
+  String get allowPhotoAccess => 'Allow photo access';
+
+  @override
+  String get photosOffTitle => 'Photo access is off';
+
+  @override
+  String get openSource => 'Open source';
+
+  @override
+  String get downloadingDetector => 'Downloading the detector';
+
+  @override
+  String percent(int value) {
+    return '$value%';
+  }
 }

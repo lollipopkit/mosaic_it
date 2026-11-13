@@ -356,12 +356,6 @@ abstract class AppLocalizations {
   /// **'Draw'**
   String get modeDraw;
 
-  /// No description provided for @fillLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Fill'**
-  String get fillLabel;
-
   /// No description provided for @fillSolid.
   ///
   /// In en, this message translates to:
@@ -1063,6 +1057,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Secret'**
   String get classSecret;
+
+  /// Editor top bar: selected regions of the shown image
+  ///
+  /// In en, this message translates to:
+  /// **'{selected} / {total} selected'**
+  String selectedOf(int selected, int total);
+
+  /// No description provided for @fillStyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill style'**
+  String get fillStyle;
+
+  /// No description provided for @colour.
+  ///
+  /// In en, this message translates to:
+  /// **'Colour'**
+  String get colour;
+
+  /// No description provided for @exportSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{images, plural, =1{1 image} other{{images} images}} · {regions, plural, =1{1 region} other{{regions} regions}}'**
+  String exportSummary(num images, num regions);
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @saveToPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to Photos'**
+  String get saveToPhotos;
+
+  /// No description provided for @saveAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Save…'**
+  String get saveAs;
+
+  /// No description provided for @saveAndDeleteOriginals.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and delete originals'**
+  String get saveAndDeleteOriginals;
+
+  /// iOS
+  ///
+  /// In en, this message translates to:
+  /// **'Originals go to Recently Deleted'**
+  String get originalsToRecentlyDeleted;
+
+  /// Android
+  ///
+  /// In en, this message translates to:
+  /// **'Originals go to the trash'**
+  String get originalsToTrash;
+
+  /// No description provided for @exportFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Format'**
+  String get exportFormat;
+
+  /// No description provided for @exportSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get exportSize;
+
+  /// No description provided for @sizeOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get sizeOriginal;
+
+  /// Longest side of an exported image
+  ///
+  /// In en, this message translates to:
+  /// **'{px} px'**
+  String sizePixels(int px);
+
+  /// No description provided for @savedToPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Saved 1 image to Photos} other{Saved {count} images to Photos}}'**
+  String savedToPhotos(num count);
+
+  /// No description provided for @originalsNotDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'The originals were kept: {error}'**
+  String originalsNotDeleted(String error);
+
+  /// Select every region
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get selectAll;
+
+  /// Select no region
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get selectNone;
+
+  /// A region the model found but did not select
+  ///
+  /// In en, this message translates to:
+  /// **'suggested'**
+  String get suggested;
+
+  /// No description provided for @scoreValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Score {score}'**
+  String scoreValue(String score);
+
+  /// No description provided for @exportCheckBodyOf.
+  ///
+  /// In en, this message translates to:
+  /// **'After redaction, the check still found these areas in the output of image {index}.'**
+  String exportCheckBodyOf(int index);
+
+  /// No description provided for @reasonNotSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'not selected'**
+  String get reasonNotSelected;
+
+  /// No description provided for @reasonBoxTooSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'box too small'**
+  String get reasonBoxTooSmall;
+
+  /// No description provided for @reasonFillShowsThrough.
+  ///
+  /// In en, this message translates to:
+  /// **'fill shows through'**
+  String get reasonFillShowsThrough;
+
+  /// No description provided for @introTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose screenshots to redact'**
+  String get introTitle;
+
+  /// No description provided for @introBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.'**
+  String get introBody;
+
+  /// No description provided for @allowPhotoAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow photo access'**
+  String get allowPhotoAccess;
+
+  /// No description provided for @photosOffTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo access is off'**
+  String get photosOffTitle;
+
+  /// No description provided for @openSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Open source'**
+  String get openSource;
+
+  /// No description provided for @downloadingDetector.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading the detector'**
+  String get downloadingDetector;
+
+  /// No description provided for @percent.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}%'**
+  String percent(int value);
 }
 
 class _AppLocalizationsDelegate

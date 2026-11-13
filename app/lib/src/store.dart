@@ -25,6 +25,12 @@ class SettingStore extends SqliteStore with ThemeSettings {
   /// 0xRRGGBB for the solid fill.
   late final fillColor = propertyDefault('fillColor', 0x000000);
 
+  /// `ExportFormat` name of exported images.
+  late final exportFormat = propertyDefault('exportFormat', 'png');
+
+  /// Longest side of exported images in pixels; 0 keeps the original size.
+  late final exportMaxSide = propertyDefault('exportMaxSide', 0);
+
   /// Gallery zoom level: 0 has the largest cells; 1 is five columns on a phone.
   late final gridZoom = propertyDefault('gridZoom', 1);
 

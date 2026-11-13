@@ -31,7 +31,6 @@
   "calibratedFor": "Kalibrirano za slike {domain}. Ostale vrste slika nisu pokrivene garancijom.",
   "cameraPhoto": "Ovo je fotografija s kamere; detektor je namijenjen za snimke ekrana, pa su ovdje njegovi okviri nepouzdani.",
   "modeDraw": "Crtaj",
-  "fillLabel": "Ispuna",
   "fillSolid": "Jednobojno",
   "fillBlocks": "Sivi mozaik",
   "fillNoise": "Šum",
