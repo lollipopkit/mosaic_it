@@ -56,9 +56,11 @@ op run --env-file models/publish.env -- models/publish.sh X.Y.Z <dir with unseen
 It checks the files against the manifest, uploads them, signs the manifest
 and uploads it last. Apps move to the highest version they can run:
 
-- Raise `FORMAT` in `unseen-core` and give the entry that `format` when a
-  release needs a newer app (classes without labels, new sidecar fields);
-  older apps skip it.
+- Raise `FORMAT` in `unseen-core` (and raise `MIN_FORMAT` when older releases
+  can no longer be loaded, e.g. missing sidecar fields or changed input
+  resolution). `unseen models hash` stamps entries with `FORMAT`; apps skip
+  releases outside `MIN_FORMAT..=FORMAT` and replace an installed release outside
+  that range when a runnable one is published.
 - To withdraw a release, publish a higher version; apps never go back.
 - A model the user imported by hand (anything but a listed tiled release) is
   left alone.

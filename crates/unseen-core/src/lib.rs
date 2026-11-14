@@ -17,7 +17,7 @@ pub use calibrate::{Calibration, Calibrator, ClassThreshold};
 pub use detect::{Candidates, DetectOptions, Detection, Detector, Selection, Threshold, nms};
 pub use eval::{ClassReport, CocoDataset, EvalOptions, EvalReport, Evaluator, GtImage};
 pub use face::{FACE, FaceDetector};
-pub use manifest::{FORMAT, Manifest, ModelEntry, PUBLIC_KEY, blake3_file, default_manifest, sign};
+pub use manifest::{FORMAT, MIN_FORMAT, Manifest, ModelEntry, PUBLIC_KEY, blake3_file, default_manifest, sign};
 pub use model::{
     ModelMeta, Resolution, UNCALIBRATED_REVIEW, UNCALIBRATED_SELECT, is_camera_photo, load_image, tensor,
 };
