@@ -2,20 +2,17 @@ use std::collections::HashSet;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use image::RgbImage;
-use ndarray::{Array4, s};
 use serde::Serialize;
 
 use crate::eval::iou;
-use crate::model::resized_height;
-use crate::{Backend, Error, FACE, FaceDetector, ModelMeta, Preprocessed, RawOutput, Result, preprocess};
+use crate::{Backend, Error, FACE, FaceDetector, ModelMeta, RawOutput, Result, tensor};
 
-/// Overlap between consecutive tiles of a fixed-size graph, in model pixels.
-/// Larger than the tallest region expected (a QR code is ~300 px at width
-/// 720), so every region is whole in the tile that keeps it.
+/// Overlap between neighbouring tiles of a fixed-size graph, in pixels.
+/// Larger than most regions, so a region is whole in the tile that keeps it.
 pub const TILE_OVERLAP: usize = 384;
 
-/// Tops of the tiles covering a `h`-tall input with `th`-tall tiles, each
-/// with the y range it owns: a detection is kept only by the tile whose range
+/// Starts of the tiles covering a `h`-long axis with `th`-long tiles, each
+/// with the range it owns: a detection is kept only by the tile whose range
 /// holds its centre, and ranges split each overlap down the middle.
 fn tile_plan(h: usize, th: usize) -> Vec<(usize, f32, f32)> {
     if h <= th {
@@ -74,9 +71,8 @@ pub struct Candidates {
     /// Pixel hash of the image, when reusable by [`Detector::redetect`].
     image: Option<blake3::Hash>,
     size: (u32, u32),
-    scale: f32,
     min_score: f32,
-    /// Per run of the graph: (class, score, xyxy in model pixels).
+    /// Per run of the graph: (class, score, xyxy in image pixels).
     runs: Vec<Vec<(usize, f32, [f32; 4])>>,
     /// (score, xyxy in image pixels) from the face detector, if any.
     faces: Vec<(f32, [f32; 4])>,
@@ -88,28 +84,27 @@ impl Candidates {
     }
 }
 
-/// Which of the `ph` preprocessed rows can differ between `a` and `b` (same
-/// size): every output row whose bilinear filter reaches a differing source
-/// row, plus one row of margin on each side.
-fn changed_rows(a: &RgbImage, b: &RgbImage, ph: usize) -> Vec<bool> {
-    let (w, h) = a.dimensions();
-    // Source rows per output row, and the filter radius in source rows.
-    let r = h as f64 / resized_height(w, h) as f64;
-    let radius = r.max(1.0);
-    let mut dirty = vec![false; ph];
-    let stride = w as usize * 3;
-    for (k, (ra, rb)) in a.chunks_exact(stride).zip(b.chunks_exact(stride)).enumerate() {
-        if ra != rb {
-            let k = k as f64;
-            // Output row y reads source rows [floor(c - radius), ceil(c + radius))
-            // around its centre c = (y + 0.5) * r.
-            let lo = ((k - radius - 1.0) / r - 0.5).floor() - 1.0;
-            let hi = ((k + radius + 1.0) / r - 0.5).ceil() + 2.0;
-            let (lo, hi) = (lo.max(0.0) as usize, hi.max(0.0) as usize);
-            dirty[lo.min(ph)..hi.min(ph)].fill(true);
-        }
-    }
-    dirty
+/// One run of the graph: the window at (`x`, `y`) of the graph's input size
+/// (the padded image for a dynamic graph), and the x and y ranges whose
+/// detection centres it keeps.
+#[derive(Debug, Clone, Copy, PartialEq)]
+struct Tile {
+    x: usize,
+    y: usize,
+    w: usize,
+    h: usize,
+    own_x: (f32, f32),
+    own_y: (f32, f32),
+}
+
+/// `a` and `b` (same size) differ inside `t`'s window.
+fn changed(a: &RgbImage, b: &RgbImage, t: &Tile) -> bool {
+    let (w, h) = (a.width() as usize, a.height() as usize);
+    let (x1, y1) = ((t.x + t.w).min(w), (t.y + t.h).min(h));
+    (t.y..y1).any(|y| {
+        let r = (y * w + t.x) * 3..(y * w + x1) * 3;
+        a.as_raw()[r.clone()] != b.as_raw()[r]
+    })
 }
 
 /// A user's preset over the model's thresholds. Only [`Threshold::Medium`]
@@ -239,8 +234,7 @@ impl Detector {
     }
 
     pub fn detect(&mut self, img: &RgbImage, opts: &DetectOptions) -> Result<Vec<Detection>> {
-        let pre = preprocess(img);
-        let c = self.collect(img, &pre, opts.min_score, None)?;
+        let c = self.collect(img, opts.min_score, None)?;
         self.detections(&c, opts)
     }
 
@@ -251,39 +245,35 @@ impl Detector {
     /// Candidates scoring at least `min_score` on `img`, before NMS, to pass
     /// to [`Detector::detections`] and later to [`Detector::redetect`].
     pub fn candidates(&mut self, img: &RgbImage, min_score: f32) -> Result<Candidates> {
-        let pre = preprocess(img);
-        self.collect(img, &pre, min_score, Some(blake3::hash(img.as_raw())))
+        self.collect(img, min_score, Some(blake3::hash(img.as_raw())))
     }
 
     /// Candidates on `out`, given `prev` from [`Detector::candidates`] on
-    /// `src`: runs of the graph whose input `out` leaves unchanged keep their
+    /// `src`: runs of the graph whose window `out` leaves unchanged keep their
     /// candidates, so the result equals a full run on `out`. Runs everything
     /// when `prev` is from another image or detector.
     pub fn redetect(&mut self, prev: &Candidates, src: &RgbImage, out: &RgbImage) -> Result<Candidates> {
-        let pre = preprocess(out);
         let same = prev.detector == self.id
             && src.dimensions() == out.dimensions()
             && prev.size == src.dimensions()
             && prev.image == Some(blake3::hash(src.as_raw()));
         if !same {
-            return self.collect(out, &pre, prev.min_score, None);
+            return self.collect(out, prev.min_score, None);
         }
-        let plan = self.plan(&pre)?;
-        let dirty = changed_rows(src, out, pre.tensor.dim().2);
-        let rows = self.meta.input_size.map_or(dirty.len(), |[_, th]| th as usize);
-        let runs = plan
-            .into_iter()
+        let runs = self
+            .plan(out.width(), out.height())
+            .iter()
             .zip(&prev.runs)
-            .map(|((top, own), old)| {
-                if dirty[top..(top + rows).min(dirty.len())].contains(&true) {
-                    self.run(&pre, top, own, prev.min_score)
+            .map(|(t, old)| {
+                if changed(src, out, t) {
+                    self.run(out, t, prev.min_score)
                 } else {
                     Ok(old.clone())
                 }
             })
             .collect::<Result<_>>()?;
         // One run over the whole image: rerun on any change.
-        let faces = if dirty.contains(&true) {
+        let faces = if src != out {
             self.faces(out, prev.min_score)?
         } else {
             prev.faces.clone()
@@ -292,32 +282,23 @@ impl Detector {
             detector: self.id,
             image: None,
             size: out.dimensions(),
-            scale: pre.scale,
             min_score: prev.min_score,
             runs,
             faces,
         })
     }
 
-    /// Runs every run of the graph over `pre`, made from `img`, and the face
-    /// detector over `img`.
-    fn collect(
-        &mut self,
-        img: &RgbImage,
-        pre: &Preprocessed,
-        min_score: f32,
-        image: Option<blake3::Hash>,
-    ) -> Result<Candidates> {
+    /// Runs every run of the graph and the face detector over `img`.
+    fn collect(&mut self, img: &RgbImage, min_score: f32, image: Option<blake3::Hash>) -> Result<Candidates> {
         let runs = self
-            .plan(pre)?
-            .into_iter()
-            .map(|(top, own)| self.run(pre, top, own, min_score))
+            .plan(img.width(), img.height())
+            .iter()
+            .map(|t| self.run(img, t, min_score))
             .collect::<Result<_>>()?;
         Ok(Candidates {
             detector: self.id,
             image,
             size: img.dimensions(),
-            scale: pre.scale,
             min_score,
             runs,
             faces: self.faces(img, min_score)?,
@@ -348,12 +329,7 @@ impl Detector {
                 class: self.meta.classes[k].clone(),
                 class_id: k,
                 score,
-                bbox: [
-                    (b[0] * c.scale).clamp(0.0, w),
-                    (b[1] * c.scale).clamp(0.0, h),
-                    (b[2] * c.scale).clamp(0.0, w),
-                    (b[3] * c.scale).clamp(0.0, h),
-                ],
+                bbox: [b[0].clamp(0.0, w), b[1].clamp(0.0, h), b[2].clamp(0.0, w), b[3].clamp(0.0, h)],
             })
             .collect::<Vec<_>>();
         let faces = c
@@ -376,61 +352,38 @@ impl Detector {
         Ok(dets)
     }
 
-    /// Top row and owned y range of each run of the graph over `pre`.
-    fn plan(&self, pre: &Preprocessed) -> Result<Vec<(usize, (f32, f32))>> {
-        let (_, _, ph, pw) = pre.tensor.dim();
+    /// The runs of the graph over a `w`x`h` image: one over the image padded
+    /// to a multiple of 32 for a dynamic graph, else a grid of overlapping
+    /// tiles of the graph's input size.
+    fn plan(&self, w: u32, h: u32) -> Vec<Tile> {
+        let (w, h) = (w as usize, h as usize);
+        let all = (f32::NEG_INFINITY, f32::INFINITY);
         let Some([tw, th]) = self.meta.input_size else {
-            return Ok(vec![(0, (f32::NEG_INFINITY, f32::INFINITY))]);
+            return vec![Tile { x: 0, y: 0, w: w.div_ceil(32) * 32, h: h.div_ceil(32) * 32, own_x: all, own_y: all }];
         };
         let (tw, th) = (tw as usize, th as usize);
-        if pw != tw || th <= TILE_OVERLAP {
-            return Err(Error::Meta(format!(
-                "input_size {tw}x{th} does not fit inputs {pw} wide"
-            )));
-        }
-        Ok(tile_plan(ph, th)
+        let cols = tile_plan(w, tw);
+        tile_plan(h, th)
             .into_iter()
-            .map(|(top, lo, hi)| (top, (lo, hi)))
-            .collect())
+            .flat_map(|(y, ylo, yhi)| {
+                cols.iter()
+                    .map(move |&(x, xlo, xhi)| Tile { x, y, w: tw, h: th, own_x: (xlo, xhi), own_y: (ylo, yhi) })
+            })
+            .collect()
     }
 
-    /// Runs the graph on `pre` from row `top` (the whole input for a
-    /// dynamic-height graph, else one tile).
-    fn run(
-        &mut self,
-        pre: &Preprocessed,
-        top: usize,
-        own: (f32, f32),
-        min_score: f32,
-    ) -> Result<Vec<(usize, f32, [f32; 4])>> {
-        let out = match self.meta.input_size {
-            None => self.backend.run(pre.tensor.view())?,
-            Some([tw, th]) => {
-                let (tw, th, ph) = (tw as usize, th as usize, pre.tensor.dim().2);
-                // Short images are padded with zeros (the mean colour).
-                let mut tile = Array4::<f32>::zeros((1, 3, th, tw));
-                let rows = th.min(ph - top);
-                tile.slice_mut(s![.., .., ..rows, ..])
-                    .assign(&pre.tensor.slice(s![.., .., top..top + rows, ..]));
-                self.backend.run(tile.view())?
-            }
-        };
+    /// Runs the graph on tile `t` of `img`.
+    fn run(&mut self, img: &RgbImage, t: &Tile, min_score: f32) -> Result<Vec<(usize, f32, [f32; 4])>> {
+        let out = self.backend.run(tensor(img, t.x, t.y, t.w, t.h).view())?;
         let mut raw = Vec::new();
-        self.decode(&out, top, own, min_score, &mut raw)?;
+        self.decode(&out, t, min_score, &mut raw)?;
         Ok(raw)
     }
 
-    /// Decodes one run's outputs (see [`RawOutput`]) into candidates in model
-    /// pixels, shifted down by `top`, keeping those whose centre lies in `own`.
+    /// Decodes one run's outputs (see [`RawOutput`]) into candidates in image
+    /// pixels, keeping those whose centre lies in the tile's own ranges.
     /// Mirrors the training code's decoding.
-    fn decode(
-        &self,
-        out: &RawOutput,
-        top: usize,
-        own: (f32, f32),
-        min_score: f32,
-        raw: &mut Vec<(usize, f32, [f32; 4])>,
-    ) -> Result<()> {
+    fn decode(&self, out: &RawOutput, t: &Tile, min_score: f32, raw: &mut Vec<(usize, f32, [f32; 4])>) -> Result<()> {
         let c = self.meta.classes.len();
         if out.outputs.len() != 2 * self.meta.strides.len() {
             return Err(Error::Shape(format!(
@@ -455,7 +408,7 @@ impl Detector {
             let s = stride as f32;
             for y in 0..h {
                 for x in 0..w {
-                    let (cx, cy) = ((x as f32 + 0.5) * s, (y as f32 + 0.5) * s + top as f32);
+                    let (cx, cy) = ((x as f32 + 0.5) * s + t.x as f32, (y as f32 + 0.5) * s + t.y as f32);
                     let mut bbox = None;
                     for k in 0..c {
                         let score = scores[[0, k, y, x]];
@@ -466,8 +419,8 @@ impl Detector {
                             let d = |i: usize| softplus(boxes[[0, i, y, x]]) * s;
                             [cx - d(0), cy - d(1), cx + d(2), cy + d(3)]
                         });
-                        let centre = (b[1] + b[3]) / 2.0;
-                        if centre >= own.0 && centre < own.1 {
+                        let (mx, my) = ((b[0] + b[2]) / 2.0, (b[1] + b[3]) / 2.0);
+                        if mx >= t.own_x.0 && mx < t.own_x.1 && my >= t.own_y.0 && my < t.own_y.1 {
                             raw.push((k, score, b));
                         }
                     }
@@ -554,6 +507,7 @@ mod tests {
             classes: vec!["a".into(), "b".into()],
             strides: vec![8, 16],
             input_size,
+            resolution: crate::Resolution::Native,
             calibration: None,
         };
         let runs = Arc::new(AtomicUsize::new(0));
@@ -658,6 +612,7 @@ mod tests {
             classes: vec!["avatar".into()],
             strides: vec![32],
             input_size: None,
+            resolution: crate::Resolution::Native,
             calibration: None,
         };
         let runs = Arc::default();
@@ -667,7 +622,7 @@ mod tests {
 
     #[test]
     fn faces_are_detections_of_their_own_class() {
-        // 720 wide: model pixels are image pixels. The fake's native face is
+        // The fake's native face is
         // (16, 0, 48, 32), inside no avatar; the 640 pass finds it again at
         // (18, 0, 54, 36) and NMS keeps one.
         let (mut det, _) = with_faces(0.0);
@@ -743,6 +698,7 @@ mod tests {
             classes: vec!["avatar".into()],
             strides: vec![32],
             input_size: None,
+            resolution: crate::Resolution::Native,
             calibration: None,
         };
         let faces = FaceDetector::new(Box::new(crate::face::tests::Fake(Arc::default())));
@@ -807,29 +763,24 @@ mod tests {
     }
 
     #[test]
-    fn changed_rows_cover_every_changed_input_row() {
-        for (w, h) in [(1290, 1300), (390, 500), (2160, 1500), (720, 400)] {
-            let a = page(w, h);
-            for y in [0, h / 3, h - 1] {
-                let mut b = a.clone();
-                for x in 0..w {
-                    b.put_pixel(x, y, Rgb([255, 0, 255]));
-                }
-                let (ta, tb) = (preprocess(&a).tensor, preprocess(&b).tensor);
-                let dirty = changed_rows(&a, &b, ta.dim().2);
-                for (row, &d) in dirty.iter().enumerate() {
-                    if !d {
-                        assert_eq!(
-                            ta.slice(s![.., .., row, ..]),
-                            tb.slice(s![.., .., row, ..]),
-                            "{w}x{h}, source row {y}, model row {row}"
-                        );
-                    }
-                }
-                // The margin stays small.
-                assert!(dirty.iter().filter(|&&d| d).count() <= 16, "{w}x{h}");
+    fn tiles_own_every_pixel_once() {
+        let (det, _) = fake(Some([736, 768]));
+        for (w, h) in [(1206, 2622), (2880, 1800), (500, 300), (736, 768)] {
+            let plan = det.plan(w, h);
+            for (x, y) in [(0, 0), (w - 1, h - 1), (w / 2, h / 3), (w / 3 + 1, h - 2)] {
+                let (x, y) = (x as f32 + 0.5, y as f32 + 0.5);
+                let owners = plan
+                    .iter()
+                    .filter(|t| x >= t.own_x.0 && x < t.own_x.1 && y >= t.own_y.0 && y < t.own_y.1)
+                    .collect::<Vec<_>>();
+                assert_eq!(owners.len(), 1, "{w}x{h} ({x}, {y})");
+                let t = owners[0];
+                assert!(x >= t.x as f32 && x < (t.x + t.w) as f32 && y >= t.y as f32 && y < (t.y + t.h) as f32);
             }
         }
+        // A dynamic graph runs once over the padded image.
+        let (det, _) = fake(None);
+        assert_eq!(det.plan(1206, 2622).iter().map(|t| (t.w, t.h)).collect::<Vec<_>>(), vec![(1216, 2624)]);
     }
 
     fn d(class_id: usize, score: f32, bbox: [f32; 4]) -> Detection {

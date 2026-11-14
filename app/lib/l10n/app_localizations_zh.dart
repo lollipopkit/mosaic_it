@@ -539,6 +539,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get classSecret => '密码与密钥';
 
   @override
+  String get classPerson => 'Person';
+
+  @override
+  String get classHealth => 'Health';
+
+  @override
+  String get classPersonalInfo => 'Personal info';
+
+  @override
   String selectedOf(int selected, int total) {
     return '$selected / $total selected';
   }

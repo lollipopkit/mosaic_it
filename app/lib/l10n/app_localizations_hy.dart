@@ -573,6 +573,15 @@ class AppLocalizationsHy extends AppLocalizations {
   String get classSecret => 'Գաղտնի տվյալ';
 
   @override
+  String get classPerson => 'Person';
+
+  @override
+  String get classHealth => 'Health';
+
+  @override
+  String get classPersonalInfo => 'Personal info';
+
+  @override
   String selectedOf(int selected, int total) {
     return '$selected / $total selected';
   }

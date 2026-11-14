@@ -548,6 +548,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get classSecret => '비밀 정보';
 
   @override
+  String get classPerson => 'Person';
+
+  @override
+  String get classHealth => 'Health';
+
+  @override
+  String get classPersonalInfo => 'Personal info';
+
+  @override
   String selectedOf(int selected, int total) {
     return '$selected / $total selected';
   }

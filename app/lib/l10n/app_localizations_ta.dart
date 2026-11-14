@@ -574,6 +574,15 @@ class AppLocalizationsTa extends AppLocalizations {
   String get classSecret => 'ரகசியத் தகவல்';
 
   @override
+  String get classPerson => 'Person';
+
+  @override
+  String get classHealth => 'Health';
+
+  @override
+  String get classPersonalInfo => 'Personal info';
+
+  @override
   String selectedOf(int selected, int total) {
     return '$selected / $total selected';
   }
