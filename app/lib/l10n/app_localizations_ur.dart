@@ -573,13 +573,13 @@ class AppLocalizationsUr extends AppLocalizations {
   String get classSecret => 'خفیہ معلومات';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'شخص';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'صحت';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'ذاتی معلومات';
 
   @override
   String selectedOf(int selected, int total) {

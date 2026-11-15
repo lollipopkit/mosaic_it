@@ -577,13 +577,13 @@ class AppLocalizationsKa extends AppLocalizations {
   String get classSecret => 'საიდუმლო მონაცემი';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'პირი';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'ჯანმრთელობა';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'პირადი ინფორმაცია';
 
   @override
   String selectedOf(int selected, int total) {

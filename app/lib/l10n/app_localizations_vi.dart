@@ -565,13 +565,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get classSecret => 'Thông tin bí mật';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Người';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Sức khỏe';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Thông tin cá nhân';
 
   @override
   String selectedOf(int selected, int total) {

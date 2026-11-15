@@ -575,13 +575,13 @@ class AppLocalizationsEl extends AppLocalizations {
   String get classSecret => 'Μυστικό';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Πρόσωπο';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Υγεία';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Προσωπικά στοιχεία';
 
   @override
   String selectedOf(int selected, int total) {

@@ -539,13 +539,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get classSecret => '密码与密钥';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => '人物';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => '健康';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => '个人信息';
 
   @override
   String selectedOf(int selected, int total) {
@@ -1214,4 +1214,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get classSecret => '密碼與金鑰';
+
+  @override
+  String get classPerson => '人物';
+
+  @override
+  String get classHealth => '健康';
+
+  @override
+  String get classPersonalInfo => '個人資訊';
 }

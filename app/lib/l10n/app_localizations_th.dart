@@ -567,13 +567,13 @@ class AppLocalizationsTh extends AppLocalizations {
   String get classSecret => 'ข้อมูลลับ';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'บุคคล';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'สุขภาพ';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'ข้อมูลส่วนตัว';
 
   @override
   String selectedOf(int selected, int total) {

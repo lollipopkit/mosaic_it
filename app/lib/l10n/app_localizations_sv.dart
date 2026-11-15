@@ -574,10 +574,10 @@ class AppLocalizationsSv extends AppLocalizations {
   String get classPerson => 'Person';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Hälsa';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Personuppgifter';
 
   @override
   String selectedOf(int selected, int total) {

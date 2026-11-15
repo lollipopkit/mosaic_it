@@ -559,13 +559,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get classSecret => 'Secret';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Personne';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Santé';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Infos personnelles';
 
   @override
   String selectedOf(int selected, int total) {

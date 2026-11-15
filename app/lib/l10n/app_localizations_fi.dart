@@ -575,13 +575,13 @@ class AppLocalizationsFi extends AppLocalizations {
   String get classSecret => 'Salaisuus';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Henkilö';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Terveys';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Henkilötiedot';
 
   @override
   String selectedOf(int selected, int total) {

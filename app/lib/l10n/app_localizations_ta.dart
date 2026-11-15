@@ -574,13 +574,13 @@ class AppLocalizationsTa extends AppLocalizations {
   String get classSecret => 'ரகசியத் தகவல்';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'நபர்';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'உடல்நலம்';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'தனிப்பட்ட தகவல்';
 
   @override
   String selectedOf(int selected, int total) {

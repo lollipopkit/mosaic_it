@@ -558,13 +558,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get classSecret => 'Credencial';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Persona';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Salud';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Datos personales';
 
   @override
   String selectedOf(int selected, int total) {

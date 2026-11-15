@@ -548,13 +548,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get classSecret => '비밀 정보';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => '인물';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => '건강';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => '개인 정보';
 
   @override
   String selectedOf(int selected, int total) {

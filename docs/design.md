@@ -48,8 +48,8 @@ Canonical list: [models/classes.json](../models/classes.json). Ids are append-on
 | Group | Classes | Main cue |
 |---|---|---|
 | Format | `phone`, `email`, `id_number`, `bank_card`, `plate`, `account_id`, `device_id`, `secret` | glyph shape and length of the string |
-| Context | `person_name`, `address`, `finance`, `organization` | neighbouring labels and layout ("收件人：", chat header) |
-| Visual | `avatar`, `qr`, `barcode` | object appearance |
+| Context | `person_name`, `address`, `finance`, `organization`, `health`, `personal_info` | neighbouring labels and layout ("收件人：", chat header) |
+| Visual | `avatar`, `qr`, `barcode`, `person` | object appearance |
 | Face (separate detector) | `face` | YuNet |
 
 `account_id` covers user handles, UIDs, WeChat IDs and tracking numbers.
@@ -57,6 +57,10 @@ Canonical list: [models/classes.json](../models/classes.json). Ids are append-on
 private keys, seed phrases and recovery keys, 2FA setup and backup codes,
 one-time codes. Masked passwords, public keys, hashes and gift-card codes are
 negatives.
+`person` covers pictures of real people or parts of them (body, selfie, video
+call). `health` covers sleep, heart rate, weight, diagnoses and medication.
+`personal_info` covers other details tied to a person: gender, age, birthday,
+relatives, job and dates of personal events.
 Partially masked values (`138****5678`) keep their class.
 
 Planned, not in v1: `signature`, `id_card` (whole document), `text_sensitive`
@@ -122,9 +126,10 @@ raw box outputs. Softplus, cell centres and box decoding are in the Rust core
 An export with dynamic height and width splits into 8 CoreML partitions with
 121 of 478 nodes on the CPU and runs slower than the CPU alone, so
 `OrtBackend` falls back to the CPU whenever a hardware provider leaves nodes
-there. The tiled export fixes the input at 1280×736, so all shape arithmetic
-folds away, and the core runs tall images in tiles overlapping by 384 px
-(each detection is kept by the tile owning its centre). On a 720×1994
+there. The tiled export fixes the input at one square tile size, so all shape
+arithmetic folds away, and the core runs larger images in a grid of tiles
+overlapping by 384 px in both directions (each detection is kept by the tile
+owning its centre). On a 720×1994
 screenshot (M-series):
 
 | Export / provider | Placement | p50 |
@@ -136,8 +141,10 @@ screenshot (M-series):
 Apple and mobile builds use the tiled export; CPU-only builds the dynamic
 one. Both decode to identical detections.
 
-**Input.** RGB, resized to width 720 (`unseen-core::model`), normalised with
-the ImageNet mean and deviation and zero-padded to a multiple of 32. Each model file has a sidecar
+**Input.** RGB at the original resolution, never resized (`unseen-core::model`;
+sidecars declare `"resolution": "native"`), normalised with the ImageNet mean
+and deviation and zero-padded to the tile size or, for the dynamic export, to a
+multiple of 32. Each model file has a sidecar
 `<model>.onnx.json` with its classes and calibrated thresholds (§6).
 
 ## 5. Training data

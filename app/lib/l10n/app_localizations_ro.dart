@@ -579,13 +579,13 @@ class AppLocalizationsRo extends AppLocalizations {
   String get classSecret => 'Secret';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Persoană';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Sănătate';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Date personale';
 
   @override
   String selectedOf(int selected, int total) {

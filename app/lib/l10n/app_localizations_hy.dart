@@ -573,13 +573,13 @@ class AppLocalizationsHy extends AppLocalizations {
   String get classSecret => 'Գաղտնի տվյալ';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Անձ';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Առողջություն';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Անձնական տվյալներ';
 
   @override
   String selectedOf(int selected, int total) {

@@ -558,13 +558,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get classSecret => 'Credencial';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Pessoa';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Saúde';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Dados pessoais';
 
   @override
   String selectedOf(int selected, int total) {
@@ -1255,4 +1255,13 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get classSecret => 'Credencial';
+
+  @override
+  String get classPerson => 'Pessoa';
+
+  @override
+  String get classHealth => 'Saúde';
+
+  @override
+  String get classPersonalInfo => 'Dados pessoais';
 }

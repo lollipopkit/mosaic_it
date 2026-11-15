@@ -580,10 +580,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get classPerson => 'Person';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Gesundheit';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Persönliche Angaben';
 
   @override
   String selectedOf(int selected, int total) {

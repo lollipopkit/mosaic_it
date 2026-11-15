@@ -570,13 +570,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get classSecret => 'Kelayakan';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Orang';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Kesihatan';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Maklumat peribadi';
 
   @override
   String selectedOf(int selected, int total) {

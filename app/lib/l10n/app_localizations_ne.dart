@@ -572,13 +572,13 @@ class AppLocalizationsNe extends AppLocalizations {
   String get classSecret => 'गोप्य जानकारी';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'व्यक्ति';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'स्वास्थ्य';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'व्यक्तिगत जानकारी';
 
   @override
   String selectedOf(int selected, int total) {

@@ -577,13 +577,13 @@ class AppLocalizationsHr extends AppLocalizations {
   String get classSecret => 'Tajna';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Osoba';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Zdravlje';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Osobni podaci';
 
   @override
   String selectedOf(int selected, int total) {

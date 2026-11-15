@@ -573,13 +573,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get classSecret => 'Gizli bilgi';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Kişi';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Sağlık';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Kişisel bilgiler';
 
   @override
   String selectedOf(int selected, int total) {

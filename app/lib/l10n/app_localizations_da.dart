@@ -561,10 +561,10 @@ class AppLocalizationsDa extends AppLocalizations {
   String get classPerson => 'Person';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Helbred';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Personlige oplysninger';
 
   @override
   String selectedOf(int selected, int total) {

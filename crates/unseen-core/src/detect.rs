@@ -10,6 +10,9 @@ use crate::{Backend, Error, FACE, FaceDetector, ModelMeta, RawOutput, Result, te
 /// Overlap between neighbouring tiles of a fixed-size graph, in pixels.
 /// Larger than most regions, so a region is whole in the tile that keeps it.
 pub const TILE_OVERLAP: usize = 384;
+/// Largest side a dynamic graph runs on at once: the training crop size, so
+/// attention sees the token counts it was trained on and memory stays bounded.
+pub const DYNAMIC_TILE: usize = 1280;
 
 /// Starts of the tiles covering a `h`-long axis with `th`-long tiles, each
 /// with the range it owns: a detection is kept only by the tile whose range
@@ -260,20 +263,23 @@ impl Detector {
         if !same {
             return self.collect(out, prev.min_score, None);
         }
+        let mut any = false;
         let runs = self
             .plan(out.width(), out.height())
             .iter()
             .zip(&prev.runs)
             .map(|(t, old)| {
                 if changed(src, out, t) {
+                    any = true;
                     self.run(out, t, prev.min_score)
                 } else {
                     Ok(old.clone())
                 }
             })
             .collect::<Result<_>>()?;
-        // One run over the whole image: rerun on any change.
-        let faces = if src != out {
+        // One run over the whole image: rerun on any change. The tiles cover
+        // every pixel, so some tile changed exactly when the image did.
+        let faces = if any {
             self.faces(out, prev.min_score)?
         } else {
             prev.faces.clone()
@@ -329,7 +335,12 @@ impl Detector {
                 class: self.meta.classes[k].clone(),
                 class_id: k,
                 score,
-                bbox: [b[0].clamp(0.0, w), b[1].clamp(0.0, h), b[2].clamp(0.0, w), b[3].clamp(0.0, h)],
+                bbox: [
+                    b[0].clamp(0.0, w),
+                    b[1].clamp(0.0, h),
+                    b[2].clamp(0.0, w),
+                    b[3].clamp(0.0, h),
+                ],
             })
             .collect::<Vec<_>>();
         let faces = c
@@ -352,22 +363,30 @@ impl Detector {
         Ok(dets)
     }
 
-    /// The runs of the graph over a `w`x`h` image: one over the image padded
-    /// to a multiple of 32 for a dynamic graph, else a grid of overlapping
-    /// tiles of the graph's input size.
+    /// The runs of the graph over a `w`x`h` image: a grid of overlapping tiles
+    /// of the graph's input size, or for a dynamic graph of up to
+    /// [`DYNAMIC_TILE`] (sides of a smaller image padded to a multiple of 32).
     fn plan(&self, w: u32, h: u32) -> Vec<Tile> {
         let (w, h) = (w as usize, h as usize);
-        let all = (f32::NEG_INFINITY, f32::INFINITY);
-        let Some([tw, th]) = self.meta.input_size else {
-            return vec![Tile { x: 0, y: 0, w: w.div_ceil(32) * 32, h: h.div_ceil(32) * 32, own_x: all, own_y: all }];
+        let (tw, th) = match self.meta.input_size {
+            Some([tw, th]) => (tw as usize, th as usize),
+            None => (
+                DYNAMIC_TILE.min(w.div_ceil(32) * 32),
+                DYNAMIC_TILE.min(h.div_ceil(32) * 32),
+            ),
         };
-        let (tw, th) = (tw as usize, th as usize);
         let cols = tile_plan(w, tw);
         tile_plan(h, th)
             .into_iter()
             .flat_map(|(y, ylo, yhi)| {
-                cols.iter()
-                    .map(move |&(x, xlo, xhi)| Tile { x, y, w: tw, h: th, own_x: (xlo, xhi), own_y: (ylo, yhi) })
+                cols.iter().map(move |&(x, xlo, xhi)| Tile {
+                    x,
+                    y,
+                    w: tw,
+                    h: th,
+                    own_x: (xlo, xhi),
+                    own_y: (ylo, yhi),
+                })
             })
             .collect()
     }
@@ -584,7 +603,7 @@ mod tests {
     }
 
     /// One `avatar` box on the stride-32 cell (1, 1): xyxy (16, 16, 80, 80) in
-    /// model pixels, scored `score` (none on inputs under 64 px tall).
+    /// input pixels, scored `score` (none on inputs under 64 px tall).
     struct Avatar(f32);
 
     impl Backend for Avatar {
@@ -622,9 +641,8 @@ mod tests {
 
     #[test]
     fn faces_are_detections_of_their_own_class() {
-        // The fake's native face is
-        // (16, 0, 48, 32), inside no avatar; the 640 pass finds it again at
-        // (18, 0, 54, 36) and NMS keeps one.
+        // The fake's native face is (16, 0, 48, 32), inside no avatar; the
+        // 640 pass finds it again at (18, 0, 54, 36) and NMS keeps one.
         let (mut det, _) = with_faces(0.0);
         assert_eq!(det.classes(), ["avatar", FACE]);
         let dets = det.detect(&RgbImage::new(720, 400), &DetectOptions::default()).unwrap();
@@ -778,9 +796,16 @@ mod tests {
                 assert!(x >= t.x as f32 && x < (t.x + t.w) as f32 && y >= t.y as f32 && y < (t.y + t.h) as f32);
             }
         }
-        // A dynamic graph runs once over the padded image.
+        // A dynamic graph runs once over a small image padded to 32, and in
+        // DYNAMIC_TILE tiles over a large one.
         let (det, _) = fake(None);
-        assert_eq!(det.plan(1206, 2622).iter().map(|t| (t.w, t.h)).collect::<Vec<_>>(), vec![(1216, 2624)]);
+        assert_eq!(
+            det.plan(1000, 700).iter().map(|t| (t.w, t.h)).collect::<Vec<_>>(),
+            vec![(1024, 704)]
+        );
+        let plan = det.plan(1206, 2622);
+        assert_eq!(plan.len(), 3);
+        assert!(plan.iter().all(|t| (t.w, t.h) == (1216, DYNAMIC_TILE)));
     }
 
     fn d(class_id: usize, score: f32, bbox: [f32; 4]) -> Detection {

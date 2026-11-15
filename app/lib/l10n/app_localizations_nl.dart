@@ -555,13 +555,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get classSecret => 'Geheim';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Persoon';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Gezondheid';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Persoonlijke gegevens';
 
   @override
   String selectedOf(int selected, int total) {

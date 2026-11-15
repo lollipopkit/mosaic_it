@@ -573,13 +573,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get classSecret => 'Titkos adat';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Személy';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Egészség';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Személyes adatok';
 
   @override
   String selectedOf(int selected, int total) {

@@ -573,13 +573,13 @@ class AppLocalizationsBn extends AppLocalizations {
   String get classSecret => 'গোপন তথ্য';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'ব্যক্তি';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'স্বাস্থ্য';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'ব্যক্তিগত তথ্য';
 
   @override
   String selectedOf(int selected, int total) {

@@ -577,13 +577,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get classSecret => 'Tajný údaj';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Osoba';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Zdraví';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Osobní údaje';
 
   @override
   String selectedOf(int selected, int total) {

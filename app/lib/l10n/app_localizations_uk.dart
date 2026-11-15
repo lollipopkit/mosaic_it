@@ -567,13 +567,13 @@ class AppLocalizationsUk extends AppLocalizations {
   String get classSecret => 'Секретні дані';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Людина';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Здоров’я';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Особисті дані';
 
   @override
   String selectedOf(int selected, int total) {

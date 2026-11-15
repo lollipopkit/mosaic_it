@@ -548,13 +548,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get classSecret => '認証情報';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => '人物';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => '健康';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => '個人情報';
 
   @override
   String selectedOf(int selected, int total) {

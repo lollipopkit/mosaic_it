@@ -18,9 +18,7 @@ pub use detect::{Candidates, DetectOptions, Detection, Detector, Selection, Thre
 pub use eval::{ClassReport, CocoDataset, EvalOptions, EvalReport, Evaluator, GtImage};
 pub use face::{FACE, FaceDetector};
 pub use manifest::{FORMAT, MIN_FORMAT, Manifest, ModelEntry, PUBLIC_KEY, blake3_file, default_manifest, sign};
-pub use model::{
-    ModelMeta, Resolution, UNCALIBRATED_REVIEW, UNCALIBRATED_SELECT, is_camera_photo, load_image, tensor,
-};
+pub use model::{ModelMeta, Resolution, UNCALIBRATED_REVIEW, UNCALIBRATED_SELECT, is_camera_photo, load_image, tensor};
 pub use propagate::{FindOptions, Match, find_similar};
 pub use redact::{ExportCheck, Patch, RedactStyle, export_check, redact, redaction_patches};
 pub use video::{KeyframeOptions, Keyframes, Observation, Timeline, Track, Tracker};

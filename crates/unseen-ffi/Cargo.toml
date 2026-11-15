@@ -4,6 +4,7 @@ description = "flutter_rust_bridge API surface for the MosaicIt app"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 publish.workspace = true
 
 [lib]

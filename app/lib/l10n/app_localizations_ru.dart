@@ -582,13 +582,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get classSecret => 'Секретные данные';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Человек';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Здоровье';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Личные данные';
 
   @override
   String selectedOf(int selected, int total) {

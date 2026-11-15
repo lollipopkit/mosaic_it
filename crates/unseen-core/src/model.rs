@@ -48,7 +48,23 @@ impl ModelMeta {
     pub fn load(model: &Path) -> Result<Self> {
         let p = Self::sidecar(model);
         let s = std::fs::read_to_string(&p).map_err(|e| Error::Meta(format!("{}: {e}", p.display())))?;
-        serde_json::from_str(&s).map_err(|e| Error::Meta(e.to_string()))
+        let meta: Self = serde_json::from_str(&s).map_err(|e| Error::Meta(e.to_string()))?;
+        meta.validate()?;
+        Ok(meta)
+    }
+
+    /// Tiles must step forward ([`crate::detect::TILE_OVERLAP`]) and fit the
+    /// strides, as the training code requires.
+    fn validate(&self) -> Result<()> {
+        let overlap = crate::detect::TILE_OVERLAP;
+        if let Some(size) = self.input_size
+            && size.iter().any(|&n| n as usize <= overlap || n % 32 != 0)
+        {
+            return Err(Error::Meta(format!(
+                "input_size {size:?}: each side must be a multiple of 32 above {overlap}"
+            )));
+        }
+        Ok(())
     }
 
     /// Writes `calibration` into the sidecar, keeping every other field.
@@ -108,6 +124,9 @@ pub fn tensor(img: &RgbImage, x: usize, y: usize, w: usize, h: usize) -> Array4<
     let (iw, ih) = (img.width() as usize, img.height() as usize);
     let (cols, rows) = (w.min(iw.saturating_sub(x)), h.min(ih.saturating_sub(y)));
     let raw = img.as_raw();
+    if cols == 0 {
+        return t;
+    }
     let planes = t.as_slice_mut().expect("standard layout");
     for (c, plane) in planes.chunks_exact_mut(h * w).enumerate() {
         let (m, d) = (MEAN[c], STD[c]);
@@ -128,13 +147,18 @@ mod tests {
     #[test]
     fn tensor_normalises_the_window_and_pads_with_the_mean() {
         let img = RgbImage::from_fn(5, 4, |x, y| image::Rgb([(x * 40) as u8, (y * 50) as u8, 7]));
+        assert!(tensor(&img, 9, 3, 2, 2).iter().all(|&v| v == 0.0));
         let t = tensor(&img, 3, 1, 4, 4);
         assert_eq!(t.dim(), (1, 3, 4, 4));
         for (c, (m, d)) in MEAN.iter().zip(STD).enumerate() {
             for yy in 0..4 {
                 for xx in 0..4 {
                     let (x, y) = (3 + xx, 1 + yy);
-                    let want = if x < 5 && y < 4 { (img.get_pixel(x as u32, y as u32)[c] as f32 - m) / d } else { 0.0 };
+                    let want = if x < 5 && y < 4 {
+                        (img.get_pixel(x as u32, y as u32)[c] as f32 - m) / d
+                    } else {
+                        0.0
+                    };
                     assert_eq!(t[[0, c, yy, xx]], want, "c{c} ({x}, {y})");
                 }
             }
@@ -146,6 +170,24 @@ mod tests {
         let old = r#"{"classes": ["a"], "strides": [8]}"#;
         assert!(serde_json::from_str::<ModelMeta>(old).is_err());
         let new = r#"{"classes": ["a"], "strides": [8], "resolution": "native"}"#;
-        assert_eq!(serde_json::from_str::<ModelMeta>(new).unwrap().resolution, Resolution::Native);
+        assert_eq!(
+            serde_json::from_str::<ModelMeta>(new).unwrap().resolution,
+            Resolution::Native
+        );
+    }
+
+    #[test]
+    fn tiles_must_exceed_the_overlap() {
+        let meta = |size: [u32; 2]| ModelMeta {
+            classes: vec!["a".into()],
+            strides: vec![8],
+            input_size: Some(size),
+            resolution: Resolution::Native,
+            calibration: None,
+        };
+        assert!(meta([1280, 1280]).validate().is_ok());
+        for bad in [[384, 1280], [1280, 352], [1290, 1280]] {
+            assert!(meta(bad).validate().is_err(), "{bad:?}");
+        }
     }
 }

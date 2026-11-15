@@ -576,10 +576,10 @@ class AppLocalizationsNb extends AppLocalizations {
   String get classPerson => 'Person';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Helse';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Personopplysninger';
 
   @override
   String selectedOf(int selected, int total) {

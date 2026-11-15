@@ -573,13 +573,13 @@ class AppLocalizationsPl extends AppLocalizations {
   String get classSecret => 'Dane uwierzytelniające';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Osoba';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Zdrowie';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Dane osobowe';
 
   @override
   String selectedOf(int selected, int total) {

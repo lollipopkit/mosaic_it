@@ -579,13 +579,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get classSecret => 'Credenziale';
 
   @override
-  String get classPerson => 'Person';
+  String get classPerson => 'Persona';
 
   @override
-  String get classHealth => 'Health';
+  String get classHealth => 'Salute';
 
   @override
-  String get classPersonalInfo => 'Personal info';
+  String get classPersonalInfo => 'Dati personali';
 
   @override
   String selectedOf(int selected, int total) {
