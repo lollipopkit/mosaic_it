@@ -54,3 +54,26 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+// libLiteRt.so and its GPU accelerator, which unseen-infer dlopens for the
+// .tflite release (crates/unseen-infer/src/litert.rs). Only these two: the
+// AARs' Java API, and the Play asset delivery / WorkManager it pulls in, are
+// unused (WorkManager's Room database crashed the R8 release at startup).
+val litert: Configuration by configurations.creating { isTransitive = false }
+
+dependencies {
+    litert("com.google.ai.edge.litert:litert:2.3.2@aar")
+    litert("com.google.ai.edge.litert:litert-gpu:2.3.2@aar")
+}
+
+val litertJni = layout.buildDirectory.dir("litert/jni")
+val litertLibs by tasks.registering(Sync::class) {
+    from(provider { litert.files.map { zipTree(it) } }) {
+        include("jni/arm64-v8a/libLiteRt.so", "jni/arm64-v8a/libLiteRtClGlAccelerator.so")
+        eachFile { path = path.removePrefix("jni/") }
+    }
+    includeEmptyDirs = false
+    into(litertJni)
+}
+android.sourceSets.getByName("main").jniLibs.srcDir(litertJni.get().asFile)
+tasks.named("preBuild") { dependsOn(litertLibs) }

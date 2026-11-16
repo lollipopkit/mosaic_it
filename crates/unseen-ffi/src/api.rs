@@ -194,20 +194,42 @@ fn open(path: &str) -> Result<image::RgbImage> {
     Ok(load_image(Path::new(path))?)
 }
 
+/// The backend of `model`: LiteRT for a `.tflite` file (Android), else ONNX
+/// Runtime on the platform's hardware provider.
+fn backend(
+    model: &Path,
+    resolution: Resolution,
+    cache_dir: Option<PathBuf>,
+) -> anyhow::Result<Box<dyn unseen_core::Backend>> {
+    #[cfg(target_os = "android")]
+    if model.extension().is_some_and(|e| e == "tflite") {
+        let opts = unseen_infer::LiteRtOptions {
+            cache_dir,
+            ..Default::default()
+        };
+        return Ok(Box::new(unseen_infer::LiteRtBackend::load(model, &opts)?));
+    }
+    let opts = OrtOptions {
+        per_shape: resolution == Resolution::Pt2,
+        cache_dir,
+        ..Default::default()
+    };
+    Ok(Box::new(OrtBackend::load_with(model, opts)?))
+}
+
+/// The release variant this platform runs ([`model_update`]).
+const VARIANT: &str = if cfg!(target_os = "android") { "litert" } else { "tiled" };
+
 impl Session {
     /// `cache_dir` keeps compiled hardware models between loads. Faces come
     /// from the built-in face detector, whatever the model.
     pub fn load(model_path: String, cache_dir: Option<String>) -> Result<Session> {
         let path = Path::new(&model_path);
         let meta = ModelMeta::load(path)?;
-        let opts = OrtOptions {
-            cache_dir: cache_dir.map(PathBuf::from),
-            per_shape: meta.resolution == Resolution::Pt2,
-            ..Default::default()
-        };
-        let backend = OrtBackend::load_with(path, opts).with_context(|| format!("loading {model_path}"))?;
+        let backend = backend(path, meta.resolution, cache_dir.map(PathBuf::from))
+            .with_context(|| format!("loading {model_path}"))?;
         Ok(Session {
-            det: Mutex::new(Detector::new(meta, Box::new(backend)).with_faces(face_detector()?)),
+            det: Mutex::new(Detector::new(meta, backend).with_faces(face_detector()?)),
             off: Mutex::default(),
             threshold: Mutex::new(ThresholdPreset::Medium),
             recent: Mutex::default(),
@@ -401,11 +423,12 @@ pub struct ModelUpdate {
 
 /// The newest release this app can run in a downloaded `manifest`, if it is
 /// newer than the model at `installed`. Fails unless the manifest carries the
-/// publisher's signature; an installed model that is not a listed tiled
-/// release is the user's own and gets no update.
+/// publisher's signature; an installed model that is not a listed release of
+/// this platform's variant (`litert` on Android, else `tiled`) is the user's
+/// own and gets no update.
 pub fn model_update(manifest: Vec<u8>, installed: Option<String>) -> Result<Option<ModelUpdate>> {
     let m = Manifest::signed(&manifest, PUBLIC_KEY)?;
-    Ok(m.update("tiled", installed.as_deref().map(Path::new))?
+    Ok(m.update(VARIANT, installed.as_deref().map(Path::new))?
         .map(|e| ModelUpdate {
             version: e.version.clone(),
             file: e.file.clone(),

@@ -16,8 +16,10 @@ directml = ["ort", "ort/directml"]
 xnnpack = ["ort", "ort/xnnpack"]
 qnn = ["ort", "ort/qnn"]
 nnapi = ["ort", "ort/nnapi"]
+litert = ["dep:libloading"]
 
 [dependencies]
 unseen-core.workspace = true
 ndarray.workspace = true
 ort = { workspace = true, optional = true }
+libloading = { version = "0.9", optional = true }

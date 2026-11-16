@@ -1,8 +1,8 @@
 # Releasing a detector
 
 Steps from an exported model (`unseen-det-tile.onnx`, for a native model
-also `unseen-det.onnx`, and their `.json` sidecars) to a release the app
-installs. Training and export
+also `unseen-det.onnx`; `unseen-det.tflite` for Android; and their `.json`
+sidecars) to a release the app installs. Training and export
 are not part of this repository.
 
 ## 1. Bench (macOS)
@@ -18,11 +18,24 @@ compiles once per input shape; `backend` names any shape left on the CPU. FP16 i
 Apple Neural Engine execution on iOS and cuts Apple Silicon GPU latency in
 half compared to FP32.
 
+On Android (Pixel 8a over adb), the `.tflite` must run on the GPU
+(`backend: litert/gpu`):
+
+```sh
+cargo ndk -t arm64-v8a -P 29 build --release -p unseen-cli --features litert
+# push target/aarch64-linux-android/release/unseen, the NDK's libc++_shared.so,
+# libLiteRt.so + libLiteRtClGlAccelerator.so (jni/arm64-v8a of the 2.3.2 AARs),
+# the model and an image to /data/local/tmp/x, then
+adb shell 'cd /data/local/tmp/x && LD_LIBRARY_PATH=. UNSEEN_LITERT=./libLiteRt.so ./unseen bench --model unseen-det.tflite --runs 20 <image>'
+```
+
 ## 2. Calibrate
 
 ```sh
 target/release/unseen calibrate --model unseen-det-tile.onnx --data <calibration set>
 target/release/unseen calibrate --model unseen-det.onnx --data <calibration set>
+# --features litert build; libLiteRt.dylib from the ai-edge-litert wheel (CPU)
+UNSEEN_LITERT=<wheel>/ai_edge_litert/libLiteRt.dylib target/release/unseen calibrate --model unseen-det.tflite --data <calibration set>
 ```
 
 `<calibration set>` is a directory with `coco.json` and its images. This
@@ -34,9 +47,10 @@ presented as guaranteed.
 
 ```sh
 target/release/unseen models hash unseen-det-tile.onnx --model-version X.Y.Z --variant tiled >> models/manifest.toml
+target/release/unseen models hash unseen-det.tflite --model-version X.Y.Z --variant litert >> models/manifest.toml
 # native models only
 target/release/unseen models hash unseen-det.onnx --model-version X.Y.Z --variant dynamic >> models/manifest.toml
-target/release/unseen models verify unseen-det-tile.onnx unseen-det.onnx
+target/release/unseen models verify unseen-det-tile.onnx unseen-det.tflite unseen-det.onnx
 ```
 
 A `pt2` model's entry is `format = 3` (written by `models hash`); builds

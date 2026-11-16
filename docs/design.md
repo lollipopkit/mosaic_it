@@ -293,6 +293,7 @@ trait Embedder { fn embed(&self, crops: &[Image]) -> Result<Vec<Vec<f32>>>; }
 | Backend | Feature | Platforms |
 |---|---|---|
 | ort 2.0 (ORT 1.28) | `ort-coreml`, `ort-nnapi`, `ort-qnn`, `ort-xnnpack`, `ort-cuda`, `ort-directml` | all; EP chosen at runtime with `is_available()`, falling back to multi-threaded CPU on Android (`available_parallelism()`) whenever the EP fails to load or splits the graph. CoreML uses `MLProgram` with `with_static_input_shapes(true)` and a versioned cache (`coreml-mlprogram-v1-<blake3>`). Android uses `NNAPI` with `with_fp16(true)` and `with_disable_cpu(true)` (the only EP in ORT's prebuilt Android binaries; XNNPACK and QNN need ONNX Runtime built from source) |
+| LiteRT 2.3 (CompiledModel C API) | `litert` | Android, for the `.tflite` release (variant `litert`): one signature per `pt2` input shape sharing the weights, on the OpenCL/GL GPU accelerator when it takes every op, else on XNNPACK. `libLiteRt.so` and `libLiteRtClGlAccelerator.so` come from the `com.google.ai.edge.litert` AARs and are loaded at run time; the model runs on a worker thread of its own, since the GPU context belongs to the thread that compiled it. Pixel 8a, 1290×2796 screenshot: v17 575 ms (ORT CPU 4449 ms), hybrid 769 ms (9054 ms); against ORT CPU 0 of 23 selected boxes flip, min IoU 0.9956 |
 | tract | `tract` | all; pure-Rust CPU fallback, no native libs |
 | remote | `remote` | any; HTTP to a self-hosted `unseen-server` |
 

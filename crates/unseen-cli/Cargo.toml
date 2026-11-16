@@ -16,6 +16,7 @@ default = []
 coreml = ["unseen-infer/coreml"]
 cuda = ["unseen-infer/cuda"]
 nnapi = ["unseen-infer/nnapi"]
+litert = ["unseen-infer/litert"]
 
 [dependencies]
 unseen-core.workspace = true
