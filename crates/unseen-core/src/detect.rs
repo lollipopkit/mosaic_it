@@ -400,9 +400,31 @@ impl Detector {
                     b[3].clamp(0.0, h),
                 ],
             });
-        let mut dets = nms(cands.into_iter().chain(faces).collect(), opts.iou);
+        let mut dets = self.drop_covered(nms(cands.into_iter().chain(faces).collect(), opts.iou));
         dets.truncate(opts.max_detections);
         Ok(dets)
+    }
+
+    /// `dets` (sorted by score) without the boxes another box covers almost
+    /// wholly and outranks. Class-wise NMS keeps a value read as two classes,
+    /// and a line with its fragments; the outranking box masks the same
+    /// pixels and is pre-selected whenever they would be: rank is the score
+    /// over its class's select threshold, classes switched off ranking last.
+    /// Faces keep their own boxes (inside an avatar, say).
+    fn drop_covered(&self, dets: Vec<Detection>) -> Vec<Detection> {
+        let rank = |d: &Detection| (!self.off.contains(&d.class), d.score / self.thresholds(&d.class).0);
+        let mut order: Vec<usize> = (0..dets.len()).collect();
+        order.sort_by(|&a, &b| rank(&dets[b]).partial_cmp(&rank(&dets[a])).expect("finite scores"));
+        let mut keep = vec![true; dets.len()];
+        for (i, &a) in order.iter().enumerate() {
+            if dets[a].class == FACE {
+                continue;
+            }
+            keep[a] = !order[..i]
+                .iter()
+                .any(|&b| keep[b] && dets[b].class != FACE && covered(&dets[a].bbox, &dets[b].bbox));
+        }
+        dets.into_iter().zip(keep).filter_map(|(d, k)| k.then_some(d)).collect()
     }
 
     /// The runs of the graph over a `w`x`h` graph input: a grid of
@@ -502,6 +524,15 @@ fn view4(a: &ndarray::ArrayD<f32>, stride: u32) -> Result<ndarray::ArrayView4<'_
     a.view()
         .into_dimensionality()
         .map_err(|e| Error::Shape(format!("stride {stride}: {e}")))
+}
+
+/// Share of `a`'s area inside `b` from which `a` counts as covered.
+const COVERED: f32 = 0.9;
+
+fn covered(a: &[f32; 4], b: &[f32; 4]) -> bool {
+    let area = (a[2] - a[0]).max(0.0) * (a[3] - a[1]).max(0.0);
+    let (w, h) = (a[2].min(b[2]) - a[0].max(b[0]), a[3].min(b[3]) - a[1].max(b[1]));
+    area > 0.0 && w > 0.0 && h > 0.0 && w * h >= COVERED * area
 }
 
 /// Class-wise greedy NMS. Output is sorted by descending score.
@@ -871,6 +902,34 @@ mod tests {
         let plan = det.plan(5120, 1440);
         assert_eq!(plan.len(), 12);
         assert!(plan.iter().all(|t| (t.w, t.h) == (1280, 1280)));
+    }
+
+    #[test]
+    fn covered_boxes_give_way_to_the_box_that_outranks_them() {
+        let (mut det, _) = fake(None);
+        let line = d(0, 0.5, [0.0, 0.0, 100.0, 20.0]);
+        let part = d(0, 0.4, [50.0, 1.0, 99.0, 19.0]);
+        let other_class = d(1, 0.35, [1.0, 0.0, 100.0, 20.0]);
+        let apart = d(1, 0.9, [0.0, 50.0, 100.0, 70.0]);
+        let classes = det.meta.classes.clone();
+        let named = |v: Vec<Detection>| {
+            v.into_iter()
+                .map(|mut x| {
+                    x.class = classes[x.class_id].clone();
+                    x
+                })
+                .collect::<Vec<_>>()
+        };
+        let got = det.drop_covered(named(vec![apart.clone(), line.clone(), part, other_class]));
+        assert_eq!(
+            got.iter().map(|x| x.bbox).collect::<Vec<_>>(),
+            vec![apart.bbox, line.bbox]
+        );
+        // A class switched off never outranks one that is on.
+        det.set_off(["a".to_string()]);
+        let got = det.drop_covered(named(vec![line.clone(), d(1, 0.35, [1.0, 0.0, 100.0, 20.0])]));
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0].class, "b");
     }
 
     #[test]
