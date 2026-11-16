@@ -134,7 +134,12 @@
   "fillNoise": "Noise",
   "verifyNext": "Verify & next",
   "export": "Export",
-  "pickOneModel": "Pick exactly one .onnx model",
+  "pickOneModel": "Pick exactly one {formats} model",
+  "@pickOneModel": {
+    "placeholders": {
+      "formats": {"type": "String", "example": ".onnx"}
+    }
+  },
   "pickSidecar": "Also pick {name}.json",
   "@pickSidecar": {
     "placeholders": {

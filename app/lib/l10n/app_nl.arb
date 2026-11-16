@@ -36,7 +36,7 @@
   "fillNoise": "Ruis",
   "verifyNext": "Verifiëren & volgende",
   "export": "Exporteren",
-  "pickOneModel": "Kies exact één .onnx-model",
+  "pickOneModel": "Kies exact één {formats}-model",
   "pickSidecar": "Kies ook {name}.json",
   "analysing": "Analyseren",
   "followingRegion": "Regio volgen",

@@ -150,7 +150,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get export => 'ส่งออก';
 
   @override
-  String get pickOneModel => 'เลือกโมเดล .onnx พอดีหนึ่งตัว';
+  String pickOneModel(String formats) {
+    return 'เลือกโมเดล $formats พอดีหนึ่งตัว';
+  }
 
   @override
   String pickSidecar(String name) {

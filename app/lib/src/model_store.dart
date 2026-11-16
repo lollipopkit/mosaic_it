@@ -6,7 +6,13 @@ import 'package:path_provider/path_provider.dart';
 
 import 'rust/api.dart';
 
-/// Keeps one detector model (`*.onnx` plus its `*.onnx.json` sidecar) in the
+/// Model file extensions this platform runs: LiteRT's `.tflite` (the
+/// Android release) only on Android.
+final modelExtensions = ['.onnx', if (Platform.isAndroid) '.tflite'];
+
+bool _isModel(String path) => modelExtensions.any(path.endsWith);
+
+/// Keeps one detector model (a [modelExtensions] file plus its `.json` sidecar) in the
 /// app's support directory: a release downloaded from [_manifest], or files
 /// the user picked (copied in, as the sandbox only grants access to those).
 class ModelStore {
@@ -26,11 +32,8 @@ class ModelStore {
   static Future<Directory> _staged() async =>
       Directory('${(await _dir()).path}/staged').create();
 
-  static File? _modelIn(Directory d) => d
-      .listSync()
-      .whereType<File>()
-      .where((f) => f.path.endsWith('.onnx'))
-      .firstOrNull;
+  static File? _modelIn(Directory d) =>
+      d.listSync().whereType<File>().where((f) => _isModel(f.path)).firstOrNull;
 
   /// The staged release: its model is written last, so finding one means the
   /// release is complete.
@@ -49,12 +52,23 @@ class ModelStore {
   static Future<File?> current() async => _modelIn(await _dir());
 
   /// Copies a model and its sidecar, picked together by the user, replacing
-  /// the stored model. The sidecar is `<model>.onnx.json`, or the only
+  /// the stored model. The sidecar is `<model>.json`, or the only
   /// `.json` picked. Picking files rather than a folder works on every
   /// platform (iOS has no folder picker) and under the macOS sandbox.
   static Future<File> import(List<String> paths) async {
     final (model, sidecar) = pickModelFiles(paths);
-    final name = model.split(Platform.pathSeparator).last;
+    // Pickers may rename what they copy (Android's file_selector gives a
+    // file without a registered MIME type another extension), so the format
+    // comes from the content.
+    final raf = await File(model).open();
+    final ext = modelExtension(await raf.read(8));
+    await raf.close();
+    if (!modelExtensions.contains(ext)) {
+      throw const ModelPickError.notOneModel();
+    }
+    final file = model.split(Platform.pathSeparator).last;
+    final dot = file.indexOf('.');
+    final name = '${dot > 0 ? file.substring(0, dot) : file}$ext';
     final d = await _dir();
     _imports++;
     for (final f in d.listSync()) {
@@ -175,17 +189,25 @@ class ModelPickError implements Exception {
   const ModelPickError.noSidecar(String model) : sidecarFor = model;
 
   /// The model file name whose `.json` sidecar is missing; null when the
-  /// pick did not hold exactly one `.onnx`.
+  /// pick did not hold exactly one model file.
   final String? sidecarFor;
 }
 
-/// The model and its sidecar among picked [paths]: exactly one `.onnx`, and
-/// `<model>.onnx.json` or else the only `.json`.
+/// The extension of a model file whose first bytes are [head]: `.tflite`
+/// for a LiteRT flatbuffer (identifier `TFL3`), else `.onnx`.
+String modelExtension(List<int> head) =>
+    head.length >= 8 && String.fromCharCodes(head.sublist(4, 8)) == 'TFL3'
+    ? '.tflite'
+    : '.onnx';
+
+/// The model and its sidecar among picked [paths]: exactly one file that is
+/// not `.json` (its name may not tell the format: [modelExtension]), and
+/// `<model>.json` or else the only `.json`.
 (String, String) pickModelFiles(List<String> paths) {
-  final onnx = paths.where((p) => p.endsWith('.onnx')).toList();
+  final models = paths.where((p) => !p.endsWith('.json')).toList();
   final json = paths.where((p) => p.endsWith('.json')).toList();
-  if (onnx.length != 1) throw const ModelPickError.notOneModel();
-  final model = onnx.single;
+  if (models.length != 1) throw const ModelPickError.notOneModel();
+  final model = models.single;
   final name = model.split(Platform.pathSeparator).last;
   final exact = json.where(
     (p) => p.split(Platform.pathSeparator).last == '$name.json',

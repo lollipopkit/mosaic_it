@@ -36,7 +36,7 @@
   "fillNoise": "Nhiễu",
   "verifyNext": "Xác minh & tiếp theo",
   "export": "Xuất",
-  "pickOneModel": "Chọn đúng một mô hình .onnx",
+  "pickOneModel": "Chọn đúng một mô hình {formats}",
   "pickSidecar": "Cũng chọn {name}.json",
   "analysing": "Đang phân tích",
   "followingRegion": "Đang theo dõi vùng",

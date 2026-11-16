@@ -153,7 +153,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get export => 'Exportálás';
 
   @override
-  String get pickOneModel => 'Válasszon pontosan egy .onnx modellt';
+  String pickOneModel(String formats) {
+    return 'Válasszon pontosan egy $formats modellt';
+  }
 
   @override
   String pickSidecar(String name) {

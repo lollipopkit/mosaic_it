@@ -36,7 +36,7 @@
   "fillNoise": "नोइज",
   "verifyNext": "सत्यापन र अर्को",
   "export": "निर्यात गर्नुहोस्",
-  "pickOneModel": "केवल एउटा .onnx मोडेल छान्नुहोस्",
+  "pickOneModel": "केवल एउटा {formats} मोडेल छान्नुहोस्",
   "pickSidecar": "{name}.json पनि छान्नुहोस्",
   "analysing": "विश्लेषण हुँदैछ",
   "followingRegion": "क्षेत्र पछ्याउँदैछ",

@@ -36,7 +36,7 @@
   "fillNoise": "噪点",
   "verifyNext": "验证并下一项",
   "export": "导出",
-  "pickOneModel": "请恰好选择一个 .onnx 模型",
+  "pickOneModel": "请恰好选择一个 {formats} 模型",
   "pickSidecar": "同时选择 {name}.json",
   "analysing": "正在分析",
   "followingRegion": "正在跟踪区域",

@@ -36,7 +36,7 @@
   "fillNoise": "Brus",
   "verifyNext": "Verifiera & nästa",
   "export": "Exportera",
-  "pickOneModel": "Välj exakt en .onnx-modell",
+  "pickOneModel": "Välj exakt en {formats}-modell",
   "pickSidecar": "Välj också {name}.json",
   "analysing": "Analyserar",
   "followingRegion": "Följer området",

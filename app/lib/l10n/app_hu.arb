@@ -36,7 +36,7 @@
   "fillNoise": "Zaj",
   "verifyNext": "Ellenőrzés és következő",
   "export": "Exportálás",
-  "pickOneModel": "Válasszon pontosan egy .onnx modellt",
+  "pickOneModel": "Válasszon pontosan egy {formats} modellt",
   "pickSidecar": "Válassza ki a(z) {name}.json fájlt is",
   "analysing": "Elemzés",
   "followingRegion": "A régió követése",

@@ -36,7 +36,7 @@
   "fillNoise": "רעש",
   "verifyNext": "אימות והבא",
   "export": "ייצוא",
-  "pickOneModel": "יש לבחור בדיוק מודל .onnx אחד",
+  "pickOneModel": "יש לבחור בדיוק מודל {formats} אחד",
   "pickSidecar": "יש לבחור גם את {name}.json",
   "analysing": "מנתח",
   "followingRegion": "מעקב אחר האזור",

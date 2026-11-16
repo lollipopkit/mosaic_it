@@ -36,7 +36,7 @@
   "fillNoise": "Šum",
   "verifyNext": "Provjeri i sljedeće",
   "export": "Izvezi",
-  "pickOneModel": "Odaberite točno jedan .onnx model",
+  "pickOneModel": "Odaberite točno jedan {formats} model",
   "pickSidecar": "Također odaberite {name}.json",
   "analysing": "Analiziranje",
   "followingRegion": "Praćenje područja",

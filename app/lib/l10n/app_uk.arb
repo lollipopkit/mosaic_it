@@ -36,7 +36,7 @@
   "fillNoise": "Шум",
   "verifyNext": "Перевірити та наступне",
   "export": "Експорт",
-  "pickOneModel": "Оберіть рівно одну модель .onnx",
+  "pickOneModel": "Оберіть рівно одну модель {formats}",
   "pickSidecar": "Також оберіть {name}.json",
   "analysing": "Аналіз",
   "followingRegion": "Стеження за областю",

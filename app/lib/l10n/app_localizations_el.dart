@@ -153,7 +153,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get export => 'Εξαγωγή';
 
   @override
-  String get pickOneModel => 'Επιλέξτε ακριβώς ένα μοντέλο .onnx';
+  String pickOneModel(String formats) {
+    return 'Επιλέξτε ακριβώς ένα μοντέλο $formats';
+  }
 
   @override
   String pickSidecar(String name) {

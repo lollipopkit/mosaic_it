@@ -153,7 +153,9 @@ class AppLocalizationsHy extends AppLocalizations {
   String get export => 'Արտահանել';
 
   @override
-  String get pickOneModel => 'Ընտրեք ճիշտ մեկ .onnx մոդել';
+  String pickOneModel(String formats) {
+    return 'Ընտրեք ճիշտ մեկ $formats մոդել';
+  }
 
   @override
   String pickSidecar(String name) {

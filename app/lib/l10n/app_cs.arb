@@ -36,7 +36,7 @@
   "fillNoise": "Šum",
   "verifyNext": "Ověřit a další",
   "export": "Exportovat",
-  "pickOneModel": "Vyberte přesně jeden model .onnx",
+  "pickOneModel": "Vyberte přesně jeden model {formats}",
   "pickSidecar": "Vyberte také {name}.json",
   "analysing": "Analyzování",
   "followingRegion": "Sledování oblasti",

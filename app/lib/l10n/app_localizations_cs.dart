@@ -152,7 +152,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get export => 'Exportovat';
 
   @override
-  String get pickOneModel => 'Vyberte přesně jeden model .onnx';
+  String pickOneModel(String formats) {
+    return 'Vyberte přesně jeden model $formats';
+  }
 
   @override
   String pickSidecar(String name) {

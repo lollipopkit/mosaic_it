@@ -147,7 +147,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get export => '导出';
 
   @override
-  String get pickOneModel => '请恰好选择一个 .onnx 模型';
+  String pickOneModel(String formats) {
+    return '请恰好选择一个 $formats 模型';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -818,7 +820,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get export => '匯出';
 
   @override
-  String get pickOneModel => '請精確選擇一個 .onnx 模型';
+  String pickOneModel(String formats) {
+    return '請精確選擇一個 $formats 模型';
+  }
 
   @override
   String pickSidecar(String name) {

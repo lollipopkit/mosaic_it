@@ -36,7 +36,7 @@
   "fillNoise": "نویز",
   "verifyNext": "تأیید و بعدی",
   "export": "خروجی گرفتن",
-  "pickOneModel": "دقیقاً یک مدل .onnx انتخاب کنید",
+  "pickOneModel": "دقیقاً یک مدل {formats} انتخاب کنید",
   "pickSidecar": "همچنین {name}.json را انتخاب کنید",
   "analysing": "در حال تحلیل",
   "followingRegion": "دنبال کردن ناحیه",

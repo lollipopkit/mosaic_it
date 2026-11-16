@@ -36,7 +36,7 @@
   "fillNoise": "Hingar",
   "verifyNext": "Sahkan & seterusnya",
   "export": "Eksport",
-  "pickOneModel": "Pilih tepat satu model .onnx",
+  "pickOneModel": "Pilih tepat satu model {formats}",
   "pickSidecar": "Pilih juga {name}.json",
   "analysing": "Menganalisis",
   "followingRegion": "Mengikut kawasan",

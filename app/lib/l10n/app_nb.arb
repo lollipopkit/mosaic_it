@@ -36,7 +36,7 @@
   "fillNoise": "Støy",
   "verifyNext": "Verifiser og neste",
   "export": "Eksporter",
-  "pickOneModel": "Velg nøyaktig én .onnx-modell",
+  "pickOneModel": "Velg nøyaktig én {formats}-modell",
   "pickSidecar": "Velg også {name}.json",
   "analysing": "Analyserer",
   "followingRegion": "Følger området",

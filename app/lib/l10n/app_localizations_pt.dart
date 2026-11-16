@@ -150,7 +150,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get export => 'Exportar';
 
   @override
-  String get pickOneModel => 'Escolha exatamente um modelo .onnx';
+  String pickOneModel(String formats) {
+    return 'Escolha exatamente um modelo $formats';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -840,7 +842,9 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get export => 'Exportar';
 
   @override
-  String get pickOneModel => 'Escolha exatamente um modelo .onnx';
+  String pickOneModel(String formats) {
+    return 'Escolha exatamente um modelo $formats';
+  }
 
   @override
   String pickSidecar(String name) {

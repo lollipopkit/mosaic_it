@@ -36,7 +36,7 @@
   "fillNoise": "Melu",
   "verifyNext": "Vahvista ja seuraava",
   "export": "Vie",
-  "pickOneModel": "Valitse täsmälleen yksi .onnx-malli",
+  "pickOneModel": "Valitse täsmälleen yksi {formats}-malli",
   "pickSidecar": "Valitse myös {name}.json",
   "analysing": "Analysointi",
   "followingRegion": "Seurataan aluetta",

@@ -153,7 +153,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get export => 'রপ্তানি';
 
   @override
-  String get pickOneModel => 'ঠিক একটি .onnx মডেল নির্বাচন করুন';
+  String pickOneModel(String formats) {
+    return 'ঠিক একটি $formats মডেল নির্বাচন করুন';
+  }
 
   @override
   String pickSidecar(String name) {

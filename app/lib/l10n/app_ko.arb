@@ -36,7 +36,7 @@
   "fillNoise": "노이즈",
   "verifyNext": "검증 및 다음",
   "export": "내보내기",
-  "pickOneModel": ".onnx 모델을 정확히 하나 선택하세요",
+  "pickOneModel": "{formats} 모델을 정확히 하나 선택하세요",
   "pickSidecar": "{name}.json도 선택하세요",
   "analysing": "분석 중",
   "followingRegion": "영역 추적 중",

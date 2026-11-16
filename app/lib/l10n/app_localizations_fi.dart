@@ -153,7 +153,9 @@ class AppLocalizationsFi extends AppLocalizations {
   String get export => 'Vie';
 
   @override
-  String get pickOneModel => 'Valitse täsmälleen yksi .onnx-malli';
+  String pickOneModel(String formats) {
+    return 'Valitse täsmälleen yksi $formats-malli';
+  }
 
   @override
   String pickSidecar(String name) {

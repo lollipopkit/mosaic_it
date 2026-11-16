@@ -150,7 +150,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get export => 'Exporter';
 
   @override
-  String get pickOneModel => 'Choisissez exactement un modèle .onnx';
+  String pickOneModel(String formats) {
+    return 'Choisissez exactement un modèle $formats';
+  }
 
   @override
   String pickSidecar(String name) {

@@ -36,7 +36,7 @@
   "fillNoise": "雜訊",
   "verifyNext": "驗證並下一項",
   "export": "匯出",
-  "pickOneModel": "請精確選擇一個 .onnx 模型",
+  "pickOneModel": "請精確選擇一個 {formats} 模型",
   "pickSidecar": "同時選擇 {name}.json",
   "analysing": "分析中",
   "followingRegion": "追蹤區域",

@@ -36,7 +36,7 @@
   "fillNoise": "Gürültü",
   "verifyNext": "Doğrula ve sonraki",
   "export": "Dışa aktar",
-  "pickOneModel": "Tam olarak bir .onnx modeli seçin",
+  "pickOneModel": "Tam olarak bir {formats} modeli seçin",
   "pickSidecar": "{name}.json dosyasını da seçin",
   "analysing": "Analiz ediliyor",
   "followingRegion": "Bölge takip ediliyor",

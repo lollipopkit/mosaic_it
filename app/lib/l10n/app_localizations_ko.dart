@@ -148,7 +148,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get export => '내보내기';
 
   @override
-  String get pickOneModel => '.onnx 모델을 정확히 하나 선택하세요';
+  String pickOneModel(String formats) {
+    return '$formats 모델을 정확히 하나 선택하세요';
+  }
 
   @override
   String pickSidecar(String name) {

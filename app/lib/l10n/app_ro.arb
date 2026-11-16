@@ -36,7 +36,7 @@
   "fillNoise": "Zgomot",
   "verifyNext": "Verifică și următorul",
   "export": "Exportă",
-  "pickOneModel": "Alege exact un model .onnx",
+  "pickOneModel": "Alege exact un model {formats}",
   "pickSidecar": "Alege și {name}.json",
   "analysing": "Se analizează",
   "followingRegion": "Se urmărește regiunea",

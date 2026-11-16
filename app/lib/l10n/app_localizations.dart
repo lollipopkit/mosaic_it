@@ -389,8 +389,8 @@ abstract class AppLocalizations {
   /// No description provided for @pickOneModel.
   ///
   /// In en, this message translates to:
-  /// **'Pick exactly one .onnx model'**
-  String get pickOneModel;
+  /// **'Pick exactly one {formats} model'**
+  String pickOneModel(String formats);
 
   /// No description provided for @pickSidecar.
   ///

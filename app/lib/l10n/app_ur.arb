@@ -36,7 +36,7 @@
   "fillNoise": "ناز",
   "verifyNext": "تصدیق کریں اور اگلا",
   "export": "ایکسپورٹ",
-  "pickOneModel": "بالکل ایک .onnx ماڈل منتخب کریں",
+  "pickOneModel": "بالکل ایک {formats} ماڈل منتخب کریں",
   "pickSidecar": "{name}.json بھی منتخب کریں",
   "analysing": "تجزیہ ہو رہا ہے",
   "followingRegion": "علاقے کی پیروی کر رہا ہے",

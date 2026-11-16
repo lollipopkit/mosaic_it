@@ -36,7 +36,7 @@
   "fillNoise": "สัญญาณรบกวน",
   "verifyNext": "ยืนยันและถัดไป",
   "export": "ส่งออก",
-  "pickOneModel": "เลือกโมเดล .onnx พอดีหนึ่งตัว",
+  "pickOneModel": "เลือกโมเดล {formats} พอดีหนึ่งตัว",
   "pickSidecar": "เลือก {name}.json ด้วย",
   "analysing": "กำลังวิเคราะห์",
   "followingRegion": "กำลังติดตามพื้นที่",
