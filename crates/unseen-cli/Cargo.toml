@@ -15,6 +15,7 @@ path = "src/main.rs"
 default = []
 coreml = ["unseen-infer/coreml"]
 cuda = ["unseen-infer/cuda"]
+nnapi = ["unseen-infer/nnapi"]
 
 [dependencies]
 unseen-core.workspace = true

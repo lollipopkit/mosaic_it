@@ -11,8 +11,10 @@ cargo build --release -p unseen-cli --features coreml
 target/release/unseen bench --model unseen-det-tile.onnx --runs 20 <image>
 ```
 
-The tiled model must run as one CoreML partition with every node placed
-(281/281 for the current architecture).
+The tiled export (`--fp16`) must run as one CoreML partition with every node
+placed (290/290 for v17 FP16; 599/599 for hybrid FP16). FP16 is required for
+Apple Neural Engine execution on iOS and cuts Apple Silicon GPU latency in
+half compared to FP32.
 
 ## 2. Calibrate
 

@@ -138,8 +138,16 @@ screenshot (M-series):
 | tiled / CPU | all CPU | 249 ms |
 | tiled / CoreML | 281 of 281 nodes, 1 partition | 32 ms |
 
-Apple and mobile builds use the tiled export; CPU-only builds the dynamic
-one. Both decode to identical detections.
+Apple and mobile builds use the `--fp16` tiled export; CPU-only builds the
+dynamic one. Both decode to identical detections. On Apple Silicon, FP32 is
+rejected by the Neural Engine (CoreML runs it on GPU under `.all`, or CPU if
+ANE-only), whereas FP16 enables full Neural Engine execution on A18 Pro
+(`MLComputeUnits::All`) and ~2× faster GPU execution on M5 Pro (where CoreML's
+`.all` cost model picks GPU, which outperforms ANE on the hybrid attention
+graph). On Android, `NNAPI` enables `with_fp16(true)` and
+`with_disable_cpu(true)` so unsupported ops or driver errors fall back via
+`OrtBackend::load_with` to multi-threaded ORT MLAS CPU instead of NNAPI's
+slower `nnapi-reference` CPU implementation.
 
 **Input.** RGB at the original resolution, never resized (`unseen-core::model`;
 sidecars declare `"resolution": "native"`), normalised with the ImageNet mean
@@ -272,7 +280,7 @@ trait Embedder { fn embed(&self, crops: &[Image]) -> Result<Vec<Vec<f32>>>; }
 
 | Backend | Feature | Platforms |
 |---|---|---|
-| ort 2.0 (ORT 1.28) | `ort-coreml`, `ort-nnapi`, `ort-qnn`, `ort-xnnpack`, `ort-cuda`, `ort-directml` | all; EP chosen at runtime with `is_available()`, falling back to CPU. The app uses CoreML on Apple and NNAPI on Android (the only EP in ORT's prebuilt Android binaries); XNNPACK and QNN need ONNX Runtime built from source |
+| ort 2.0 (ORT 1.28) | `ort-coreml`, `ort-nnapi`, `ort-qnn`, `ort-xnnpack`, `ort-cuda`, `ort-directml` | all; EP chosen at runtime with `is_available()`, falling back to multi-threaded CPU on Android (`available_parallelism()`) whenever the EP fails to load or splits the graph. CoreML uses `MLProgram` with `with_static_input_shapes(true)` and a versioned cache (`coreml-mlprogram-v1-<blake3>`). Android uses `NNAPI` with `with_fp16(true)` and `with_disable_cpu(true)` (the only EP in ORT's prebuilt Android binaries; XNNPACK and QNN need ONNX Runtime built from source) |
 | tract | `tract` | all; pure-Rust CPU fallback, no native libs |
 | remote | `remote` | any; HTTP to a self-hosted `unseen-server` |
 
