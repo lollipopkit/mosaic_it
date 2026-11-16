@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -5,7 +6,11 @@ use image::RgbImage;
 use serde::Serialize;
 
 use crate::eval::iou;
-use crate::{Backend, Error, FACE, FaceDetector, ModelMeta, RawOutput, Result, tensor};
+use crate::model::resize;
+use crate::{
+    Backend, Error, FACE, FaceDetector, ModelMeta, RawOutput, Resolution, Result, scale_for, scaled_size, shape_for,
+    tensor,
+};
 
 /// Overlap between neighbouring tiles of a fixed-size graph, in pixels.
 /// Larger than most regions, so a region is whole in the tile that keeps it.
@@ -17,7 +22,7 @@ pub const DYNAMIC_TILE: usize = 1280;
 /// Starts of the tiles covering a `h`-long axis with `th`-long tiles, each
 /// with the range it owns: a detection is kept only by the tile whose range
 /// holds its centre, and ranges split each overlap down the middle.
-fn tile_plan(h: usize, th: usize) -> Vec<(usize, f32, f32)> {
+pub(crate) fn tile_plan(h: usize, th: usize) -> Vec<(usize, f32, f32)> {
     if h <= th {
         return vec![(0, f32::NEG_INFINITY, f32::INFINITY)];
     }
@@ -74,10 +79,15 @@ pub struct Candidates {
     /// Pixel hash of the image, when reusable by [`Detector::redetect`].
     image: Option<blake3::Hash>,
     size: (u32, u32),
+    /// Size of the graph input `size` was scaled to.
+    input: (u32, u32),
+    /// Original over graph-input pixels, per axis: above 1 when the image was
+    /// scaled down for the graph ([`Resolution::Pt2`]).
+    scale: [f32; 2],
     min_score: f32,
-    /// Per run of the graph: (class, score, xyxy in image pixels).
+    /// Per run of the graph: (class, score, xyxy in graph-input pixels).
     runs: Vec<Vec<(usize, f32, [f32; 4])>>,
-    /// (score, xyxy in image pixels) from the face detector, if any.
+    /// (score, xyxy in original pixels) from the face detector, if any.
     faces: Vec<(f32, [f32; 4])>,
 }
 
@@ -89,7 +99,7 @@ impl Candidates {
 
 /// One run of the graph: the window at (`x`, `y`) of the graph's input size
 /// (the padded image for a dynamic graph), and the x and y ranges whose
-/// detection centres it keeps.
+/// detection centres it keeps, in graph-input pixels.
 #[derive(Debug, Clone, Copy, PartialEq)]
 struct Tile {
     x: usize,
@@ -100,12 +110,22 @@ struct Tile {
     own_y: (f32, f32),
 }
 
-/// `a` and `b` (same size) differ inside `t`'s window.
-fn changed(a: &RgbImage, b: &RgbImage, t: &Tile) -> bool {
+/// `a` and `b` (same size) differ inside the original pixels tile `t` of
+/// an image scaled by `scale` (original over graph-input pixels) is made
+/// from: its window, widened by the resize filter's reach when scaled.
+fn changed(a: &RgbImage, b: &RgbImage, t: &Tile, scale: [f32; 2]) -> bool {
     let (w, h) = (a.width() as usize, a.height() as usize);
-    let (x1, y1) = ((t.x + t.w).min(w), (t.y + t.h).min(h));
-    (t.y..y1).any(|y| {
-        let r = (y * w + t.x) * 3..(y * w + x1) * 3;
+    let span = |p: usize, n: usize, k: f32, len: usize| {
+        // Bilinear downscaling by k reads k pixels either side.
+        let pad = if k > 1.0 { (2.0 * k).ceil() as usize + 1 } else { 0 };
+        let lo = ((p as f32 * k).floor() as usize).saturating_sub(pad);
+        let hi = (((p + n) as f32 * k).ceil() as usize + pad).min(len);
+        (lo.min(hi), hi)
+    };
+    let (x0, x1) = span(t.x, t.w, scale[0], w);
+    let (y0, y1) = span(t.y, t.h, scale[1], h);
+    (y0..y1).any(|y| {
+        let r = (y * w + x0) * 3..(y * w + x1) * 3;
         a.as_raw()[r.clone()] != b.as_raw()[r]
     })
 }
@@ -263,20 +283,19 @@ impl Detector {
         if !same {
             return self.collect(out, prev.min_score, None);
         }
-        let mut any = false;
-        let runs = self
-            .plan(out.width(), out.height())
-            .iter()
-            .zip(&prev.runs)
-            .map(|(t, old)| {
-                if changed(src, out, t) {
-                    any = true;
-                    self.run(out, t, prev.min_score)
-                } else {
-                    Ok(old.clone())
-                }
-            })
-            .collect::<Result<_>>()?;
+        let mut input: Option<Cow<'_, RgbImage>> = None;
+        let mut runs = Vec::with_capacity(prev.runs.len());
+        for (t, old) in self.plan(prev.input.0, prev.input.1).iter().zip(&prev.runs) {
+            if !changed(src, out, t, prev.scale) {
+                runs.push(old.clone());
+                continue;
+            }
+            if input.is_none() {
+                input = Some(self.input(out));
+            }
+            runs.push(self.run(input.as_deref().expect("set above"), t, prev.min_score)?);
+        }
+        let any = input.is_some();
         // One run over the whole image: rerun on any change. The tiles cover
         // every pixel, so some tile changed exactly when the image did.
         let faces = if any {
@@ -288,23 +307,45 @@ impl Detector {
             detector: self.id,
             image: None,
             size: out.dimensions(),
+            input: prev.input,
+            scale: prev.scale,
             min_score: prev.min_score,
             runs,
             faces,
         })
     }
 
+    /// `img` as the graph sees it: scaled down for a [`Resolution::Pt2`]
+    /// model, else itself.
+    fn input<'a>(&self, img: &'a RgbImage) -> Cow<'a, RgbImage> {
+        let (w, h) = img.dimensions();
+        let s = match self.meta.resolution {
+            Resolution::Native => 1.0,
+            Resolution::Pt2 => scale_for(w, h),
+        };
+        if s < 1.0 {
+            let (sw, sh) = scaled_size(w, h, s);
+            Cow::Owned(resize(img, sw, sh))
+        } else {
+            Cow::Borrowed(img)
+        }
+    }
+
     /// Runs every run of the graph and the face detector over `img`.
     fn collect(&mut self, img: &RgbImage, min_score: f32, image: Option<blake3::Hash>) -> Result<Candidates> {
+        let input = self.input(img);
         let runs = self
-            .plan(img.width(), img.height())
+            .plan(input.width(), input.height())
             .iter()
-            .map(|t| self.run(img, t, min_score))
+            .map(|t| self.run(&input, t, min_score))
             .collect::<Result<_>>()?;
+        let (w, h) = img.dimensions();
         Ok(Candidates {
             detector: self.id,
             image,
-            size: img.dimensions(),
+            size: (w, h),
+            input: input.dimensions(),
+            scale: [w as f32 / input.width() as f32, h as f32 / input.height() as f32],
             min_score,
             runs,
             faces: self.faces(img, min_score)?,
@@ -326,6 +367,7 @@ impl Detector {
             )));
         }
         let (w, h) = (c.size.0 as f32, c.size.1 as f32);
+        let [kx, ky] = c.scale;
         let cands = c
             .runs
             .iter()
@@ -336,10 +378,10 @@ impl Detector {
                 class_id: k,
                 score,
                 bbox: [
-                    b[0].clamp(0.0, w),
-                    b[1].clamp(0.0, h),
-                    b[2].clamp(0.0, w),
-                    b[3].clamp(0.0, h),
+                    (b[0] * kx).clamp(0.0, w),
+                    (b[1] * ky).clamp(0.0, h),
+                    (b[2] * kx).clamp(0.0, w),
+                    (b[3] * ky).clamp(0.0, h),
                 ],
             })
             .collect::<Vec<_>>();
@@ -363,18 +405,24 @@ impl Detector {
         Ok(dets)
     }
 
-    /// The runs of the graph over a `w`x`h` image: a grid of overlapping tiles
-    /// of the graph's input size, or for a dynamic graph of up to
-    /// [`DYNAMIC_TILE`] (sides of a smaller image padded to a multiple of 32).
+    /// The runs of the graph over a `w`x`h` graph input: a grid of
+    /// overlapping tiles of the graph's input size, of the shape
+    /// [`shape_for`] picks ([`Resolution::Pt2`]), or for another dynamic
+    /// graph of up to [`DYNAMIC_TILE`] (sides of a smaller image padded to a
+    /// multiple of 32).
     fn plan(&self, w: u32, h: u32) -> Vec<Tile> {
-        let (w, h) = (w as usize, h as usize);
-        let (tw, th) = match self.meta.input_size {
-            Some([tw, th]) => (tw as usize, th as usize),
-            None => (
-                DYNAMIC_TILE.min(w.div_ceil(32) * 32),
-                DYNAMIC_TILE.min(h.div_ceil(32) * 32),
+        let (tw, th) = match (self.meta.input_size, self.meta.resolution) {
+            (Some([tw, th]), _) => (tw as usize, th as usize),
+            (None, Resolution::Pt2) => {
+                let [tw, th] = shape_for(w, h, &self.meta.shapes);
+                (tw as usize, th as usize)
+            }
+            (None, Resolution::Native) => (
+                DYNAMIC_TILE.min((w as usize).div_ceil(32) * 32),
+                DYNAMIC_TILE.min((h as usize).div_ceil(32) * 32),
             ),
         };
+        let (w, h) = (w as usize, h as usize);
         let cols = tile_plan(w, tw);
         tile_plan(h, th)
             .into_iter()
@@ -522,11 +570,19 @@ mod tests {
     }
 
     fn fake(input_size: Option<[u32; 2]>) -> (Detector, Arc<AtomicUsize>) {
+        fake_at(input_size, Resolution::Native)
+    }
+
+    fn fake_at(input_size: Option<[u32; 2]>, resolution: Resolution) -> (Detector, Arc<AtomicUsize>) {
         let meta = ModelMeta {
             classes: vec!["a".into(), "b".into()],
             strides: vec![8, 16],
             input_size,
-            resolution: crate::Resolution::Native,
+            shapes: match resolution {
+                Resolution::Native => vec![],
+                Resolution::Pt2 => crate::SHAPES.to_vec(),
+            },
+            resolution,
             calibration: None,
         };
         let runs = Arc::new(AtomicUsize::new(0));
@@ -553,12 +609,14 @@ mod tests {
     #[test]
     fn redetect_equals_a_full_run() {
         let opts = DetectOptions::default();
-        for (input_size, size) in [
-            (Some([736, 768]), (1290, 2400)),
-            (Some([736, 768]), (390, 700)),
-            (None, (1290, 1600)),
+        for (input_size, resolution, size) in [
+            (Some([736, 768]), Resolution::Native, (1290, 2400)),
+            (Some([736, 768]), Resolution::Native, (390, 700)),
+            (None, Resolution::Native, (1290, 1600)),
+            // Scaled to 786x1709, two 896x1280 tiles.
+            (None, Resolution::Pt2, (1206, 2622)),
         ] {
-            let (mut det, runs) = fake(input_size);
+            let (mut det, runs) = fake_at(input_size, resolution);
             let src = page(size.0, size.1);
             let prev = det.candidates(&src, opts.min_score).unwrap();
             let before = key(&det.detections(&prev, &opts).unwrap());
@@ -578,7 +636,7 @@ mod tests {
                 // Redaction changes what the detector sees.
                 assert!(!want.is_empty() && key(&want) != before);
                 let reran = runs.swap(0, Ordering::Relaxed);
-                if input_size.is_some() && size.1 > 2000 {
+                if size.1 > 2000 && boxes.len() == 1 {
                     assert!(reran < full_runs, "{reran} of {full_runs} runs");
                 }
             }
@@ -591,7 +649,7 @@ mod tests {
             let got = det.detections(&c, &opts).unwrap();
             assert_eq!(key(&got), key(&det.detect(&out, &opts).unwrap()));
             // Nor are another detector's: the fallback is one full run.
-            let (mut twin, twin_runs) = fake(input_size);
+            let (mut twin, twin_runs) = fake_at(input_size, resolution);
             let theirs = twin.candidates(&src, opts.min_score).unwrap();
             let full = twin_runs.swap(0, Ordering::Relaxed);
             runs.store(0, Ordering::Relaxed);
@@ -631,6 +689,7 @@ mod tests {
             classes: vec!["avatar".into()],
             strides: vec![32],
             input_size: None,
+            shapes: vec![],
             resolution: crate::Resolution::Native,
             calibration: None,
         };
@@ -716,6 +775,7 @@ mod tests {
             classes: vec!["avatar".into()],
             strides: vec![32],
             input_size: None,
+            shapes: vec![],
             resolution: crate::Resolution::Native,
             calibration: None,
         };
@@ -778,6 +838,39 @@ mod tests {
         );
         assert!(a.detections(&c, &opts).is_err(), "min_score 0.05 below 0.2");
         assert!(a.detections(&c, &DetectOptions { min_score: 0.3, ..opts }).is_ok());
+    }
+
+    #[test]
+    fn scaled_detections_are_in_original_pixels() {
+        let meta = ModelMeta {
+            classes: vec!["avatar".into()],
+            strides: vec![32],
+            input_size: None,
+            shapes: crate::SHAPES.to_vec(),
+            resolution: Resolution::Pt2,
+            calibration: None,
+        };
+        let mut det = Detector::new(meta, Box::new(Avatar(0.9)));
+        // A phone screenshot runs at 786x1709: (16, 16, 80, 80) there.
+        let d = det.detect(&page(1206, 2622), &DetectOptions::default()).unwrap();
+        let near = |d: &[Detection], want: [f32; 4]| {
+            assert_eq!(d.len(), 1);
+            assert!(
+                d[0].bbox.iter().zip(want).all(|(a, b)| (a - b).abs() < 1e-3),
+                "{:?}",
+                d[0].bbox
+            );
+        };
+        let (kx, ky) = (1206.0 / 786.0, 2622.0 / 1709.0);
+        near(&d, [16.0 * kx, 16.0 * ky, 80.0 * kx, 80.0 * ky]);
+        // A desktop screenshot is not scaled.
+        near(
+            &det.detect(&page(1920, 1080), &DetectOptions::default()).unwrap(),
+            [16.0, 16.0, 80.0, 80.0],
+        );
+        let plan = det.plan(5120, 1440);
+        assert_eq!(plan.len(), 12);
+        assert!(plan.iter().all(|t| (t.w, t.h) == (1280, 1280)));
     }
 
     #[test]

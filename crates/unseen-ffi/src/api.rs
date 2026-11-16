@@ -7,8 +7,8 @@ use flutter_rust_bridge::frb;
 use image::Rgb;
 use unseen_core::{
     Candidates, DetectOptions, Detection, Detector, FindOptions, KeyframeOptions, Keyframes, Manifest, ModelMeta,
-    PUBLIC_KEY, RedactStyle, Selection, Threshold, Timeline, Tracker, blake3_file, export_check, find_similar,
-    is_camera_photo, load_image, redact, redaction_patches,
+    PUBLIC_KEY, RedactStyle, Resolution, Selection, Threshold, Timeline, Tracker, blake3_file, export_check,
+    find_similar, is_camera_photo, load_image, redact, redaction_patches,
 };
 use unseen_infer::{OrtBackend, OrtOptions, face_detector};
 use unseen_media::{Timestamp, VideoReader, VideoWriter};
@@ -202,6 +202,7 @@ impl Session {
         let meta = ModelMeta::load(path)?;
         let opts = OrtOptions {
             cache_dir: cache_dir.map(PathBuf::from),
+            per_shape: meta.resolution == Resolution::Pt2,
             ..Default::default()
         };
         let backend = OrtBackend::load_with(path, opts).with_context(|| format!("loading {model_path}"))?;

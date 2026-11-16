@@ -10,6 +10,7 @@ mod manifest;
 mod model;
 mod propagate;
 mod redact;
+mod scale;
 mod video;
 
 pub use backend::{Backend, RawOutput};
@@ -21,6 +22,7 @@ pub use manifest::{FORMAT, MIN_FORMAT, Manifest, ModelEntry, PUBLIC_KEY, blake3_
 pub use model::{ModelMeta, Resolution, UNCALIBRATED_REVIEW, UNCALIBRATED_SELECT, is_camera_photo, load_image, tensor};
 pub use propagate::{FindOptions, Match, find_similar};
 pub use redact::{ExportCheck, Patch, RedactStyle, export_check, redact, redaction_patches};
+pub use scale::{SHAPES, scale_for, scaled_size, shape_for};
 pub use video::{KeyframeOptions, Keyframes, Observation, Timeline, Track, Tracker};
 
 #[derive(Debug, thiserror::Error)]

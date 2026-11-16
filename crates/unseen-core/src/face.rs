@@ -74,7 +74,7 @@ impl FaceDetector {
             ((img.width() as f32 * scale).round() as u32).max(1),
             ((img.height() as f32 * scale).round() as u32).max(1),
         );
-        let px = resize(img, nw, nh);
+        let px = crate::model::resize(img, nw, nh).into_raw();
         let (w, h) = (nw as usize, nh as usize);
         let (pw, ph) = (w.div_ceil(32) * 32, h.div_ceil(32) * 32);
         let mut t = Array4::<f32>::zeros((1, 3, ph, pw));
@@ -130,24 +130,6 @@ fn decode(outputs: &[ndarray::ArrayD<f32>], pw: usize, ph: usize, min_score: f32
         }
     }
     Ok(res)
-}
-
-/// Packed RGB pixels of `img` resized to `w`x`h`.
-fn resize(img: &RgbImage, w: u32, h: u32) -> Vec<u8> {
-    use fast_image_resize::{
-        FilterType, PixelType, ResizeAlg, ResizeOptions, Resizer,
-        images::{Image, ImageRef},
-    };
-    let src = ImageRef::new(img.width(), img.height(), img.as_raw(), PixelType::U8x3).expect("RgbImage is packed RGB");
-    let mut dst = Image::new(w, h, PixelType::U8x3);
-    Resizer::new()
-        .resize(
-            &src,
-            &mut dst,
-            &ResizeOptions::new().resize_alg(ResizeAlg::Convolution(FilterType::Bilinear)),
-        )
-        .expect("same pixel type, non-empty");
-    dst.into_vec()
 }
 
 #[cfg(test)]

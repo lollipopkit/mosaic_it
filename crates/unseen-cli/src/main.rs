@@ -6,8 +6,8 @@ use image::{Rgb, RgbImage};
 use serde::Serialize;
 use unseen_core::{
     Calibrator, CocoDataset, DetectOptions, Detection, Detector, EvalOptions, Evaluator, FindOptions, GtImage,
-    KeyframeOptions, Keyframes, Manifest, ModelEntry, ModelMeta, RedactStyle, Selection, Tracker, export_check,
-    find_similar, is_camera_photo, load_image, redact,
+    KeyframeOptions, Keyframes, Manifest, ModelEntry, ModelMeta, RedactStyle, Resolution, Selection, Tracker,
+    export_check, find_similar, is_camera_photo, load_image, redact,
 };
 use unseen_infer::{OrtBackend, OrtOptions, face_detector};
 use unseen_media::{Timestamp, VideoReader, VideoWriter};
@@ -353,6 +353,7 @@ fn detector(model: &Path, faces: &Faces) -> Result<Detector> {
     let meta = ModelMeta::load(model)?;
     let opts = OrtOptions {
         cache_dir: dirs::cache_dir().map(|d| d.join("unseen")),
+        per_shape: meta.resolution == Resolution::Pt2,
         ..Default::default()
     };
     let backend = OrtBackend::load_with(model, opts).with_context(|| format!("loading {}", model.display()))?;
@@ -595,17 +596,19 @@ fn main() -> Result<()> {
             image,
         } => {
             // No cache: the load time reported includes compilation.
+            let meta = ModelMeta::load(&model)?;
             let opts = OrtOptions {
                 cpu_only: cpu,
                 record_placement: true,
                 cache_dir: None,
+                per_shape: meta.resolution == Resolution::Pt2,
             };
             let t = std::time::Instant::now();
             let backend =
                 OrtBackend::load_with(&model, opts).with_context(|| format!("loading {}", model.display()))?;
             let load_ms = t.elapsed().as_secs_f64() * 1e3;
             let placement = backend.placement().to_vec();
-            let mut det = with_faces(Detector::new(ModelMeta::load(&model)?, Box::new(backend)), &faces)?;
+            let mut det = with_faces(Detector::new(meta, Box::new(backend)), &faces)?;
             let img = load_image(&image)?;
             // The first runs include provider compilation and allocation.
             for _ in 0..3 {

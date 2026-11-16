@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
@@ -15,11 +16,28 @@ use unseen_core::{Backend, Error, FaceDetector, RawOutput, Result};
 /// ONNX Runtime backend. Tries the hardware execution providers compiled in,
 /// in order, and falls back to CPU.
 pub struct OrtBackend {
+    /// Runs every input, or with [`PerShape`] the shapes it gives up on.
     session: Session,
     /// The graph's only input: `image` (region detector), `input` (YuNet).
     input: String,
     provider: String,
     placement: Vec<String>,
+    per_shape: Option<PerShape>,
+}
+
+/// A dynamic graph on a hardware provider, which compiles for fixed shapes:
+/// one session per input shape, built on its first run, with the input's
+/// free dimensions overridden by that shape.
+struct PerShape {
+    model: PathBuf,
+    provider: &'static str,
+    /// The model's cache directory; each shape gets a subdirectory.
+    cache: Option<PathBuf>,
+    /// Name of each input axis's free dimension, `None` where fixed.
+    symbols: Vec<Option<String>>,
+    record: bool,
+    /// By input shape: the hardware session, or why the shape runs on the CPU.
+    sessions: BTreeMap<Vec<usize>, std::result::Result<Session, String>>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -35,6 +53,10 @@ pub struct OrtOptions {
     /// since ONNX Runtime reuses a cache whose graph matches even when the
     /// weights differ; other models' subdirectories are removed.
     pub cache_dir: Option<PathBuf>,
+    /// Compile a dynamic graph for each input shape it runs on, for a model
+    /// that runs on a few fixed shapes (`Resolution::Pt2`). Without it a
+    /// hardware provider gets the dynamic graph as it is.
+    pub per_shape: bool,
 }
 
 /// YuNet face detector (opencv_zoo, MIT: `models/yunet/LICENSE`), the
@@ -44,13 +66,12 @@ const YUNET: &[u8] = include_bytes!("../models/yunet/face_detection_yunet_2026ma
 /// The bundled face detector. It runs on the CPU: its input follows each
 /// image's size, and hardware providers compile a model per input shape.
 pub fn face_detector() -> Result<FaceDetector> {
-    let (session, _) = commit(Model::Memory(YUNET), None, false)?;
-    Ok(FaceDetector::new(Box::new(OrtBackend {
-        input: input_name(&session),
+    let (session, _) = commit(Model::Memory(YUNET), None, false, &[])?;
+    Ok(FaceDetector::new(Box::new(OrtBackend::cpu(
         session,
-        provider: "cpu".into(),
-        placement: Vec::new(),
-    })))
+        "cpu".into(),
+        Vec::new(),
+    ))))
 }
 
 fn input_name(session: &Session) -> String {
@@ -59,6 +80,39 @@ fn input_name(session: &Session) -> String {
         .first()
         .map(|i| i.name().to_string())
         .unwrap_or_default()
+}
+
+/// The free dimension names of the session's input, per axis.
+fn input_symbols(session: &Session) -> Vec<Option<String>> {
+    match session.inputs().first().map(|i| i.dtype()) {
+        Some(ort::value::ValueType::Tensor {
+            shape,
+            dimension_symbols,
+            ..
+        }) => shape
+            .iter()
+            .zip(dimension_symbols.iter())
+            .map(|(&n, s)| (n < 0 && !s.is_empty()).then(|| s.to_string()))
+            .collect(),
+        _ => Vec::new(),
+    }
+}
+
+/// A session on hardware provider `ep` that keeps every node, or why not
+/// (with the placement messages that tell).
+fn on_hardware(
+    model: &Path,
+    name: &str,
+    ep: ExecutionProviderDispatch,
+    dims: &[(String, i64)],
+) -> std::result::Result<(Session, Vec<String>), (String, Vec<String>)> {
+    match commit(Model::File(model), Some(ep), true, dims) {
+        Ok((session, placement)) if !placement.iter().any(|m| m.contains("placed on [CPUExecutionProvider]")) => {
+            Ok((session, placement))
+        }
+        Ok((_, placement)) => Err((format!("{name} split the graph"), placement)),
+        Err(e) => Err((format!("{name} unavailable"), vec![format!("{name} failed: {e}")])),
+    }
 }
 
 /// Where a graph is read from.
@@ -93,44 +147,46 @@ impl OrtBackend {
             hardware_providers(cache.as_deref())
                 .into_iter()
                 .find(|(_, ep)| ep.is_available().unwrap_or(false))
+                .map(|(name, ep)| (name, ep, cache))
         };
-        let Some((name, ep)) = hw else {
-            let (session, placement) = commit(Model::File(model), None, opts.record_placement)?;
-            return Ok(Self {
-                input: input_name(&session),
-                session,
-                provider: "cpu".into(),
-                placement,
-            });
+        let Some((name, ep, cache)) = hw else {
+            let (session, placement) = commit(Model::File(model), None, opts.record_placement, &[])?;
+            return Ok(Self::cpu(session, "cpu".into(), placement));
         };
-        let (reason, mut prefix) = match commit(Model::File(model), Some(ep.build()), true) {
-            Ok((session, placement)) => {
-                if !placement.iter().any(|m| m.contains("placed on [CPUExecutionProvider]")) {
-                    return Ok(Self {
-                        input: input_name(&session),
-                        session,
-                        provider: name.into(),
-                        placement: if opts.record_placement { placement } else { Vec::new() },
-                    });
-                }
-                drop(session);
-                (format!("{name} split the graph"), placement)
+        if opts.per_shape {
+            let (session, placement) = commit(Model::File(model), None, opts.record_placement, &[])?;
+            let symbols = input_symbols(&session);
+            if symbols.iter().any(Option::is_some) {
+                let mut b = Self::cpu(session, name.into(), placement);
+                b.per_shape = Some(PerShape {
+                    model: model.to_path_buf(),
+                    provider: name,
+                    cache,
+                    symbols,
+                    record: opts.record_placement,
+                    sessions: BTreeMap::new(),
+                });
+                return Ok(b);
             }
-            Err(e) => (format!("{name} unavailable"), vec![format!("{name} failed: {e}")]),
+        }
+        let keep = |p: Vec<String>| if opts.record_placement { p } else { Vec::new() };
+        let (reason, mut prefix) = match on_hardware(model, name, ep.build(), &[]) {
+            Ok((session, placement)) => return Ok(Self::cpu(session, name.into(), keep(placement))),
+            Err(e) => e,
         };
-        let (session, mut cpu) = commit(Model::File(model), None, opts.record_placement)?;
-        let placement = if opts.record_placement {
-            prefix.append(&mut cpu);
-            prefix
-        } else {
-            Vec::new()
-        };
-        Ok(Self {
+        let (session, mut cpu) = commit(Model::File(model), None, opts.record_placement, &[])?;
+        prefix.append(&mut cpu);
+        Ok(Self::cpu(session, format!("cpu ({reason})"), keep(prefix)))
+    }
+
+    fn cpu(session: Session, provider: String, placement: Vec<String>) -> Self {
+        Self {
             input: input_name(&session),
             session,
-            provider: format!("cpu ({reason})"),
+            provider,
             placement,
-        })
+            per_shape: None,
+        }
     }
 
     /// Placement messages recorded during load, if requested: which
@@ -141,10 +197,19 @@ impl OrtBackend {
     }
 }
 
-/// Builds a session, optionally on `ep`, returning ONNX Runtime's node
-/// placement messages when `record` is set.
-fn commit(model: Model<'_>, ep: Option<ExecutionProviderDispatch>, record: bool) -> Result<(Session, Vec<String>)> {
+/// Builds a session, optionally on `ep` and with free dimensions fixed to
+/// `dims`, returning ONNX Runtime's node placement messages when `record`
+/// is set.
+fn commit(
+    model: Model<'_>,
+    ep: Option<ExecutionProviderDispatch>,
+    record: bool,
+    dims: &[(String, i64)],
+) -> Result<(Session, Vec<String>)> {
     let mut builder = Session::builder().map_err(err)?;
+    for (name, n) in dims {
+        builder = builder.with_dimension_override(name, *n).map_err(err)?;
+    }
     let placement = Arc::new(Mutex::new(Vec::new()));
     if record {
         let sink = Arc::clone(&placement);
@@ -250,17 +315,69 @@ impl<T: ExecutionProvider + Clone + Into<ExecutionProviderDispatch>> Provider fo
     }
 }
 
+impl PerShape {
+    /// The hardware session for `shape`, built on first use; `None` when the
+    /// shape runs on the CPU.
+    fn session(&mut self, shape: &[usize], placement: &mut Vec<String>) -> Result<Option<&mut Session>> {
+        if !self.sessions.contains_key(shape) {
+            let dims: Vec<(String, i64)> = self
+                .symbols
+                .iter()
+                .zip(shape)
+                .filter_map(|(s, &n)| s.clone().map(|s| (s, n as i64)))
+                .collect();
+            let cache = match &self.cache {
+                Some(c) => {
+                    let d = c.join(shape.iter().map(usize::to_string).collect::<Vec<_>>().join("x"));
+                    std::fs::create_dir_all(&d).map_err(|e| err(format!("{}: {e}", d.display())))?;
+                    Some(d)
+                }
+                None => None,
+            };
+            let (_, ep) = hardware_providers(cache.as_deref())
+                .into_iter()
+                .find(|(n, _)| *n == self.provider)
+                .expect("the provider chosen at load");
+            let (session, mut msgs) = match on_hardware(&self.model, self.provider, ep.build(), &dims) {
+                Ok((s, m)) => (Ok(s), m),
+                Err((reason, m)) => (Err(reason), m),
+            };
+            if self.record {
+                placement.push(format!("input {shape:?}:"));
+                placement.append(&mut msgs);
+            }
+            self.sessions.insert(shape.to_vec(), session);
+        }
+        Ok(self.sessions.get_mut(shape).and_then(|s| s.as_mut().ok()))
+    }
+}
+
 impl Backend for OrtBackend {
     fn name(&self) -> String {
-        format!("onnxruntime/{}", self.provider)
+        let Some(p) = &self.per_shape else {
+            return format!("onnxruntime/{}", self.provider);
+        };
+        // Shapes on the CPU, and why.
+        let cpu: Vec<String> = p
+            .sessions
+            .iter()
+            .filter_map(|(shape, s)| s.as_ref().err().map(|r| format!("{shape:?}: {r}")))
+            .collect();
+        if cpu.is_empty() {
+            format!("onnxruntime/{}", self.provider)
+        } else {
+            format!("onnxruntime/{} (cpu for {})", self.provider, cpu.join(", "))
+        }
     }
 
     fn run(&mut self, input: ArrayView4<'_, f32>) -> Result<RawOutput> {
+        let session = match &mut self.per_shape {
+            Some(p) => p.session(input.shape(), &mut self.placement)?,
+            None => None,
+        };
+        let session = session.unwrap_or(&mut self.session);
         let input = TensorRef::from_array_view(input).map_err(err)?;
-        let outputs = self
-            .session
-            .run(ort::inputs![self.input.as_str() => input])
-            .map_err(err)?;
+        let outputs = session.run(ort::inputs![self.input.as_str() => input]).map_err(err)?;
         let outputs = outputs
             .iter()
             .map(|(name, v)| {

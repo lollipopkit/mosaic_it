@@ -138,7 +138,19 @@ screenshot (M-series):
 | tiled / CPU | all CPU | 249 ms |
 | tiled / CoreML | 281 of 281 nodes, 1 partition | 32 ms |
 
-Apple and mobile builds use the `--fp16` tiled export; CPU-only builds the
+A `Resolution::Pt2` model (format 3) exports one dynamic graph instead.
+The core scales phone screenshots (long side ≥ 1.9× the short side, short
+side 787–1320 px) so the short side is 786 px, about 2 px per point; other
+images keep their pixels (`unseen-core::scale`). Each image then runs on
+the shape of the sidecar's `shapes` whose tiles process the fewest pixels,
+and detections map back to original pixels, where redaction works. On a
+hardware provider `OrtBackend` builds one session per shape on its first
+run, with the input's free dimensions overridden so the shape arithmetic
+folds as in the tiled export, and caches each in its own directory. A
+1290×2796 screenshot runs as two 896×1280 tiles instead of six 1280×1280
+ones (hybrid FP16, CoreML on M5 Pro: 54 ms).
+
+Apple and mobile builds use the `--fp16` app export; CPU-only builds the
 dynamic one. Both decode to identical detections. On Apple Silicon, FP32 is
 rejected by the Neural Engine (CoreML runs it on GPU under `.all`, or CPU if
 ANE-only), whereas FP16 enables full Neural Engine execution on A18 Pro

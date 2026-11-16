@@ -19,7 +19,8 @@ use crate::{Error, ModelMeta, Result};
 pub const MIN_FORMAT: u32 = 2;
 
 /// Newest model format this build can run: see [`ModelEntry::format`].
-pub const FORMAT: u32 = 2;
+/// 3: `resolution: "pt2"` models (phone screenshots scaled, input shapes).
+pub const FORMAT: u32 = 3;
 
 /// Verifies the published manifest (hex Ed25519). The secret key signs it in
 /// `models/publish.sh`.
@@ -235,11 +236,11 @@ mod tests {
         let mut text = String::new();
         // 0.4.0 is too old (< MIN_FORMAT), 3.0.0 needs a newer app (> FORMAT), 0.9.0 is not published.
         for (v, url, format) in [
-            ("0.4.0", "https://x/0", 1),
-            ("1.0.0", "https://x/1", 2),
-            ("2.0.0", "https://x/2/", 2),
-            ("3.0.0", "https://x/3", 3),
-            ("0.9.0", "", 2),
+            ("0.4.0", "https://x/0", MIN_FORMAT - 1),
+            ("1.0.0", "https://x/1", MIN_FORMAT),
+            ("2.0.0", "https://x/2/", FORMAT),
+            ("3.0.0", "https://x/3", FORMAT + 1),
+            ("0.9.0", "", FORMAT),
         ] {
             std::fs::write(&model, v).unwrap();
             std::fs::write(ModelMeta::sidecar(&model), v).unwrap();
@@ -255,9 +256,9 @@ mod tests {
         assert!(Manifest::signed(&published, &"22".repeat(32)).is_err());
         assert!(Manifest::signed(text.as_bytes(), &public).is_err());
 
-        // Legacy format=1 only manifests offer nothing to a FORMAT=2 build.
+        // Manifests of only older formats offer nothing.
         let legacy_only = Manifest {
-            models: m.models.iter().filter(|e| e.format == 1).cloned().collect(),
+            models: m.models.iter().filter(|e| e.format < MIN_FORMAT).cloned().collect(),
         };
         assert!(legacy_only.update("tiled", None).unwrap().is_none());
 

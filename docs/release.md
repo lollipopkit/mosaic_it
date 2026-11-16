@@ -1,7 +1,8 @@
 # Releasing a detector
 
-Steps from an exported model (`unseen-det-tile.onnx`, `unseen-det.onnx` and
-their `.json` sidecars) to a release the app installs. Training and export
+Steps from an exported model (`unseen-det-tile.onnx`, for a native model
+also `unseen-det.onnx`, and their `.json` sidecars) to a release the app
+installs. Training and export
 are not part of this repository.
 
 ## 1. Bench (macOS)
@@ -11,8 +12,9 @@ cargo build --release -p unseen-cli --features coreml
 target/release/unseen bench --model unseen-det-tile.onnx --runs 20 <image>
 ```
 
-The tiled export (`--fp16`) must run as one CoreML partition with every node
-placed (290/290 for v17 FP16; 599/599 for hybrid FP16). FP16 is required for
+The app export (`--fp16`) must run as one CoreML partition with every node
+placed (290/290 for v17 FP16; 599/599 for hybrid FP16). A `pt2` model
+compiles once per input shape; `backend` names any shape left on the CPU. FP16 is required for
 Apple Neural Engine execution on iOS and cuts Apple Silicon GPU latency in
 half compared to FP32.
 
@@ -32,9 +34,13 @@ presented as guaranteed.
 
 ```sh
 target/release/unseen models hash unseen-det-tile.onnx --model-version X.Y.Z --variant tiled >> models/manifest.toml
+# native models only
 target/release/unseen models hash unseen-det.onnx --model-version X.Y.Z --variant dynamic >> models/manifest.toml
 target/release/unseen models verify unseen-det-tile.onnx unseen-det.onnx
 ```
+
+A `pt2` model's entry is `format = 3` (written by `models hash`); builds
+before it skip the release.
 
 Add a comment block above the entries (training data, certified classes) and
 update [model.md](model.md).

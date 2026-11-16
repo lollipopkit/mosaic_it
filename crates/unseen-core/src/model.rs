@@ -20,18 +20,27 @@ pub struct ModelMeta {
     /// in overlapping tiles. Absent for a graph with dynamic input size.
     #[serde(default)]
     pub input_size: Option<[u32; 2]>,
-    /// The input scale the model was trained at. Required, so a model trained
-    /// on resized images fails to load instead of running at the wrong scale.
+    /// `[width, height]` input shapes a dynamic [`Resolution::Pt2`] graph runs
+    /// on ([`crate::shape_for`]).
+    #[serde(default)]
+    pub shapes: Vec<[u32; 2]>,
+    /// The input scale the model was trained at. Required, so a model fails
+    /// to load instead of running at a scale it was not trained at.
     pub resolution: Resolution,
     #[serde(default)]
     pub calibration: Option<Calibration>,
 }
 
-/// Images are never resized: the model sees original pixels.
+/// The scale a model sees images at. Either way detections are in
+/// original-image pixels and redaction works on the original.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Resolution {
+    /// Original pixels.
     Native,
+    /// Phone screenshots scaled to about 2 px per point ([`crate::scale_for`]),
+    /// run on [`ModelMeta::shapes`].
+    Pt2,
 }
 
 /// Thresholds used when a model has no calibration for a class.
@@ -54,14 +63,25 @@ impl ModelMeta {
     }
 
     /// Tiles must step forward ([`crate::detect::TILE_OVERLAP`]) and fit the
-    /// strides, as the training code requires.
+    /// strides, as the training code requires; a [`Resolution::Pt2`] graph is
+    /// dynamic with shapes, a native one has none.
     fn validate(&self) -> Result<()> {
         let overlap = crate::detect::TILE_OVERLAP;
-        if let Some(size) = self.input_size
-            && size.iter().any(|&n| n as usize <= overlap || n % 32 != 0)
-        {
+        for size in self.input_size.iter().chain(&self.shapes) {
+            if size.iter().any(|&n| n as usize <= overlap || n % 32 != 0) {
+                return Err(Error::Meta(format!(
+                    "input size {size:?}: each side must be a multiple of 32 above {overlap}"
+                )));
+            }
+        }
+        let ok = match self.resolution {
+            Resolution::Native => self.shapes.is_empty(),
+            Resolution::Pt2 => self.input_size.is_none() && !self.shapes.is_empty(),
+        };
+        if !ok {
             return Err(Error::Meta(format!(
-                "input_size {size:?}: each side must be a multiple of 32 above {overlap}"
+                "{:?} model with input_size {:?} and shapes {:?}",
+                self.resolution, self.input_size, self.shapes
             )));
         }
         Ok(())
@@ -114,6 +134,25 @@ pub fn is_camera_photo(path: &Path) -> bool {
             .iter()
             .any(|&t| e.get_field(t, exif::In::PRIMARY).is_some())
     })
+}
+
+/// `img` resized to `w`x`h` (antialiased bilinear, as the training's PIL
+/// resize).
+pub(crate) fn resize(img: &RgbImage, w: u32, h: u32) -> RgbImage {
+    use fast_image_resize::{
+        FilterType, PixelType, ResizeAlg, ResizeOptions, Resizer,
+        images::{Image, ImageRef},
+    };
+    let src = ImageRef::new(img.width(), img.height(), img.as_raw(), PixelType::U8x3).expect("RgbImage is packed RGB");
+    let mut dst = Image::new(w, h, PixelType::U8x3);
+    Resizer::new()
+        .resize(
+            &src,
+            &mut dst,
+            &ResizeOptions::new().resize_alg(ResizeAlg::Convolution(FilterType::Bilinear)),
+        )
+        .expect("same pixel type, non-empty");
+    RgbImage::from_raw(w, h, dst.into_vec()).expect("w x h packed RGB")
 }
 
 /// The `w`x`h` window of `img` at (`x`, `y`) normalised to ImageNet
@@ -182,12 +221,31 @@ mod tests {
             classes: vec!["a".into()],
             strides: vec![8],
             input_size: Some(size),
+            shapes: vec![],
             resolution: Resolution::Native,
             calibration: None,
         };
         assert!(meta([1280, 1280]).validate().is_ok());
         for bad in [[384, 1280], [1280, 352], [1290, 1280]] {
             assert!(meta(bad).validate().is_err(), "{bad:?}");
+            let pt2 = ModelMeta {
+                input_size: None,
+                shapes: vec![[896, 1280], bad],
+                resolution: Resolution::Pt2,
+                ..meta(bad)
+            };
+            assert!(pt2.validate().is_err(), "{bad:?}");
         }
+    }
+
+    #[test]
+    fn pt2_models_are_dynamic_with_shapes() {
+        let parse = |s: &str| serde_json::from_str::<ModelMeta>(s).unwrap().validate();
+        assert!(parse(r#"{"classes": ["a"], "strides": [8], "resolution": "pt2", "shapes": [[896, 1280]]}"#).is_ok());
+        assert!(parse(r#"{"classes": ["a"], "strides": [8], "resolution": "pt2"}"#).is_err());
+        assert!(parse(r#"{"classes": ["a"], "strides": [8], "resolution": "pt2", "shapes": [[896, 1280]], "input_size": [896, 1280]}"#).is_err());
+        assert!(
+            parse(r#"{"classes": ["a"], "strides": [8], "resolution": "native", "shapes": [[896, 1280]]}"#).is_err()
+        );
     }
 }
