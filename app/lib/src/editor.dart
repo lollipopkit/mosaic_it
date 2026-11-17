@@ -280,13 +280,15 @@ class _BoxEditorState extends State<BoxEditor> {
 
   static double _area(Rect r) => r.width * r.height;
 
-  /// Smallest box under [p]: nested boxes stay reachable.
-  /// The below-threshold detections to offer: not where a box already is
-  /// (a weaker duplicate of it, or one a tap has added).
-  List<EditBox> get _hiddenShown => [
+  /// The below-threshold detections a tap on an empty spot adds (not drawn:
+  /// most are noise): not where a box already is (a weaker duplicate of it,
+  /// or one a tap has added).
+  List<EditBox> get _offered => [
     for (final h in _shot.hidden)
       if (!_covered(h.rect)) h,
   ];
+
+  /// Smallest box under [p]: nested boxes stay reachable.
 
   EditBox? _hit(Offset p, {List<EditBox>? among}) {
     EditBox? best;
@@ -425,7 +427,7 @@ class _BoxEditorState extends State<BoxEditor> {
     if (widget.kind == EditorKind.redact) {
       if (shown == null) {
         _s.active = null;
-        final low = _hit(p, among: _hiddenShown);
+        final low = _hit(p, among: _offered);
         if (low == null) return;
         _s.record();
         _shot.boxes.add(
@@ -546,7 +548,6 @@ class _BoxEditorState extends State<BoxEditor> {
                         painter: _BoxPainter(
                           kind: widget.kind,
                           boxes: _shot.boxes,
-                          hidden: _hiddenShown,
                           active: _s.active,
                           mergeFrom: widget.mergeFrom,
                           drawing: switch (_grab) {
@@ -583,7 +584,6 @@ class _BoxPainter extends CustomPainter {
   _BoxPainter({
     required this.kind,
     required this.boxes,
-    required this.hidden,
     required this.active,
     required this.mergeFrom,
     required this.drawing,
@@ -599,9 +599,6 @@ class _BoxPainter extends CustomPainter {
   final EditorKind kind;
   final List<EditBox> boxes;
 
-  /// Detections below the review threshold (redact): outlined like other
-  /// unselected boxes.
-  final List<EditBox> hidden;
   final EditBox? active;
 
   /// The box a merge starts from; highlighted until the second is picked.
@@ -646,7 +643,7 @@ class _BoxPainter extends CustomPainter {
         );
       }
       // Selected: the fill and the class colour around it. Not selected: a
-      // dashed suggestion, fainter below the review threshold.
+      // dashed suggestion.
       for (final b in boxes) {
         final c = classColor(b.className);
         if (b.selected) {
@@ -663,15 +660,6 @@ class _BoxPainter extends CustomPainter {
         } else {
           drawDashedRect(canvas, b.rect, c, px, 1.5);
         }
-      }
-      for (final b in hidden) {
-        drawDashedRect(
-          canvas,
-          b.rect,
-          classColor(b.className).withValues(alpha: .55),
-          px,
-          1.2,
-        );
       }
     } else {
       // Labels grow with the zoom (up to 3x) so they stay readable.
