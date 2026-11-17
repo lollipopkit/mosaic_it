@@ -73,7 +73,8 @@ QR/barcode boxes come from the detector; rxing decoding only refines them.
 
 `face` boxes come from YuNet's dynamic-shape export
 (`face_detection_yunet_2026may.onnx`, 230 KB, compiled into `unseen-infer`
-with its licence). It runs on the CPU, since its input follows each image's
+with its licence; on Android the `.tflite` that `models/yunet/to_tflite.py`
+converts from it). It runs on the CPU, since its input follows each image's
 size and hardware providers compile per shape. It adds about 5 ms to a
 1206x2622 screenshot. YuNet finds faces of about 10-300 px, so it runs twice:
 at native size (long side capped at 3072) and at long side 640, merged by NMS
@@ -120,7 +121,7 @@ described in [model.md](model.md). The training code and the datasets are
 not part of this repository.
 
 **Export-safe operators.** The exported graph holds only operators that run
-on CoreML and NNAPI without graph partitioning: per-stride sigmoid scores and
+on CoreML and LiteRT's GPU accelerator without graph partitioning: per-stride sigmoid scores and
 raw box outputs. Softplus, cell centres and box decoding are in the Rust core
 (`unseen-core::detect`). `unseen bench` prints ONNX Runtime's node placement.
 An export with dynamic height and width splits into 8 CoreML partitions with
@@ -156,10 +157,8 @@ rejected by the Neural Engine (CoreML runs it on GPU under `.all`, or CPU if
 ANE-only), whereas FP16 enables full Neural Engine execution on A18 Pro
 (`MLComputeUnits::All`) and ~2× faster GPU execution on M5 Pro (where CoreML's
 `.all` cost model picks GPU, which outperforms ANE on the hybrid attention
-graph). On Android, `NNAPI` enables `with_fp16(true)` and
-`with_disable_cpu(true)` so unsupported ops or driver errors fall back via
-`OrtBackend::load_with` to multi-threaded ORT MLAS CPU instead of NNAPI's
-slower `nnapi-reference` CPU implementation.
+graph). Android runs the
+`.tflite` release on LiteRT and ships no ONNX Runtime (§9).
 
 **Input.** RGB at the original resolution, never resized (`unseen-core::model`;
 sidecars declare `"resolution": "native"`), normalised with the ImageNet mean
@@ -292,8 +291,8 @@ trait Embedder { fn embed(&self, crops: &[Image]) -> Result<Vec<Vec<f32>>>; }
 
 | Backend | Feature | Platforms |
 |---|---|---|
-| ort 2.0 (ORT 1.28) | `ort-coreml`, `ort-nnapi`, `ort-qnn`, `ort-xnnpack`, `ort-cuda`, `ort-directml` | all; EP chosen at runtime with `is_available()`, falling back to multi-threaded CPU on Android (`available_parallelism()`) whenever the EP fails to load or splits the graph. CoreML uses `MLProgram` with `with_static_input_shapes(true)` and a versioned cache (`coreml-mlprogram-v1-<blake3>`). Android uses `NNAPI` with `with_fp16(true)` and `with_disable_cpu(true)` (the only EP in ORT's prebuilt Android binaries; XNNPACK and QNN need ONNX Runtime built from source) |
-| LiteRT 2.3 (CompiledModel C API) | `litert` | Android, for the `.tflite` release (variant `litert`): one signature per `pt2` input shape sharing the weights, on the OpenCL/GL GPU accelerator when it takes every op, else on XNNPACK. `libLiteRt.so` and `libLiteRtClGlAccelerator.so` come from the `com.google.ai.edge.litert` AARs and are loaded at run time; the model runs on a worker thread of its own, since the GPU context belongs to the thread that compiled it. Pixel 8a, 1290×2796 screenshot: v17 575 ms (ORT CPU 4449 ms), hybrid 769 ms (9054 ms); against ORT CPU 0 of 23 selected boxes flip, min IoU 0.9956 |
+| ort 2.0 (ORT 1.28) | `ort`, `coreml`, `qnn`, `xnnpack`, `cuda`, `directml` | all; EP chosen at runtime with `is_available()`, falling back to CPU whenever the EP fails to load or splits the graph. CoreML uses `MLProgram` with `with_static_input_shapes(true)` and a versioned cache (`coreml-mlprogram-v1-<blake3>`). Not in the Android app |
+| LiteRT 2.3 (CompiledModel C API) | `litert` | Android, for the `.tflite` release (variant `litert`): one signature per `pt2` input shape sharing the weights, on the OpenCL/GL GPU accelerator when it takes every op, else on XNNPACK with one thread per core. YuNet runs on its CPU too, as a single-signature `.tflite` resized to each input. `libLiteRt.so` and `libLiteRtClGlAccelerator.so` come from the `com.google.ai.edge.litert` AARs and are loaded at run time; the model runs on a worker thread of its own, since the GPU context belongs to the thread that compiled it. Pixel 8a, 1290×2796 screenshot: v17 575 ms on the GPU, 2199 ms on LiteRT CPU (ORT CPU 4449 ms); hybrid 769 ms, 4664 ms (9054 ms); against ORT CPU 0 of 23 selected boxes flip, min IoU 0.9956 |
 | tract | `tract` | all; pure-Rust CPU fallback, no native libs |
 | remote | `remote` | any; HTTP to a self-hosted `unseen-server` |
 
@@ -324,7 +323,7 @@ name. GPL-3.0 may be combined with this AGPL-3.0 app (GPLv3 §13).
 
 - Recall for Chinese names and addresses outside forms (chat bodies). Measured
   per class from M1.
-- CoreML / NNAPI graph partitioning. Mitigated by the export-safe operator rule.
+- CoreML / LiteRT GPU graph partitioning. Mitigated by the export-safe operator rule.
 - Synthetic-to-real gap. Mitigated by the real-screenshot loop and by never
   using synthetic numbers as release gates.
 

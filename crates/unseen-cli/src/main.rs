@@ -358,6 +358,7 @@ fn litert(model: &Path, cpu: bool) -> Option<Result<Box<dyn unseen_core::Backend
             library: std::env::var_os("UNSEEN_LITERT").map_or_else(|| unseen_infer::LITERT_LIBRARY.into(), Into::into),
             cpu_only: cpu,
             cache_dir: dirs::cache_dir().map(|d| d.join("unseen")),
+            ..Default::default()
         };
         unseen_infer::LiteRtBackend::load(model, &opts)
             .map(|b| Box::new(b) as Box<dyn unseen_core::Backend>)

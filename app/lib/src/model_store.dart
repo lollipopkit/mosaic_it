@@ -6,9 +6,9 @@ import 'package:path_provider/path_provider.dart';
 
 import 'rust/api.dart';
 
-/// Model file extensions this platform runs: LiteRT's `.tflite` (the
-/// Android release) only on Android.
-final modelExtensions = ['.onnx', if (Platform.isAndroid) '.tflite'];
+/// Model file extensions this platform runs: LiteRT's `.tflite` on
+/// Android, ONNX elsewhere.
+final modelExtensions = [Platform.isAndroid ? '.tflite' : '.onnx'];
 
 bool _isModel(String path) => modelExtensions.any(path.endsWith);
 

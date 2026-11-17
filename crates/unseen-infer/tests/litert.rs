@@ -2,7 +2,7 @@
 //! LiteRT library `UNSEEN_LITERT`, on the CPU and the GPU: every sidecar
 //! shape has a signature, and both agree with the ONNX export next to it
 //! (`<model>.onnx` by stem, when present) on ORT's CPU.
-#![cfg(feature = "litert")]
+#![cfg(all(feature = "litert", feature = "ort"))]
 
 use std::path::{Path, PathBuf};
 
@@ -59,7 +59,7 @@ fn signatures_run_and_match_ort() {
         let opts = LiteRtOptions {
             library: lib.clone(),
             cpu_only: cpu,
-            cache_dir: None,
+            ..Default::default()
         };
         let mut b = LiteRtBackend::load(&model, &opts).unwrap();
         eprintln!("{} {:?}", b.name(), b.signatures());
@@ -75,5 +75,40 @@ fn signatures_run_and_match_ort() {
                 assert!(d < if cpu { 1e-3 } else { 5e-2 }, "{w}x{h}: {d}");
             }
         }
+    }
+}
+
+/// The bundled YuNet as LiteRT runs it (dynamic height and width) against
+/// the ONNX export on ORT's CPU, at the sizes of both face passes.
+#[test]
+fn yunet_matches_ort() {
+    let Ok(lib) = std::env::var("UNSEEN_LITERT") else {
+        eprintln!("skip: set UNSEEN_LITERT");
+        return;
+    };
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("models/yunet");
+    let opts = LiteRtOptions {
+        library: lib.into(),
+        cpu_only: true,
+        resize: true,
+        ..Default::default()
+    };
+    let mut lite = LiteRtBackend::load(&dir.join("face_detection_yunet_2026may.tflite"), &opts).unwrap();
+    let mut ort = unseen_infer::OrtBackend::load_with(
+        &dir.join("face_detection_yunet_2026may.onnx"),
+        unseen_infer::OrtOptions {
+            cpu_only: true,
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    for (w, h) in [(288, 640), (800, 1760), (1440, 3072), (288, 640)] {
+        let x = input(w, h) * 64.0 + 128.0;
+        let d = max_diff(
+            &lite.run(x.view()).unwrap().outputs,
+            &ort.run(x.view()).unwrap().outputs,
+        );
+        eprintln!("yunet {w}x{h}: max diff {d:.2e}");
+        assert!(d < 1e-3, "{w}x{h}: {d}");
     }
 }

@@ -290,11 +290,6 @@ fn hardware_providers(cache: Option<&Path>) -> Vec<(&'static str, Box<dyn Provid
     v.push(("directml", Box::new(ort::ep::DirectML::default())));
     #[cfg(feature = "qnn")]
     v.push(("qnn", Box::new(ort::ep::QNN::default())));
-    #[cfg(feature = "nnapi")]
-    v.push((
-        "nnapi",
-        Box::new(ort::ep::NNAPI::default().with_fp16(true).with_disable_cpu(true)),
-    ));
     #[cfg(feature = "xnnpack")]
     v.push(("xnnpack", Box::new(ort::ep::XNNPACK::default())));
     v

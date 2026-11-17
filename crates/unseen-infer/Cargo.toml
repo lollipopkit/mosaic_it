@@ -15,7 +15,6 @@ cuda = ["ort", "ort/cuda"]
 directml = ["ort", "ort/directml"]
 xnnpack = ["ort", "ort/xnnpack"]
 qnn = ["ort", "ort/qnn"]
-nnapi = ["ort", "ort/nnapi"]
 litert = ["dep:libloading"]
 
 [dependencies]

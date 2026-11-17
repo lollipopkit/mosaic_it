@@ -32,8 +32,8 @@ android {
         manifestPlaceholders["appAuthRedirectScheme"] = applicationId!!
     }
 
-    // ONNX Runtime's prebuilt Android binaries (ort-sys) are arm64 only, so the
-    // APK ships arm64-v8a alone (Flutter sets its own abiFilters per build type).
+    // The APK ships arm64-v8a alone, the ABI of the LiteRT libraries below
+    // (Flutter sets its own abiFilters per build type).
     packaging { jniLibs { excludes += listOf("lib/armeabi-v7a/**", "lib/x86_64/**") } }
 
     buildTypes {

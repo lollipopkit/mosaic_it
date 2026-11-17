@@ -10,7 +10,6 @@ use unseen_core::{
     PUBLIC_KEY, RedactStyle, Resolution, Selection, Threshold, Timeline, Tracker, blake3_file, export_check,
     find_similar, is_camera_photo, load_image, redact, redaction_patches,
 };
-use unseen_infer::{OrtBackend, OrtOptions, face_detector};
 use unseen_media::{Timestamp, VideoReader, VideoWriter};
 
 use crate::frb_generated::StreamSink;
@@ -194,27 +193,43 @@ fn open(path: &str) -> Result<image::RgbImage> {
     Ok(load_image(Path::new(path))?)
 }
 
-/// The backend of `model`: LiteRT for a `.tflite` file (Android), else ONNX
-/// Runtime on the platform's hardware provider.
-fn backend(
+/// The backend of `model` and the face detector: LiteRT on Android (GPU,
+/// else XNNPACK), which runs `.tflite` models only; elsewhere ONNX Runtime
+/// on the platform's hardware provider.
+#[cfg(target_os = "android")]
+fn backends(
+    model: &Path,
+    _resolution: Resolution,
+    cache_dir: Option<PathBuf>,
+) -> anyhow::Result<(Box<dyn unseen_core::Backend>, unseen_core::FaceDetector)> {
+    use unseen_infer::{LiteRtBackend, LiteRtOptions, litert_face_detector};
+    anyhow::ensure!(
+        model.extension().is_some_and(|e| e == "tflite"),
+        "Android runs .tflite models"
+    );
+    let opts = LiteRtOptions {
+        cache_dir,
+        ..Default::default()
+    };
+    Ok((
+        Box::new(LiteRtBackend::load(model, &opts)?),
+        litert_face_detector(&opts)?,
+    ))
+}
+
+#[cfg(not(target_os = "android"))]
+fn backends(
     model: &Path,
     resolution: Resolution,
     cache_dir: Option<PathBuf>,
-) -> anyhow::Result<Box<dyn unseen_core::Backend>> {
-    #[cfg(target_os = "android")]
-    if model.extension().is_some_and(|e| e == "tflite") {
-        let opts = unseen_infer::LiteRtOptions {
-            cache_dir,
-            ..Default::default()
-        };
-        return Ok(Box::new(unseen_infer::LiteRtBackend::load(model, &opts)?));
-    }
+) -> anyhow::Result<(Box<dyn unseen_core::Backend>, unseen_core::FaceDetector)> {
+    use unseen_infer::{OrtBackend, OrtOptions, face_detector};
     let opts = OrtOptions {
         per_shape: resolution == Resolution::Pt2,
         cache_dir,
         ..Default::default()
     };
-    Ok(Box::new(OrtBackend::load_with(model, opts)?))
+    Ok((Box::new(OrtBackend::load_with(model, opts)?), face_detector()?))
 }
 
 /// The release variant this platform runs ([`model_update`]).
@@ -226,10 +241,10 @@ impl Session {
     pub fn load(model_path: String, cache_dir: Option<String>) -> Result<Session> {
         let path = Path::new(&model_path);
         let meta = ModelMeta::load(path)?;
-        let backend = backend(path, meta.resolution, cache_dir.map(PathBuf::from))
+        let (backend, faces) = backends(path, meta.resolution, cache_dir.map(PathBuf::from))
             .with_context(|| format!("loading {model_path}"))?;
         Ok(Session {
-            det: Mutex::new(Detector::new(meta, backend).with_faces(face_detector()?)),
+            det: Mutex::new(Detector::new(meta, backend).with_faces(faces)),
             off: Mutex::default(),
             threshold: Mutex::new(ThresholdPreset::Medium),
             recent: Mutex::default(),
