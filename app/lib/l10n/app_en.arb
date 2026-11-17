@@ -134,7 +134,12 @@
   "fillNoise": "Noise",
   "verifyNext": "Verify & next",
   "export": "Export",
-  "pickOneModel": "Pick exactly one .onnx model",
+  "pickOneModel": "Pick exactly one {formats} model",
+  "@pickOneModel": {
+    "placeholders": {
+      "formats": {"type": "String", "example": ".onnx"}
+    }
+  },
   "pickSidecar": "Also pick {name}.json",
   "@pickSidecar": {
     "placeholders": {
@@ -279,7 +284,7 @@
   "settings": "Settings",
   "classFinance": "Finance",
   "@classFinance": {
-    "description": "Label of the finance region class: personal money amounts (balance, transfer, income)"
+    "description": "Label of the finance region class: money amounts tied to the person (balance, transfer, income, payment, bill)"
   },
   "collectTitle": "Collect training data",
   "collectSubtitle": "Keep each exported image, the detected boxes and your choices on this device to train future models. Nothing is uploaded.",
@@ -625,6 +630,18 @@
   "classSecret": "Secret",
   "@classSecret": {
     "description": "Class of private information: a credential shown in clear text (password, API key or token, private key, recovery phrase, one-time code)."
+  },
+  "classPerson": "Person",
+  "@classPerson": {
+    "description": "Class of private information: a picture of a real person or part of one (body, selfie, video call)."
+  },
+  "classHealth": "Health",
+  "@classHealth": {
+    "description": "Class of private information: health data (sleep, heart rate, weight, diagnosis, medication)."
+  },
+  "classPersonalInfo": "Personal info",
+  "@classPersonalInfo": {
+    "description": "Class of private information: other details tied to a person (gender, age, birthday, relatives, job, dates of personal events)."
   },
   "selectedOf": "{selected} / {total} selected",
   "@selectedOf": {

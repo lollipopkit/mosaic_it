@@ -153,7 +153,9 @@ class AppLocalizationsKa extends AppLocalizations {
   String get export => 'ექსპორტი';
 
   @override
-  String get pickOneModel => 'აირჩიეთ ზუსტად ერთი .onnx მოდელი';
+  String pickOneModel(String formats) {
+    return 'აირჩიეთ ზუსტად ერთი $formats მოდელი';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -575,6 +577,15 @@ class AppLocalizationsKa extends AppLocalizations {
 
   @override
   String get classSecret => 'საიდუმლო მონაცემი';
+
+  @override
+  String get classPerson => 'პირი';
+
+  @override
+  String get classHealth => 'ჯანმრთელობა';
+
+  @override
+  String get classPersonalInfo => 'პირადი ინფორმაცია';
 
   @override
   String selectedOf(int selected, int total) {

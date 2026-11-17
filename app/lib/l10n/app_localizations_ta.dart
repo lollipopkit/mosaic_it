@@ -153,7 +153,9 @@ class AppLocalizationsTa extends AppLocalizations {
   String get export => 'ஏற்றுமதி செய்';
 
   @override
-  String get pickOneModel => 'சரியாக ஒரு .onnx மாதிரியைத் தேர்ந்தெடுக்கவும்';
+  String pickOneModel(String formats) {
+    return 'சரியாக ஒரு $formats மாதிரியைத் தேர்ந்தெடுக்கவும்';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -572,6 +574,15 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get classSecret => 'ரகசியத் தகவல்';
+
+  @override
+  String get classPerson => 'நபர்';
+
+  @override
+  String get classHealth => 'உடல்நலம்';
+
+  @override
+  String get classPersonalInfo => 'தனிப்பட்ட தகவல்';
 
   @override
   String selectedOf(int selected, int total) {

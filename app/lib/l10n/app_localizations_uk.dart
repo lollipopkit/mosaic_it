@@ -152,7 +152,9 @@ class AppLocalizationsUk extends AppLocalizations {
   String get export => 'Експорт';
 
   @override
-  String get pickOneModel => 'Оберіть рівно одну модель .onnx';
+  String pickOneModel(String formats) {
+    return 'Оберіть рівно одну модель $formats';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -565,6 +567,15 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String get classSecret => 'Секретні дані';
+
+  @override
+  String get classPerson => 'Людина';
+
+  @override
+  String get classHealth => 'Здоров’я';
+
+  @override
+  String get classPersonalInfo => 'Особисті дані';
 
   @override
   String selectedOf(int selected, int total) {

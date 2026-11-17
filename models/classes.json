@@ -15,6 +15,9 @@
     { "id": 11, "name": "finance",     "group": "context" },
     { "id": 12, "name": "organization", "group": "context" },
     { "id": 13, "name": "device_id",   "group": "format" },
-    { "id": 14, "name": "secret",      "group": "format" }
+    { "id": 14, "name": "secret",      "group": "format" },
+    { "id": 15, "name": "person",      "group": "visual" },
+    { "id": 16, "name": "health",      "group": "context" },
+    { "id": 17, "name": "personal_info", "group": "context" }
   ]
 }

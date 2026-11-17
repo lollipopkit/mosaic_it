@@ -7,7 +7,7 @@ The detector the app downloads. Releases are listed in
 | | |
 |---|---|
 | Task | Boxes around private information in UI screenshots, without OCR |
-| Input | RGB, width 720; the tiled export takes 1280×736 tiles ([design.md](design.md) §4) |
+| Input | RGB; `pt2` models scale phone screenshots to about 2 px per point and run on 896×1280, 1280×896 or 1280×1280 tiles ([design.md](design.md) §4) |
 | Output | Per-stride class scores and raw boxes, decoded by `unseen-core::detect` |
 | Format | ONNX (40 MB) with a sidecar `<file>.json`: classes and thresholds |
 | Classes | [models/classes.json](../models/classes.json); `face` comes from YuNet, not from this model |

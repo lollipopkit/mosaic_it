@@ -10,6 +10,7 @@ mod manifest;
 mod model;
 mod propagate;
 mod redact;
+mod scale;
 mod video;
 
 pub use backend::{Backend, RawOutput};
@@ -17,13 +18,11 @@ pub use calibrate::{Calibration, Calibrator, ClassThreshold};
 pub use detect::{Candidates, DetectOptions, Detection, Detector, Selection, Threshold, nms};
 pub use eval::{ClassReport, CocoDataset, EvalOptions, EvalReport, Evaluator, GtImage};
 pub use face::{FACE, FaceDetector};
-pub use manifest::{FORMAT, Manifest, ModelEntry, PUBLIC_KEY, blake3_file, default_manifest, sign};
-pub use model::{
-    INPUT_WIDTH, ModelMeta, Preprocessed, UNCALIBRATED_REVIEW, UNCALIBRATED_SELECT, is_camera_photo, load_image,
-    preprocess,
-};
+pub use manifest::{FORMAT, MIN_FORMAT, Manifest, ModelEntry, PUBLIC_KEY, blake3_file, default_manifest, sign};
+pub use model::{ModelMeta, Resolution, UNCALIBRATED_REVIEW, UNCALIBRATED_SELECT, is_camera_photo, load_image, tensor};
 pub use propagate::{FindOptions, Match, find_similar};
 pub use redact::{ExportCheck, Patch, RedactStyle, export_check, redact, redaction_patches};
+pub use scale::{SHAPES, scale_for, scaled_size, shape_for};
 pub use video::{KeyframeOptions, Keyframes, Observation, Timeline, Track, Tracker};
 
 #[derive(Debug, thiserror::Error)]

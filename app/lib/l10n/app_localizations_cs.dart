@@ -152,7 +152,9 @@ class AppLocalizationsCs extends AppLocalizations {
   String get export => 'Exportovat';
 
   @override
-  String get pickOneModel => 'Vyberte přesně jeden model .onnx';
+  String pickOneModel(String formats) {
+    return 'Vyberte přesně jeden model $formats';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -575,6 +577,15 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get classSecret => 'Tajný údaj';
+
+  @override
+  String get classPerson => 'Osoba';
+
+  @override
+  String get classHealth => 'Zdraví';
+
+  @override
+  String get classPersonalInfo => 'Osobní údaje';
 
   @override
   String selectedOf(int selected, int total) {

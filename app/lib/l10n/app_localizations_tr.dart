@@ -153,7 +153,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get export => 'Dışa aktar';
 
   @override
-  String get pickOneModel => 'Tam olarak bir .onnx modeli seçin';
+  String pickOneModel(String formats) {
+    return 'Tam olarak bir $formats modeli seçin';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -571,6 +573,15 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get classSecret => 'Gizli bilgi';
+
+  @override
+  String get classPerson => 'Kişi';
+
+  @override
+  String get classHealth => 'Sağlık';
+
+  @override
+  String get classPersonalInfo => 'Kişisel bilgiler';
 
   @override
   String selectedOf(int selected, int total) {

@@ -149,7 +149,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get export => 'Xuất';
 
   @override
-  String get pickOneModel => 'Chọn đúng một mô hình .onnx';
+  String pickOneModel(String formats) {
+    return 'Chọn đúng một mô hình $formats';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -563,6 +565,15 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get classSecret => 'Thông tin bí mật';
+
+  @override
+  String get classPerson => 'Người';
+
+  @override
+  String get classHealth => 'Sức khỏe';
+
+  @override
+  String get classPersonalInfo => 'Thông tin cá nhân';
 
   @override
   String selectedOf(int selected, int total) {

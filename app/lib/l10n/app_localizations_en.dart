@@ -149,7 +149,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get export => 'Export';
 
   @override
-  String get pickOneModel => 'Pick exactly one .onnx model';
+  String pickOneModel(String formats) {
+    return 'Pick exactly one $formats model';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -549,6 +551,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get classSecret => 'Secret';
+
+  @override
+  String get classPerson => 'Person';
+
+  @override
+  String get classHealth => 'Health';
+
+  @override
+  String get classPersonalInfo => 'Personal info';
 
   @override
   String selectedOf(int selected, int total) {

@@ -4,6 +4,7 @@ description = "Video decoding and encoding with the platform's own codecs"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 publish.workspace = true
 
 [dependencies]

@@ -5,8 +5,8 @@
 #
 # `models/publish.sh` uploads an entry's files to its `url` and this file,
 # signed, to https://pub.lolli.tech/models/unseen/manifest.signed, where the app
-# looks for a newer release. `format` (default 1) is raised when a release
-# needs a newer app.
+# looks for a newer release. `format` (default 1) stays inside each build's
+# `MIN_FORMAT..=FORMAT` window when compatibility breaks.
 #
 # 0.1.0 to 0.3.2 were trained on synthetic screenshots only and were not
 # published (10 classes; 0.3.2 is 0.3.1's weights with a new calibration).

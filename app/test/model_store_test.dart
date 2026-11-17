@@ -31,4 +31,17 @@ void main() {
       throwsA(isA<ModelPickError>()),
     );
   });
+  test('the format comes from the content', () {
+    expect(modelExtension([0x1c, 0, 0, 0, ...'TFL3'.codeUnits]), '.tflite');
+    expect(
+      modelExtension([0x08, 0x09, 0x12, 0x07, 0x70, 0x79, 0x74, 0x6f]),
+      '.onnx',
+    );
+    expect(modelExtension([1, 2]), '.onnx');
+    // Renamed by a picker: still the model.
+    expect(pickModelFiles(['/c/m.bin', '/c/m.tflite.json']), (
+      '/c/m.bin',
+      '/c/m.tflite.json',
+    ));
+  });
 }

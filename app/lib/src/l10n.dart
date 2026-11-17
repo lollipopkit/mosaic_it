@@ -19,6 +19,9 @@ String classLabel(AppLocalizations l, String c) => switch (c) {
   'organization' => l.classOrganization,
   'device_id' => l.classDeviceId,
   'secret' => l.classSecret,
+  'person' => l.classPerson,
+  'health' => l.classHealth,
+  'personal_info' => l.classPersonalInfo,
   'manual' => l.classManual,
   _ => c,
 };

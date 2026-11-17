@@ -14,8 +14,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::{Error, ModelMeta, Result};
 
-/// What this build can run: see [`ModelEntry::format`].
-pub const FORMAT: u32 = 1;
+/// Oldest model format this build can run (`format = 1` models lack
+/// `resolution: "native"` and expect 720px-resized inputs).
+pub const MIN_FORMAT: u32 = 2;
+
+/// Newest model format this build can run: see [`ModelEntry::format`].
+/// 3: `resolution: "pt2"` models (phone screenshots scaled, input shapes).
+pub const FORMAT: u32 = 3;
 
 /// Verifies the published manifest (hex Ed25519). The secret key signs it in
 /// `models/publish.sh`.
@@ -46,9 +51,9 @@ pub struct ModelEntry {
     /// until they are.
     #[serde(default)]
     pub url: String,
-    /// Raised when a release needs a newer app (classes it has no labels
-    /// for, sidecar fields it does not read): apps skip entries above their
-    /// [`FORMAT`].
+    /// Raised when a release needs a newer app or breaks input layout
+    /// (missing labels, changed sidecar schema or preprocessing): apps keep
+    /// entries in [`MIN_FORMAT`]..=[`FORMAT`].
     #[serde(default = "one")]
     pub format: u32,
 }
@@ -103,18 +108,21 @@ impl Manifest {
     }
 
     /// The newest published `variant` release this build can run, if it is
-    /// newer than the model at `installed`. A model that is not a listed
-    /// `variant` release is the user's own choice and is never replaced.
+    /// newer than the model at `installed` (or `installed` uses an
+    /// incompatible format). A model that is not a listed `variant` release is
+    /// the user's own choice and is never replaced.
     pub fn update(&self, variant: &str, installed: Option<&Path>) -> Result<Option<&ModelEntry>> {
+        let runnable = |f: u32| (MIN_FORMAT..=FORMAT).contains(&f);
         let current = match installed.map(|p| self.verify(p)) {
-            Some(Ok(e)) if e.variant == variant => Version::parse(&e.version).ok(),
+            Some(Ok(e)) if e.variant == variant && runnable(e.format) => Version::parse(&e.version).ok(),
+            Some(Ok(e)) if e.variant == variant => None,
             Some(_) => return Ok(None),
             None => None,
         };
         let newest = self
             .models
             .iter()
-            .filter(|m| m.variant == variant && !m.url.is_empty() && m.format <= FORMAT)
+            .filter(|m| m.variant == variant && !m.url.is_empty() && runnable(m.format))
             .filter_map(|m| Some((Version::parse(&m.version).ok()?, m)))
             .max_by(|a, b| a.0.cmp(&b.0));
         Ok(newest
@@ -226,12 +234,13 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         let model = dir.join("m.onnx");
         let mut text = String::new();
-        // 3.0.0 needs a newer app, 0.9.0 is not published.
+        // 0.4.0 is too old (< MIN_FORMAT), 3.0.0 needs a newer app (> FORMAT), 0.9.0 is not published.
         for (v, url, format) in [
-            ("1.0.0", "https://x/1", 1),
-            ("2.0.0", "https://x/2/", 1),
-            ("3.0.0", "https://x/3", 2),
-            ("0.9.0", "", 1),
+            ("0.4.0", "https://x/0", MIN_FORMAT - 1),
+            ("1.0.0", "https://x/1", MIN_FORMAT),
+            ("2.0.0", "https://x/2/", FORMAT),
+            ("3.0.0", "https://x/3", FORMAT + 1),
+            ("0.9.0", "", FORMAT),
         ] {
             std::fs::write(&model, v).unwrap();
             std::fs::write(ModelMeta::sidecar(&model), v).unwrap();
@@ -247,6 +256,12 @@ mod tests {
         assert!(Manifest::signed(&published, &"22".repeat(32)).is_err());
         assert!(Manifest::signed(text.as_bytes(), &public).is_err());
 
+        // Manifests of only older formats offer nothing.
+        let legacy_only = Manifest {
+            models: m.models.iter().filter(|e| e.format < MIN_FORMAT).cloned().collect(),
+        };
+        assert!(legacy_only.update("tiled", None).unwrap().is_none());
+
         let newest = m.update("tiled", None).unwrap().unwrap();
         assert_eq!(
             (newest.version.as_str(), newest.model_url().as_str()),
@@ -254,9 +269,17 @@ mod tests {
         );
         assert_eq!(newest.sidecar_url(), "https://x/2/m.onnx.json");
         assert!(m.update("dynamic", None).unwrap().is_none());
-        // Installed 0.9.0 is older; 2.0.0 is current; unknown files are the user's.
+        // Installed 0.9.0 is unpublished/older; 0.4.0 (< MIN_FORMAT) and 3.0.0 (> FORMAT)
+        // both use incompatible formats -> all offer 2.0.0; 2.0.0 is current;
+        // unknown files are the user's.
         assert_eq!(m.update("tiled", Some(&model)).unwrap().unwrap().version, "2.0.0");
-        for (content, offered) in [("2.0.0", false), ("1.0.0", true), ("mine", false)] {
+        for (content, offered) in [
+            ("2.0.0", false),
+            ("1.0.0", true),
+            ("0.4.0", true),
+            ("3.0.0", true),
+            ("mine", false),
+        ] {
             std::fs::write(&model, content).unwrap();
             std::fs::write(ModelMeta::sidecar(&model), content).unwrap();
             assert_eq!(m.update("tiled", Some(&model)).unwrap().is_some(), offered, "{content}");

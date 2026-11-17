@@ -4,6 +4,7 @@ description = "Command-line interface: detect and redact"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 publish.workspace = true
 
 [[bin]]
@@ -14,10 +15,11 @@ path = "src/main.rs"
 default = []
 coreml = ["unseen-infer/coreml"]
 cuda = ["unseen-infer/cuda"]
+litert = ["unseen-infer/litert"]
 
 [dependencies]
 unseen-core.workspace = true
-unseen-infer.workspace = true
+unseen-infer = { workspace = true, features = ["ort"] }
 unseen-media.workspace = true
 anyhow.workspace = true
 clap.workspace = true

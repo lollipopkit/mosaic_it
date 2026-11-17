@@ -389,8 +389,8 @@ abstract class AppLocalizations {
   /// No description provided for @pickOneModel.
   ///
   /// In en, this message translates to:
-  /// **'Pick exactly one .onnx model'**
-  String get pickOneModel;
+  /// **'Pick exactly one {formats} model'**
+  String pickOneModel(String formats);
 
   /// No description provided for @pickSidecar.
   ///
@@ -584,7 +584,7 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settings;
 
-  /// Label of the finance region class: personal money amounts (balance, transfer, income)
+  /// Label of the finance region class: money amounts tied to the person (balance, transfer, income, payment, bill)
   ///
   /// In en, this message translates to:
   /// **'Finance'**
@@ -1057,6 +1057,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Secret'**
   String get classSecret;
+
+  /// Class of private information: a picture of a real person or part of one (body, selfie, video call).
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get classPerson;
+
+  /// Class of private information: health data (sleep, heart rate, weight, diagnosis, medication).
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get classHealth;
+
+  /// Class of private information: other details tied to a person (gender, age, birthday, relatives, job, dates of personal events).
+  ///
+  /// In en, this message translates to:
+  /// **'Personal info'**
+  String get classPersonalInfo;
 
   /// Editor top bar: selected regions of the shown image
   ///

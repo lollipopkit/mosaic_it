@@ -183,12 +183,13 @@ class _HomePageState extends State<HomePage> {
 
   String _message(Object e) => switch (e) {
     ModelPickError(sidecarFor: final m?) => _l.pickSidecar(m),
-    ModelPickError() => _l.pickOneModel,
+    ModelPickError() => _l.pickOneModel(modelExtensions.join(' / ')),
     _ => '$e',
   };
 
   Future<void> _chooseModel() async {
-    // iOS filters by UTI only, and .onnx has none registered.
+    // iOS filters by UTI and Android by MIME type, and model files have
+    // neither registered: pick any file there; pickModelFiles checks them.
     final files = await openFiles(
       acceptedTypeGroups: [
         Platform.isIOS
@@ -196,9 +197,14 @@ class _HomePageState extends State<HomePage> {
                 label: _l.modelFileType,
                 uniformTypeIdentifiers: const ['public.data'],
               )
+            : Platform.isAndroid
+            ? XTypeGroup(label: _l.modelFileType, mimeTypes: const ['*/*'])
             : XTypeGroup(
                 label: _l.modelFileType,
-                extensions: const ['onnx', 'json'],
+                extensions: [
+                  for (final e in modelExtensions) e.substring(1),
+                  'json',
+                ],
               ),
       ],
       confirmButtonText: _l.useModel,

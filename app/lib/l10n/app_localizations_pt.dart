@@ -150,7 +150,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get export => 'Exportar';
 
   @override
-  String get pickOneModel => 'Escolha exatamente um modelo .onnx';
+  String pickOneModel(String formats) {
+    return 'Escolha exatamente um modelo $formats';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -558,6 +560,15 @@ class AppLocalizationsPt extends AppLocalizations {
   String get classSecret => 'Credencial';
 
   @override
+  String get classPerson => 'Pessoa';
+
+  @override
+  String get classHealth => 'Saúde';
+
+  @override
+  String get classPersonalInfo => 'Dados pessoais';
+
+  @override
   String selectedOf(int selected, int total) {
     return '$selected / $total selected';
   }
@@ -831,7 +842,9 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get export => 'Exportar';
 
   @override
-  String get pickOneModel => 'Escolha exatamente um modelo .onnx';
+  String pickOneModel(String formats) {
+    return 'Escolha exatamente um modelo $formats';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -1246,4 +1259,13 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get classSecret => 'Credencial';
+
+  @override
+  String get classPerson => 'Pessoa';
+
+  @override
+  String get classHealth => 'Saúde';
+
+  @override
+  String get classPersonalInfo => 'Dados pessoais';
 }

@@ -11,7 +11,7 @@ publish = false
 
 [workspace.dependencies]
 unseen-core = { path = "crates/unseen-core" }
-unseen-infer = { path = "crates/unseen-infer" }
+unseen-infer = { path = "crates/unseen-infer", default-features = false }
 unseen-media = { path = "crates/unseen-media" }
 anyhow = "1.0.104"
 clap = { version = "4.6.7", features = ["derive"] }

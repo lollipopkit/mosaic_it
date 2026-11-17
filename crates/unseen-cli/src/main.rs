@@ -6,8 +6,8 @@ use image::{Rgb, RgbImage};
 use serde::Serialize;
 use unseen_core::{
     Calibrator, CocoDataset, DetectOptions, Detection, Detector, EvalOptions, Evaluator, FindOptions, GtImage,
-    KeyframeOptions, Keyframes, Manifest, ModelEntry, ModelMeta, RedactStyle, Selection, Tracker, export_check,
-    find_similar, is_camera_photo, load_image, redact,
+    KeyframeOptions, Keyframes, Manifest, ModelEntry, ModelMeta, RedactStyle, Resolution, Selection, Tracker,
+    export_check, find_similar, is_camera_photo, load_image, redact,
 };
 use unseen_infer::{OrtBackend, OrtOptions, face_detector};
 use unseen_media::{Timestamp, VideoReader, VideoWriter};
@@ -349,10 +349,36 @@ struct Shown<'a> {
     selection: Selection,
 }
 
+/// A `.tflite` model on LiteRT (`UNSEEN_LITERT`: the library, default found
+/// by the loader), when built with the `litert` feature.
+#[cfg(feature = "litert")]
+fn litert(model: &Path, cpu: bool) -> Option<Result<Box<dyn unseen_core::Backend>>> {
+    (model.extension()? == "tflite").then(|| {
+        let opts = unseen_infer::LiteRtOptions {
+            library: std::env::var_os("UNSEEN_LITERT").map_or_else(|| unseen_infer::LITERT_LIBRARY.into(), Into::into),
+            cpu_only: cpu,
+            cache_dir: dirs::cache_dir().map(|d| d.join("unseen")),
+            ..Default::default()
+        };
+        unseen_infer::LiteRtBackend::load(model, &opts)
+            .map(|b| Box::new(b) as Box<dyn unseen_core::Backend>)
+            .with_context(|| format!("loading {}", model.display()))
+    })
+}
+
+#[cfg(not(feature = "litert"))]
+fn litert(_: &Path, _: bool) -> Option<Result<Box<dyn unseen_core::Backend>>> {
+    None
+}
+
 fn detector(model: &Path, faces: &Faces) -> Result<Detector> {
     let meta = ModelMeta::load(model)?;
+    if let Some(b) = litert(model, false) {
+        return with_faces(Detector::new(meta, b?), faces);
+    }
     let opts = OrtOptions {
         cache_dir: dirs::cache_dir().map(|d| d.join("unseen")),
+        per_shape: meta.resolution == Resolution::Pt2,
         ..Default::default()
     };
     let backend = OrtBackend::load_with(model, opts).with_context(|| format!("loading {}", model.display()))?;
@@ -595,17 +621,25 @@ fn main() -> Result<()> {
             image,
         } => {
             // No cache: the load time reported includes compilation.
+            let meta = ModelMeta::load(&model)?;
             let opts = OrtOptions {
                 cpu_only: cpu,
                 record_placement: true,
                 cache_dir: None,
+                per_shape: meta.resolution == Resolution::Pt2,
             };
             let t = std::time::Instant::now();
-            let backend =
-                OrtBackend::load_with(&model, opts).with_context(|| format!("loading {}", model.display()))?;
+            let (backend, placement): (Box<dyn unseen_core::Backend>, Vec<String>) = match litert(&model, cpu) {
+                Some(b) => (b?, Vec::new()),
+                None => {
+                    let b =
+                        OrtBackend::load_with(&model, opts).with_context(|| format!("loading {}", model.display()))?;
+                    let p = b.placement().to_vec();
+                    (Box::new(b), p)
+                }
+            };
             let load_ms = t.elapsed().as_secs_f64() * 1e3;
-            let placement = backend.placement().to_vec();
-            let mut det = with_faces(Detector::new(ModelMeta::load(&model)?, Box::new(backend)), &faces)?;
+            let mut det = with_faces(Detector::new(meta, backend), &faces)?;
             let img = load_image(&image)?;
             // The first runs include provider compilation and allocation.
             for _ in 0..3 {
