@@ -334,11 +334,33 @@ impl Detector {
     /// Runs every run of the graph and the face detector over `img`.
     fn collect(&mut self, img: &RgbImage, min_score: f32, image: Option<blake3::Hash>) -> Result<Candidates> {
         let input = self.input(img);
-        let runs = self
-            .plan(input.width(), input.height())
-            .iter()
-            .map(|t| self.run(&input, t, min_score))
-            .collect::<Result<_>>()?;
+        let plan = self.plan(input.width(), input.height());
+        let (runs, faces) = match &mut self.faces {
+            Some(face_det) => {
+                // Main detector (GPU/ANE) and YuNet (CPU) use disjoint
+                // hardware; overlap them to hide face detection latency.
+                let backend = self.backend.as_mut();
+                let meta = &self.meta;
+                std::thread::scope(|s| {
+                    let fh = s.spawn(|| face_det.detect(img, min_score));
+                    let runs = plan
+                        .iter()
+                        .map(|t| run_tile(backend, meta, &input, t, min_score))
+                        .collect::<Result<Vec<_>>>();
+                    let faces = fh
+                        .join()
+                        .map_err(|_| Error::Backend("face detector thread panicked".into()))??;
+                    Ok::<_, Error>((runs?, faces))
+                })?
+            }
+            None => {
+                let runs = plan
+                    .iter()
+                    .map(|t| run_tile(self.backend.as_mut(), &self.meta, &input, t, min_score))
+                    .collect::<Result<Vec<_>>>()?;
+                (runs, Vec::new())
+            }
+        };
         let (w, h) = img.dimensions();
         Ok(Candidates {
             detector: self.id,
@@ -348,7 +370,7 @@ impl Detector {
             scale: [w as f32 / input.width() as f32, h as f32 / input.height() as f32],
             min_score,
             runs,
-            faces: self.faces(img, min_score)?,
+            faces,
         })
     }
 
@@ -463,61 +485,79 @@ impl Detector {
 
     /// Runs the graph on tile `t` of `img`.
     fn run(&mut self, img: &RgbImage, t: &Tile, min_score: f32) -> Result<Vec<(usize, f32, [f32; 4])>> {
-        let out = self.backend.run(tensor(img, t.x, t.y, t.w, t.h).view())?;
-        let mut raw = Vec::new();
-        self.decode(&out, t, min_score, &mut raw)?;
-        Ok(raw)
+        run_tile(self.backend.as_mut(), &self.meta, img, t, min_score)
     }
+}
 
-    /// Decodes one run's outputs (see [`RawOutput`]) into candidates in image
-    /// pixels, keeping those whose centre lies in the tile's own ranges.
-    /// Mirrors the training code's decoding.
-    fn decode(&self, out: &RawOutput, t: &Tile, min_score: f32, raw: &mut Vec<(usize, f32, [f32; 4])>) -> Result<()> {
-        let c = self.meta.classes.len();
-        if out.outputs.len() != 2 * self.meta.strides.len() {
+/// Runs `backend` on tile `t` of `img` and decodes candidates into image
+/// pixels, keeping those whose centre lies in the tile's own ranges.
+fn run_tile(
+    backend: &mut dyn Backend,
+    meta: &ModelMeta,
+    img: &RgbImage,
+    t: &Tile,
+    min_score: f32,
+) -> Result<Vec<(usize, f32, [f32; 4])>> {
+    let out = backend.run(tensor(img, t.x, t.y, t.w, t.h).view())?;
+    let mut raw = Vec::new();
+    decode_tile(meta, &out, t, min_score, &mut raw)?;
+    Ok(raw)
+}
+
+/// Decodes one run's outputs (see [`RawOutput`]) into candidates in image
+/// pixels, keeping those whose centre lies in the tile's own ranges.
+/// Mirrors the training code's decoding.
+fn decode_tile(
+    meta: &ModelMeta,
+    out: &RawOutput,
+    t: &Tile,
+    min_score: f32,
+    raw: &mut Vec<(usize, f32, [f32; 4])>,
+) -> Result<()> {
+    let c = meta.classes.len();
+    if out.outputs.len() != 2 * meta.strides.len() {
+        return Err(Error::Shape(format!(
+            "{} outputs for {} strides",
+            out.outputs.len(),
+            meta.strides.len()
+        )));
+    }
+    for (level, &stride) in meta.strides.iter().enumerate() {
+        let (scores, boxes) = (
+            view4(&out.outputs[2 * level], stride)?,
+            view4(&out.outputs[2 * level + 1], stride)?,
+        );
+        let (_, sc, h, w) = scores.dim();
+        if sc != c || boxes.dim() != (1, 4, h, w) {
             return Err(Error::Shape(format!(
-                "{} outputs for {} strides",
-                out.outputs.len(),
-                self.meta.strides.len()
+                "stride {stride}: scores {:?}, boxes {:?}, {c} classes",
+                scores.dim(),
+                boxes.dim()
             )));
         }
-        for (level, &stride) in self.meta.strides.iter().enumerate() {
-            let (scores, boxes) = (
-                view4(&out.outputs[2 * level], stride)?,
-                view4(&out.outputs[2 * level + 1], stride)?,
-            );
-            let (_, sc, h, w) = scores.dim();
-            if sc != c || boxes.dim() != (1, 4, h, w) {
-                return Err(Error::Shape(format!(
-                    "stride {stride}: scores {:?}, boxes {:?}, {c} classes",
-                    scores.dim(),
-                    boxes.dim()
-                )));
-            }
-            let s = stride as f32;
-            for y in 0..h {
-                for x in 0..w {
-                    let (cx, cy) = ((x as f32 + 0.5) * s + t.x as f32, (y as f32 + 0.5) * s + t.y as f32);
-                    let mut bbox = None;
-                    for k in 0..c {
-                        let score = scores[[0, k, y, x]];
-                        if score < min_score {
-                            continue;
-                        }
-                        let b = *bbox.get_or_insert_with(|| {
-                            let d = |i: usize| softplus(boxes[[0, i, y, x]]) * s;
-                            [cx - d(0), cy - d(1), cx + d(2), cy + d(3)]
-                        });
-                        let (mx, my) = ((b[0] + b[2]) / 2.0, (b[1] + b[3]) / 2.0);
-                        if mx >= t.own_x.0 && mx < t.own_x.1 && my >= t.own_y.0 && my < t.own_y.1 {
-                            raw.push((k, score, b));
-                        }
+        let s = stride as f32;
+        for y in 0..h {
+            for x in 0..w {
+                let (cx, cy) = ((x as f32 + 0.5) * s + t.x as f32, (y as f32 + 0.5) * s + t.y as f32);
+                let mut bbox = None;
+                for k in 0..c {
+                    let score = scores[[0, k, y, x]];
+                    if score < min_score {
+                        continue;
+                    }
+                    let b = *bbox.get_or_insert_with(|| {
+                        let d = |i: usize| softplus(boxes[[0, i, y, x]]) * s;
+                        [cx - d(0), cy - d(1), cx + d(2), cy + d(3)]
+                    });
+                    let (mx, my) = ((b[0] + b[2]) / 2.0, (b[1] + b[3]) / 2.0);
+                    if mx >= t.own_x.0 && mx < t.own_x.1 && my >= t.own_y.0 && my < t.own_y.1 {
+                        raw.push((k, score, b));
                     }
                 }
             }
         }
-        Ok(())
     }
+    Ok(())
 }
 
 fn view4(a: &ndarray::ArrayD<f32>, stride: u32) -> Result<ndarray::ArrayView4<'_, f32>> {

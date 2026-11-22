@@ -16,8 +16,10 @@ use unseen_core::{Backend, Error, FaceDetector, RawOutput, Result};
 /// ONNX Runtime backend. Tries the hardware execution providers compiled in,
 /// in order, and falls back to CPU.
 pub struct OrtBackend {
-    /// Runs every input, or with [`PerShape`] the shapes it gives up on.
-    session: Session,
+    /// Runs every input when `per_shape` is `None`; with `PerShape`, lazily
+    /// built only if a shape falls back to CPU (avoids holding a full idle
+    /// CPU copy of the weights in memory).
+    session: Option<Session>,
     /// The graph's only input: `image` (region detector), `input` (YuNet).
     input: String,
     provider: String,
@@ -26,8 +28,9 @@ pub struct OrtBackend {
 }
 
 /// A dynamic graph on a hardware provider, which compiles for fixed shapes:
-/// one session per input shape, built on its first run, with the input's
-/// free dimensions overridden by that shape.
+/// keeps at most one active hardware session in memory (the most recently used
+/// shape) to bound iOS `phys_footprint`; switching shapes reloads from the
+/// on-disk compile cache.
 struct PerShape {
     model: PathBuf,
     provider: &'static str,
@@ -36,8 +39,10 @@ struct PerShape {
     /// Name of each input axis's free dimension, `None` where fixed.
     symbols: Vec<Option<String>>,
     record: bool,
-    /// By input shape: the hardware session, or why the shape runs on the CPU.
-    sessions: BTreeMap<Vec<usize>, std::result::Result<Session, String>>,
+    /// Currently resident hardware session, if any.
+    active: Option<(Vec<usize>, Session)>,
+    /// Shapes that fell back to CPU and why, so they are not re-attempted.
+    cpu_shapes: BTreeMap<Vec<usize>, String>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -154,19 +159,26 @@ impl OrtBackend {
             return Ok(Self::cpu(session, "cpu".into(), placement));
         };
         if opts.per_shape {
-            let (session, placement) = commit(Model::File(model), None, opts.record_placement, &[])?;
-            let symbols = input_symbols(&session);
+            let (probe, placement) = commit(Model::File(model), None, opts.record_placement, &[])?;
+            let symbols = input_symbols(&probe);
             if symbols.iter().any(Option::is_some) {
-                let mut b = Self::cpu(session, name.into(), placement);
-                b.per_shape = Some(PerShape {
-                    model: model.to_path_buf(),
-                    provider: name,
-                    cache,
-                    symbols,
-                    record: opts.record_placement,
-                    sessions: BTreeMap::new(),
+                let input = input_name(&probe);
+                drop(probe);
+                return Ok(Self {
+                    session: None,
+                    input,
+                    provider: name.into(),
+                    placement,
+                    per_shape: Some(PerShape {
+                        model: model.to_path_buf(),
+                        provider: name,
+                        cache,
+                        symbols,
+                        record: opts.record_placement,
+                        active: None,
+                        cpu_shapes: BTreeMap::new(),
+                    }),
                 });
-                return Ok(b);
             }
         }
         let keep = |p: Vec<String>| if opts.record_placement { p } else { Vec::new() };
@@ -182,7 +194,7 @@ impl OrtBackend {
     fn cpu(session: Session, provider: String, placement: Vec<String>) -> Self {
         Self {
             input: input_name(&session),
-            session,
+            session: Some(session),
             provider,
             placement,
             per_shape: None,
@@ -311,10 +323,17 @@ impl<T: ExecutionProvider + Clone + Into<ExecutionProviderDispatch>> Provider fo
 }
 
 impl PerShape {
-    /// The hardware session for `shape`, built on first use; `None` when the
-    /// shape runs on the CPU.
+    /// The hardware session for `shape`, built on first use (evicting any
+    /// previous shape to keep memory bounded); `None` when the shape runs on
+    /// the CPU.
     fn session(&mut self, shape: &[usize], placement: &mut Vec<String>) -> Result<Option<&mut Session>> {
-        if !self.sessions.contains_key(shape) {
+        if self.cpu_shapes.contains_key(shape) {
+            return Ok(None);
+        }
+        if self.active.as_ref().is_none_or(|(s, _)| s.as_slice() != shape) {
+            // Release the previous hardware session before compiling/loading
+            // the new one so peak memory stays at one session.
+            self.active = None;
             let dims: Vec<(String, i64)> = self
                 .symbols
                 .iter()
@@ -333,17 +352,22 @@ impl PerShape {
                 .into_iter()
                 .find(|(n, _)| *n == self.provider)
                 .expect("the provider chosen at load");
-            let (session, mut msgs) = match on_hardware(&self.model, self.provider, ep.build(), &dims) {
-                Ok((s, m)) => (Ok(s), m),
-                Err((reason, m)) => (Err(reason), m),
+            let mut msgs = match on_hardware(&self.model, self.provider, ep.build(), &dims) {
+                Ok((s, m)) => {
+                    self.active = Some((shape.to_vec(), s));
+                    m
+                }
+                Err((reason, m)) => {
+                    self.cpu_shapes.insert(shape.to_vec(), reason);
+                    m
+                }
             };
             if self.record {
                 placement.push(format!("input {shape:?}:"));
                 placement.append(&mut msgs);
             }
-            self.sessions.insert(shape.to_vec(), session);
         }
-        Ok(self.sessions.get_mut(shape).and_then(|s| s.as_mut().ok()))
+        Ok(self.active.as_mut().map(|(_, s)| s))
     }
 }
 
@@ -354,9 +378,9 @@ impl Backend for OrtBackend {
         };
         // Shapes on the CPU, and why.
         let cpu: Vec<String> = p
-            .sessions
+            .cpu_shapes
             .iter()
-            .filter_map(|(shape, s)| s.as_ref().err().map(|r| format!("{shape:?}: {r}")))
+            .map(|(shape, r)| format!("{shape:?}: {r}"))
             .collect();
         if cpu.is_empty() {
             format!("onnxruntime/{}", self.provider)
@@ -366,11 +390,24 @@ impl Backend for OrtBackend {
     }
 
     fn run(&mut self, input: ArrayView4<'_, f32>) -> Result<RawOutput> {
-        let session = match &mut self.per_shape {
+        let hw = match &mut self.per_shape {
             Some(p) => p.session(input.shape(), &mut self.placement)?,
             None => None,
         };
-        let session = session.unwrap_or(&mut self.session);
+        let session = match hw {
+            Some(s) => s,
+            None => {
+                if self.session.is_none() {
+                    let p = self.per_shape.as_ref().expect("per_shape present when session is None");
+                    let (s, mut msgs) = commit(Model::File(&p.model), None, p.record, &[])?;
+                    if p.record {
+                        self.placement.append(&mut msgs);
+                    }
+                    self.session = Some(s);
+                }
+                self.session.as_mut().expect("session initialized above")
+            }
+        };
         let input = TensorRef::from_array_view(input).map_err(err)?;
         let outputs = session.run(ort::inputs![self.input.as_str() => input]).map_err(err)?;
         let outputs = outputs
