@@ -5,12 +5,12 @@
   {"device": "Pixel 8 2.625x", "size": [1082, 2402], "scale": 0.7264325323475046, "scaled": [786, 1745], "shape": [896, 1280], "tiles": 2},
   {"device": "iPhone SE 2x", "size": [750, 1334], "scale": 1.0, "scaled": [750, 1334], "shape": [896, 1280], "tiles": 2},
   {"device": "Android 2x", "size": [720, 1600], "scale": 1.0, "scaled": [720, 1600], "shape": [896, 1280], "tiles": 2},
-  {"device": "long screenshot", "size": [1206, 8000], "scale": 0.6517412935323383, "scaled": [786, 5214], "shape": [896, 1280], "tiles": 6},
+  {"device": "long screenshot", "size": [1206, 8000], "scale": 0.6517412935323383, "scaled": [786, 5214], "shape": [896, 1280], "tiles": 5},
   {"device": "landscape phone", "size": [2622, 1206], "scale": 0.6517412935323383, "scaled": [1709, 786], "shape": [1280, 896], "tiles": 2},
   {"device": "Mac Retina", "size": [2880, 1800], "scale": 1.0, "scaled": [2880, 1800], "shape": [1280, 1280], "tiles": 6},
   {"device": "Windows 1x", "size": [1920, 1080], "scale": 1.0, "scaled": [1920, 1080], "shape": [1280, 1280], "tiles": 2},
-  {"device": "ultrawide", "size": [5120, 1440], "scale": 1.0, "scaled": [5120, 1440], "shape": [1280, 1280], "tiles": 12},
+  {"device": "ultrawide", "size": [5120, 1440], "scale": 1.0, "scaled": [5120, 1440], "shape": [1280, 896], "tiles": 12},
   {"device": "ultrawide 1x (misread as a phone)", "size": [2560, 1080], "scale": 0.7277777777777777, "scaled": [1863, 786], "shape": [1280, 896], "tiles": 2},
-  {"device": "iPad", "size": [1640, 2360], "scale": 1.0, "scaled": [1640, 2360], "shape": [1280, 896], "tiles": 8},
+  {"device": "iPad", "size": [1640, 2360], "scale": 1.0, "scaled": [1640, 2360], "shape": [1280, 1280], "tiles": 4},
   {"device": "small crop", "size": [500, 300], "scale": 1.0, "scaled": [500, 300], "shape": [1280, 896], "tiles": 1}
 ]

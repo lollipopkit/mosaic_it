@@ -31,11 +31,15 @@ pub fn scaled_size(w: u32, h: u32, s: f64) -> (u32, u32) {
     (r(w), r(h))
 }
 
-/// Number of `t`-long tiles covering a `len`-long axis
+/// Number of `t`-long tiles covering a `len`-long axis with `overlap`
 /// (`crate::detect::tile_plan`).
-fn tiles(len: usize, t: usize) -> usize {
-    let step = t - crate::detect::TILE_OVERLAP;
-    if len <= t { 1 } else { (len - t).div_ceil(step) + 1 }
+fn tiles(len: usize, t: usize, overlap: usize) -> usize {
+    if len <= t {
+        return 1;
+    }
+    assert!(t > overlap, "tile {t} must exceed overlap {overlap}");
+    let step = t - overlap;
+    (len - t).div_ceil(step) + 1
 }
 
 /// The shape of `shapes` a `w`x`h` (already scaled) image runs on: the one
@@ -45,7 +49,7 @@ pub fn shape_for(w: u32, h: u32, shapes: &[[u32; 2]]) -> [u32; 2] {
     let (w, h) = (w as usize, h as usize);
     let cost = |&[sw, sh]: &[u32; 2]| {
         let (sw, sh) = (sw as usize, sh as usize);
-        let px = tiles(w, sw) * tiles(h, sh) * sw * sh;
+        let px = tiles(w, sw, crate::detect::TILE_OVERLAP_X) * tiles(h, sh, crate::detect::TILE_OVERLAP_Y) * sw * sh;
         let skew = ((sw * h) as f64 / (sh * w) as f64).ln().abs();
         (px, skew)
     };
@@ -79,7 +83,8 @@ mod tests {
             assert_eq!([sw, sh], c.scaled, "{w}x{h}");
             let shape = shape_for(sw, sh, &SHAPES);
             assert_eq!(shape, c.shape, "{w}x{h}");
-            let n = tiles(sw as usize, shape[0] as usize) * tiles(sh as usize, shape[1] as usize);
+            let n = tiles(sw as usize, shape[0] as usize, crate::detect::TILE_OVERLAP_X)
+                * tiles(sh as usize, shape[1] as usize, crate::detect::TILE_OVERLAP_Y);
             assert_eq!(n, c.tiles, "{w}x{h}");
         }
     }
@@ -88,7 +93,13 @@ mod tests {
     fn tile_count_matches_the_plan() {
         for len in [1, 895, 896, 897, 1280, 1281, 1700, 5120, 8000] {
             for t in [896, 1280] {
-                assert_eq!(tiles(len, t), crate::detect::tile_plan(len, t).len(), "{len} {t}");
+                for overlap in [crate::detect::TILE_OVERLAP_X, crate::detect::TILE_OVERLAP_Y] {
+                    assert_eq!(
+                        tiles(len, t, overlap),
+                        crate::detect::tile_plan(len, t, overlap).len(),
+                        "{len} {t} {overlap}"
+                    );
+                }
             }
         }
     }

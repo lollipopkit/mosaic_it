@@ -129,7 +129,7 @@ An export with dynamic height and width splits into 8 CoreML partitions with
 `OrtBackend` falls back to the CPU whenever a hardware provider leaves nodes
 there. The tiled export fixes the input at one square tile size, so all shape
 arithmetic folds away, and the core runs larger images in a grid of tiles
-overlapping by 384 px in both directions (each detection is kept by the tile
+overlapping by 384 px horizontally and 192 px vertically (each detection is kept by the tile
 owning its centre). On a 720×1994
 screenshot (M-series):
 

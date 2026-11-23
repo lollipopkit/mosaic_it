@@ -12,24 +12,38 @@ use crate::{
     tensor,
 };
 
-/// Overlap between neighbouring tiles of a fixed-size graph, in pixels.
-/// Larger than most regions, so a region is whole in the tile that keeps it.
-pub const TILE_OVERLAP: usize = 384;
+/// Horizontal overlap between neighbouring tiles, in pixels.
+/// Wide enough that horizontal text lines (emails, addresses, card numbers)
+/// stay whole in the tile that owns them.
+pub const TILE_OVERLAP_X: usize = 384;
+/// Vertical overlap between neighbouring tiles, in pixels.
+/// Smaller than horizontal overlap because UI text rows and small icons are
+/// short (>99.8% of non-person boxes are <= 192 px tall), cutting tile count
+/// on long screenshots and tablets.
+pub const TILE_OVERLAP_Y: usize = 192;
+/// Maximum tile overlap across axes (kept for validation and compatibility).
+pub const TILE_OVERLAP: usize = if TILE_OVERLAP_X >= TILE_OVERLAP_Y {
+    TILE_OVERLAP_X
+} else {
+    TILE_OVERLAP_Y
+};
 /// Largest side a dynamic graph runs on at once: the training crop size, so
 /// attention sees the token counts it was trained on and memory stays bounded.
 pub const DYNAMIC_TILE: usize = 1280;
 
-/// Starts of the tiles covering a `h`-long axis with `th`-long tiles, each
-/// with the range it owns: a detection is kept only by the tile whose range
-/// holds its centre, and ranges split each overlap down the middle.
-pub(crate) fn tile_plan(h: usize, th: usize) -> Vec<(usize, f32, f32)> {
-    if h <= th {
+/// Starts of the tiles covering a `len`-long axis with `tile`-long tiles and
+/// `overlap` pixels of overlap, each with the range it owns: a detection is
+/// kept only by the tile whose range holds its centre, and ranges split each
+/// overlap down the middle.
+pub(crate) fn tile_plan(len: usize, tile: usize, overlap: usize) -> Vec<(usize, f32, f32)> {
+    if len <= tile {
         return vec![(0, f32::NEG_INFINITY, f32::INFINITY)];
     }
-    let step = th - TILE_OVERLAP;
-    let mut tops: Vec<usize> = (0..).map(|i| i * step).take_while(|&y| y + th < h).collect();
-    tops.push(h - th);
-    let cut = |i: usize| (tops[i + 1] + tops[i] + th) as f32 / 2.0;
+    assert!(tile > overlap, "tile {tile} must exceed overlap {overlap}");
+    let step = tile - overlap;
+    let mut tops: Vec<usize> = (0..).map(|i| i * step).take_while(|&y| y + tile < len).collect();
+    tops.push(len - tile);
+    let cut = |i: usize| (tops[i + 1] + tops[i] + tile) as f32 / 2.0;
     (0..tops.len())
         .map(|i| {
             let lo = if i == 0 { f32::NEG_INFINITY } else { cut(i - 1) };
@@ -508,8 +522,8 @@ impl Detector {
             ),
         };
         let (w, h) = (w as usize, h as usize);
-        let cols = tile_plan(w, tw);
-        tile_plan(h, th)
+        let cols = tile_plan(w, tw, TILE_OVERLAP_X);
+        tile_plan(h, th, TILE_OVERLAP_Y)
             .into_iter()
             .flat_map(|(y, ylo, yhi)| {
                 cols.iter().map(move |&(x, xlo, xhi)| Tile {
@@ -977,7 +991,7 @@ mod tests {
         );
         let plan = det.plan(5120, 1440);
         assert_eq!(plan.len(), 12);
-        assert!(plan.iter().all(|t| (t.w, t.h) == (1280, 1280)));
+        assert!(plan.iter().all(|t| (t.w, t.h) == (1280, 896)));
     }
 
     #[test]
@@ -1047,8 +1061,11 @@ mod tests {
 
     #[test]
     fn tiles_cover_the_input_and_own_disjoint_ranges() {
-        assert_eq!(tile_plan(1000, 1280), vec![(0, f32::NEG_INFINITY, f32::INFINITY)]);
-        let plan = tile_plan(3000, 1280);
+        assert_eq!(
+            tile_plan(1000, 1280, TILE_OVERLAP_X),
+            vec![(0, f32::NEG_INFINITY, f32::INFINITY)]
+        );
+        let plan = tile_plan(3000, 1280, TILE_OVERLAP_X);
         let tops: Vec<usize> = plan.iter().map(|p| p.0).collect();
         assert_eq!(tops, vec![0, 896, 1720]);
         // Last tile ends at the bottom; ranges chain without gaps.
@@ -1057,7 +1074,21 @@ mod tests {
             assert_eq!(w[0].2, w[1].1);
             // Each cut leaves at least half the overlap on both sides.
             let (prev_end, next_top) = ((w[0].0 + 1280) as f32, w[1].0 as f32);
-            assert!(w[0].2 - next_top >= TILE_OVERLAP as f32 / 2.0 && prev_end - w[0].2 >= TILE_OVERLAP as f32 / 2.0);
+            assert!(
+                w[0].2 - next_top >= TILE_OVERLAP_X as f32 / 2.0
+                    && prev_end - w[0].2 >= TILE_OVERLAP_X as f32 / 2.0
+            );
+        }
+        // Vertical overlap is smaller, so tall axes need fewer tiles.
+        let vplan = tile_plan(5214, 1280, TILE_OVERLAP_Y);
+        assert_eq!(vplan.len(), 5);
+        for w in vplan.windows(2) {
+            assert_eq!(w[0].2, w[1].1);
+            let (prev_end, next_top) = ((w[0].0 + 1280) as f32, w[1].0 as f32);
+            assert!(
+                w[0].2 - next_top >= TILE_OVERLAP_Y as f32 / 2.0
+                    && prev_end - w[0].2 >= TILE_OVERLAP_Y as f32 / 2.0
+            );
         }
     }
 
