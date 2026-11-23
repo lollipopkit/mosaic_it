@@ -261,10 +261,6 @@ impl Detector {
         self.detections(&c, opts)
     }
 
-    fn faces(&mut self, img: &RgbImage, min_score: f32) -> Result<Vec<(f32, [f32; 4])>> {
-        self.faces.as_mut().map_or(Ok(vec![]), |f| f.detect(img, min_score))
-    }
-
     /// Candidates scoring at least `min_score` on `img`, before NMS, to pass
     /// to [`Detector::detections`] and later to [`Detector::redetect`].
     pub fn candidates(&mut self, img: &RgbImage, min_score: f32) -> Result<Candidates> {
@@ -281,31 +277,58 @@ impl Detector {
             && prev.size == src.dimensions()
             && prev.image == Some(blake3::hash(src.as_raw()));
         if !same {
-            return self.collect(out, prev.min_score, None);
+            return self.collect(out, prev.min_score, Some(blake3::hash(out.as_raw())));
         }
-        let mut input: Option<Cow<'_, RgbImage>> = None;
-        let mut runs = Vec::with_capacity(prev.runs.len());
-        for (t, old) in self.plan(prev.input.0, prev.input.1).iter().zip(&prev.runs) {
-            if !changed(src, out, t, prev.scale) {
-                runs.push(old.clone());
-                continue;
-            }
-            if input.is_none() {
-                input = Some(self.input(out));
-            }
-            runs.push(self.run(input.as_deref().expect("set above"), t, prev.min_score)?);
+        let plan = self.plan(prev.input.0, prev.input.1);
+        let dirty: Vec<bool> = plan.iter().map(|t| changed(src, out, t, prev.scale)).collect();
+        if !dirty.iter().any(|&d| d) {
+            return Ok(Candidates {
+                detector: self.id,
+                image: prev.image,
+                size: out.dimensions(),
+                input: prev.input,
+                scale: prev.scale,
+                min_score: prev.min_score,
+                runs: prev.runs.clone(),
+                faces: prev.faces.clone(),
+            });
         }
-        let any = input.is_some();
-        // One run over the whole image: rerun on any change. The tiles cover
-        // every pixel, so some tile changed exactly when the image did.
-        let faces = if any {
-            self.faces(out, prev.min_score)?
-        } else {
-            prev.faces.clone()
+        let input = self.input(out);
+        let (runs, faces) = match &mut self.faces {
+            Some(face_det) => {
+                let backend = self.backend.as_mut();
+                let meta = &self.meta;
+                std::thread::scope(|s| {
+                    let fh = s.spawn(|| face_det.detect(out, prev.min_score));
+                    let mut runs = Vec::with_capacity(prev.runs.len());
+                    for ((t, old), is_dirty) in plan.iter().zip(&prev.runs).zip(&dirty) {
+                        if *is_dirty {
+                            runs.push(run_tile(backend, meta, &input, t, prev.min_score)?);
+                        } else {
+                            runs.push(old.clone());
+                        }
+                    }
+                    let faces = fh
+                        .join()
+                        .map_err(|_| Error::Backend("face detector thread panicked".into()))??;
+                    Ok::<_, Error>((runs, faces))
+                })?
+            }
+            None => {
+                let mut runs = Vec::with_capacity(prev.runs.len());
+                for ((t, old), is_dirty) in plan.iter().zip(&prev.runs).zip(&dirty) {
+                    if *is_dirty {
+                        runs.push(run_tile(self.backend.as_mut(), &self.meta, &input, t, prev.min_score)?);
+                    } else {
+                        runs.push(old.clone());
+                    }
+                }
+                (runs, Vec::new())
+            }
         };
         Ok(Candidates {
             detector: self.id,
-            image: None,
+            image: Some(blake3::hash(out.as_raw())),
             size: out.dimensions(),
             input: prev.input,
             scale: prev.scale,
@@ -313,6 +336,24 @@ impl Detector {
             runs,
             faces,
         })
+    }
+
+    /// Incremental detection for sequential frames (e.g. video keyframes):
+    /// reuses unchanged tiles from `prev`, falling back to a full run on the
+    /// first frame or if dimensions differ. Returns detections and the new
+    /// [`Candidates`] for chaining into the next frame.
+    pub fn detect_next(
+        &mut self,
+        prev: Option<(&RgbImage, &Candidates)>,
+        img: &RgbImage,
+        opts: &DetectOptions,
+    ) -> Result<(Vec<Detection>, Candidates)> {
+        let c = match prev {
+            Some((src, prev_c)) if prev_c.min_score <= opts.min_score => self.redetect(prev_c, src, img)?,
+            _ => self.candidates(img, opts.min_score)?,
+        };
+        let dets = self.detections(&c, opts)?;
+        Ok((dets, c))
     }
 
     /// `img` as the graph sees it: scaled down for a [`Resolution::Pt2`]
@@ -481,11 +522,6 @@ impl Detector {
                 })
             })
             .collect()
-    }
-
-    /// Runs the graph on tile `t` of `img`.
-    fn run(&mut self, img: &RgbImage, t: &Tile, min_score: f32) -> Result<Vec<(usize, f32, [f32; 4])>> {
-        run_tile(self.backend.as_mut(), &self.meta, img, t, min_score)
     }
 }
 
@@ -1037,5 +1073,27 @@ mod tests {
         );
         let got: Vec<_> = out.iter().map(|x| (x.class_id, x.score)).collect();
         assert_eq!(got, vec![(0, 0.9), (1, 0.8)]);
+    }
+
+    #[test]
+    fn detect_next_chains_across_frames_and_skips_unchanged_tiles() {
+        let (mut det, calls) = fake(Some([736, 768]));
+        let opts = DetectOptions::default();
+        let f1 = RgbImage::from_pixel(736, 1500, Rgb([10, 10, 10]));
+        let (_, c1) = det.detect_next(None, &f1, &opts).unwrap();
+        let first_calls = calls.load(Ordering::Relaxed);
+        assert!(first_calls >= 2);
+
+        // Identical frame 2 reuses every tile (0 backend calls).
+        let f2 = f1.clone();
+        let (_, c2) = det.detect_next(Some((&f1, &c1)), &f2, &opts).unwrap();
+        assert_eq!(calls.load(Ordering::Relaxed), first_calls);
+
+        // Frame 3 edits only the bottom tile; chained from c2, only that tile reruns.
+        let mut f3 = f2.clone();
+        f3.put_pixel(100, 1450, Rgb([250, 250, 250]));
+        let (_, _c3) = det.detect_next(Some((&f2, &c2)), &f3, &opts).unwrap();
+        let after_f3 = calls.load(Ordering::Relaxed);
+        assert!(after_f3 > first_calls && after_f3 < first_calls * 2);
     }
 }

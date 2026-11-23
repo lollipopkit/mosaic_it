@@ -623,13 +623,18 @@ impl VideoProject {
         let size = reader.size();
         let mut keys = Keyframes::new(KeyframeOptions::default());
         let mut tracker = Tracker::new();
+        let mut prev: Option<(image::RgbImage, Candidates)> = None;
         let mut times = Vec::new();
         for (i, frame) in reader.enumerate() {
             let frame = frame?;
             if keys.push(i, &frame.image) {
                 let mut det = session.lock();
-                let dets = det
-                    .detect(&frame.image, &DetectOptions::default())?
+                let (dets, cands) = det.detect_next(
+                    prev.as_ref().map(|(img, c)| (img, c)),
+                    &frame.image,
+                    &DetectOptions::default(),
+                )?;
+                let dets = dets
                     .into_iter()
                     .map(|d| {
                         let s = det.selection(&d);
@@ -641,6 +646,7 @@ impl VideoProject {
                 let f = std::fs::File::create(self.keyframe_file(i))?;
                 image::codecs::jpeg::JpegEncoder::new_with_quality(std::io::BufWriter::new(f), 90)
                     .encode_image(&frame.image)?;
+                prev = Some((frame.image, cands));
             }
             times.push(frame.time);
             // A closed stream means nobody is listening; keep going.

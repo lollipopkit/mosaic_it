@@ -538,11 +538,16 @@ fn main() -> Result<()> {
             let t = std::time::Instant::now();
             let mut keys = Keyframes::new(KeyframeOptions::default());
             let mut tracker = Tracker::new();
+            let mut prev: Option<(image::RgbImage, unseen_core::Candidates)> = None;
             let mut n = 0;
             for frame in input.frames()? {
                 let (img, _) = frame?;
                 if keys.push(n, &img) {
-                    let dets = det.detect(&img, &DetectOptions::default())?;
+                    let (dets, cands) = det.detect_next(
+                        prev.as_ref().map(|(i, c)| (i, c)),
+                        &img,
+                        &DetectOptions::default(),
+                    )?;
                     let dets = dets
                         .into_iter()
                         .map(|d| {
@@ -551,9 +556,11 @@ fn main() -> Result<()> {
                         })
                         .collect();
                     tracker.add(n, dets);
+                    prev = Some((img, cands));
                 }
                 n += 1;
             }
+            drop(prev);
             anyhow::ensure!(n > 0, "no frames in {}", input.path().display());
             let tl = tracker.finish(n);
             eprintln!(
