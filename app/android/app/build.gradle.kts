@@ -36,11 +36,46 @@ android {
     // (Flutter sets its own abiFilters per build type).
     packaging { jniLibs { excludes += listOf("lib/armeabi-v7a/**", "lib/x86_64/**") } }
 
+    val releaseSigningVars = mapOf(
+        "UNSEEN_KEYSTORE" to providers.environmentVariable("UNSEEN_KEYSTORE").orNull,
+        "UNSEEN_KEYSTORE_PASSWORD" to providers.environmentVariable("UNSEEN_KEYSTORE_PASSWORD").orNull,
+        "UNSEEN_KEY_ALIAS" to providers.environmentVariable("UNSEEN_KEY_ALIAS").orNull,
+        "UNSEEN_KEY_PASSWORD" to providers.environmentVariable("UNSEEN_KEY_PASSWORD").orNull,
+    )
+    val anyReleaseSigningSet = releaseSigningVars.values.any { it != null }
+    val releaseSigningConfig = if (anyReleaseSigningSet) {
+        val missing = releaseSigningVars.filterValues { it.isNullOrBlank() }.keys
+        if (missing.isNotEmpty()) {
+            throw GradleException(
+                "Incomplete Android release signing environment; missing or blank: ${missing.joinToString(", ")}",
+            )
+        }
+        val unexpanded = releaseSigningVars.filterValues { it!!.startsWith("op://") }.keys
+        if (unexpanded.isNotEmpty()) {
+            throw GradleException(
+                "Unexpanded 1Password references in Android signing environment (${unexpanded.joinToString(", ")}); run through app/tool/android-signing.sh",
+            )
+        }
+        val storePath = releaseSigningVars.getValue("UNSEEN_KEYSTORE")!!.trim()
+        val keystoreFile = rootProject.file(storePath)
+        if (!keystoreFile.isFile || !keystoreFile.canRead()) {
+            throw GradleException("Android release keystore is not a readable file: ${keystoreFile.path}")
+        }
+        signingConfigs.create("release") {
+            storeFile = keystoreFile
+            storePassword = releaseSigningVars.getValue("UNSEEN_KEYSTORE_PASSWORD")!!
+            keyAlias = releaseSigningVars.getValue("UNSEEN_KEY_ALIAS")!!.trim()
+            keyPassword = releaseSigningVars.getValue("UNSEEN_KEY_PASSWORD")!!
+        }
+    } else {
+        null
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Production builds run through app/tool/android-signing.sh (1Password);
+            // local `flutter run --release` with no UNSEEN_KEY* env vars falls back to debug.
+            signingConfig = releaseSigningConfig ?: signingConfigs.getByName("debug")
         }
     }
 }
