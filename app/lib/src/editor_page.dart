@@ -11,11 +11,13 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../l10n/app_localizations.dart';
+import 'adaptive_prefs.dart';
 import 'boxes.dart';
-import 'collect.dart';
 import 'edit_session.dart';
 import 'editor.dart';
 import 'editor_menus.dart';
+import 'feedback.dart';
+import 'feedback_sheet.dart';
 import 'rust/api.dart';
 import 'settings.dart';
 import 'store.dart';
@@ -65,6 +67,10 @@ class _EditorPageState extends State<EditorPage> {
   /// The editor's area, to place a box's menu under the box.
   final _viewKey = GlobalKey();
 
+  /// Shots already fed into [AdaptivePrefs.recordExport] during this editor
+  /// session so repeated exports (e.g. Save then Share) do not double-count.
+  final _learnedShots = <Shot>{};
+
   AppLocalizations get _l => AppLocalizations.of(context);
   static final _mobile = Platform.isIOS || Platform.isAndroid;
 
@@ -82,8 +88,10 @@ class _EditorPageState extends State<EditorPage> {
     }
   });
 
-  void _toast(String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  void _toast(String text, {SnackBarAction? action}) =>
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(text), action: action));
 
   Future<void> _run(String label, Future<void> Function() f) async {
     setState(() => _busy = label);
@@ -191,6 +199,16 @@ class _EditorPageState extends State<EditorPage> {
     ]);
   }
 
+  Future<void> _openFeedback([Shot? shot]) {
+    if (!mounted) return Future.value();
+    return showFeedbackSheet(
+      context,
+      shot: shot ?? _s.shot,
+      model: widget.model,
+      info: widget.info,
+    );
+  }
+
   Future<void> _openExport() async {
     final canTrash = await _canTrash;
     if (!mounted) return;
@@ -200,8 +218,13 @@ class _EditorPageState extends State<EditorPage> {
       images: _s.shots.length,
       regions: _s.selectedCount,
       fromLibrary: canTrash && _s.shots.any((s) => s.assetId != null),
+      feedbackDiffCount: FeedbackDraft(shot: _s.shot).rawDiffCount,
     );
     if (target == null) return;
+    if (target == ExportTarget.feedback) {
+      await _openFeedback();
+      return;
+    }
     try {
       await _export(target);
     } catch (e) {
@@ -248,6 +271,17 @@ class _EditorPageState extends State<EditorPage> {
       written[shot] = out;
     }
     if (!mounted) return;
+    final editedShot = written.keys
+        .where((s) => FeedbackDraft(shot: s).rawDiffCount > 0)
+        .firstOrNull;
+    final feedbackAction = editedShot == null
+        ? null
+        : SnackBarAction(
+            label: _l.feedbackAction,
+            onPressed: () {
+              if (mounted) _openFeedback(editedShot);
+            },
+          );
     switch (target) {
       case ExportTarget.share:
         await SharePlus.instance.share(
@@ -263,7 +297,12 @@ class _EditorPageState extends State<EditorPage> {
             );
           }
           saved = true;
-          if (mounted) _toast(_l.savedToPhotos(written.length));
+          if (mounted) {
+            _toast(
+              _l.savedToPhotos(written.length),
+              action: target == ExportTarget.photos ? feedbackAction : null,
+            );
+          }
         });
         // Originals go only once every redacted copy is in the library.
         if (saved && target == ExportTarget.photosDeleteOriginals && mounted) {
@@ -274,7 +313,10 @@ class _EditorPageState extends State<EditorPage> {
           written.length == 1
               ? _l.exportedTo(written.values.single)
               : _l.exportedImages(written.length),
+          action: feedbackAction,
         );
+      case ExportTarget.feedback:
+        break;
     }
   }
 
@@ -335,7 +377,13 @@ class _EditorPageState extends State<EditorPage> {
     final res = r;
     if (res == null || !mounted) return false;
     if (res.written) {
-      await _collect(shot, res, forced: force);
+      if (_learnedShots.add(shot)) {
+        await AdaptivePrefs.instance.recordExport(
+          shot,
+          enabled: widget.settings.adaptivePreselect,
+          offClasses: widget.settings.offClasses,
+        );
+      }
       if (shot.assetId case final id?) {
         MarksStore.instance.mark(id, MarksStore.redacted);
       }
@@ -439,30 +487,6 @@ class _EditorPageState extends State<EditorPage> {
     }
   }
 
-  /// Keeps [shot] and the box choices as training data when the user opted
-  /// in. A failure is reported and never blocks the export.
-  Future<void> _collect(
-    Shot shot,
-    ExportOutcome res, {
-    required bool forced,
-  }) async {
-    if (!widget.settings.collect) return;
-    try {
-      await Collector.record(
-        shot,
-        export: ExportContext(
-          model: widget.info,
-          hashes: await widget.model.hashes(),
-          fill: widget.settings.fill,
-          forced: forced,
-          outcome: res,
-        ),
-      );
-    } catch (e) {
-      if (mounted) _toast(_l.collectFailed('$e'));
-    }
-  }
-
   // --- layout -------------------------------------------------------------
 
   /// Heights of what floats over the image, without the safe area.
@@ -490,7 +514,6 @@ class _EditorPageState extends State<EditorPage> {
             child: BoxEditor(
               key: ValueKey(shot),
               session: _s,
-              kind: EditorKind.redact,
               drawing: _drawing && !_merging,
               fill: widget.settings.fill,
               onLongPress: _boxMenu,
@@ -671,6 +694,11 @@ class _EditorPageState extends State<EditorPage> {
                                     onTap: () => _merging
                                         ? _mergePick(null)
                                         : _startMerge(active),
+                                  ),
+                                  ToolButton(
+                                    icon: Icons.flag_outlined,
+                                    label: _l.feedbackShort,
+                                    onTap: idle ? _openFeedback : null,
                                   ),
                                 ],
                               ),

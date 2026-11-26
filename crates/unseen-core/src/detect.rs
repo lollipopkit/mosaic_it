@@ -238,6 +238,21 @@ impl Detector {
         c
     }
 
+    /// Unscaled `select` threshold for every class, including the built-in
+    /// face detector when loaded.
+    pub fn base_select_thresholds(&self) -> std::collections::HashMap<String, f32> {
+        self.classes()
+            .into_iter()
+            .map(|c| {
+                let select = match &self.faces {
+                    Some(f) if c == FACE => f.select,
+                    _ => self.meta.thresholds(&c).0,
+                };
+                (c, select)
+            })
+            .collect()
+    }
+
     /// (select, review) thresholds of a class.
     fn thresholds(&self, class: &str) -> (f32, f32) {
         let (select, review) = match &self.faces {

@@ -49,17 +49,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get reviewButton => 'Controleren';
-
-  @override
-  String get openingLabels => 'Labels openen…';
-
-  @override
-  String noImagesIn(String name) {
-    return 'Geen afbeeldingen in $name';
-  }
-
-  @override
   String get saving => 'Opslaan…';
 
   @override
@@ -107,10 +96,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get exportAnyway => 'Toch exporteren';
 
   @override
-  String get reviewPseudoLabels =>
-      'Pseudolabels controleren (map met coco.json)';
-
-  @override
   String get regionsTooltip => 'Regio’s';
 
   @override
@@ -142,9 +127,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get fillNoise => 'Ruis';
-
-  @override
-  String get verifyNext => 'Verifiëren & volgende';
 
   @override
   String get export => 'Exporteren';
@@ -256,11 +238,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get classManual => 'Handmatig';
 
   @override
-  String noLabelsIn(String name) {
-    return 'Geen coco.json in $name';
-  }
-
-  @override
   String savedModelFailed(String error) {
     return 'Het opgeslagen model kon niet worden geladen; kies opnieuw een model. ($error)';
   }
@@ -278,36 +255,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get classFinance => 'Bedrag';
 
   @override
-  String get collectTitle => 'Trainingsgegevens verzamelen';
-
-  @override
-  String get collectSubtitle =>
-      'Elke geëxporteerde afbeelding, de gevonden vakken en je keuzes op dit apparaat bewaren om toekomstige modellen te trainen. Er wordt niets geüpload.';
-
-  @override
-  String collectStats(int count, String size) {
-    return '$count afbeeldingen · $size';
-  }
-
-  @override
-  String get collectDelete => 'Verzamelde gegevens verwijderen';
-
-  @override
-  String get collectDeleteConfirm =>
-      'Alle verzamelde afbeeldingen en keuzes van dit apparaat verwijderen?';
-
-  @override
   String get delete => 'Verwijderen';
-
-  @override
-  String collectFailed(String error) {
-    return 'Trainingsgegevens konden niet worden opgeslagen: $error';
-  }
-
-  @override
-  String labelsSaved(int count) {
-    return 'Labels opgeslagen voor $count afbeeldingen';
-  }
 
   @override
   String get undo => 'Ongedaan maken';
@@ -351,70 +299,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get pickClass => 'Kies een klasse';
 
   @override
-  String annotateOf(int index, int total) {
-    return 'Annoteer $index / $total';
-  }
-
-  @override
-  String get suggestions => 'Suggesties';
-
-  @override
-  String get skip => 'Overslaan';
-
-  @override
-  String get nothingPrivate => 'Geen privé-informatie';
-
-  @override
-  String get next => 'Volgende';
-
-  @override
-  String get annotateHint =>
-      'Tik op een tekstregel om een vak te plaatsen, of sleep om te tekenen';
-
-  @override
-  String get annotationData => 'Annotatiegegevens';
-
-  @override
-  String get statLabeled => 'Gelabeld';
-
-  @override
-  String get statEmpty => 'Geen privé-informatie';
-
-  @override
-  String get statSkipped => 'Overgeslagen';
-
-  @override
-  String get boxesPerClass => 'Vakken per klasse';
-
-  @override
-  String get imagesHeader => 'Afbeeldingen';
-
-  @override
-  String boxCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count vakken',
-      one: '1 vak',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportAll => 'Alles exporteren';
-
-  @override
-  String get deleteAll => 'Alles verwijderen';
-
-  @override
-  String get annotateDeleteConfirm =>
-      'Alle annotaties en bijbehorende afbeeldingen van dit apparaat verwijderen?';
-
-  @override
-  String get noAnnotations =>
-      'Nog geen annotaties. Selecteer afbeeldingen en kies Annoteren.';
-
-  @override
   String get filterScreenshots => 'Schermafbeeldingen';
 
   @override
@@ -449,13 +333,7 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get annotate => 'Annoteren';
-
-  @override
   String get badgeRedacted => 'Geredigeerd';
-
-  @override
-  String get badgeAnnotated => 'Geannoteerd';
 
   @override
   String get photosDenied =>
@@ -517,10 +395,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get dataPrivacy => 'Gegevens en privacy';
-
-  @override
-  String get localOnly =>
-      'Alleen op dit apparaat opgeslagen, nooit in iCloud of back-ups.';
 
   @override
   String get model => 'Model';
@@ -692,4 +566,107 @@ class AppLocalizationsNl extends AppLocalizations {
   String percent(int value) {
     return '$value%';
   }
+
+  @override
+  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+
+  @override
+  String adaptiveLearnedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classes adjusted',
+      one: '1 class adjusted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adaptiveReset => 'Reset local preferences';
+
+  @override
+  String get adaptiveResetDone => 'Local preferences reset';
+
+  @override
+  String get feedbackTitle => 'Report detection issue';
+
+  @override
+  String get feedbackShort => 'Feedback';
+
+  @override
+  String get feedbackMenu => 'Report issue';
+
+  @override
+  String get feedbackAction => 'Report';
+
+  @override
+  String get feedbackSubmit => 'Submit';
+
+  @override
+  String get feedbackDone => 'Done';
+
+  @override
+  String get feedbackSentTitle => 'Feedback sent';
+
+  @override
+  String get feedbackAttachScreenshot => 'Attach screenshot';
+
+  @override
+  String get feedbackModeMasked => 'Errors only';
+
+  @override
+  String get feedbackModeFull => 'Full image';
+
+  @override
+  String get feedbackModeText => 'No image';
+
+  @override
+  String get feedbackTagMissed => 'Missed';
+
+  @override
+  String get feedbackTagFalsePositive => 'False positive';
+
+  @override
+  String get feedbackTagBoxDrift => 'Box drift';
+
+  @override
+  String get feedbackTagWrongClass => 'Wrong class';
+
+  @override
+  String get feedbackTagOther => 'Other';
+
+  @override
+  String get feedbackNoteHint => 'Optional note…';
+
+  @override
+  String feedbackCountMasked(int count) {
+    return 'Masked $count';
+  }
+
+  @override
+  String feedbackCountMissed(int count) {
+    return 'Missed $count';
+  }
+
+  @override
+  String feedbackCountFp(int count) {
+    return 'False positive $count';
+  }
+
+  @override
+  String feedbackCountPreference(int count) {
+    return 'Unchecked $count';
+  }
+
+  @override
+  String get feedbackBoxMissed => 'Missed';
+
+  @override
+  String get feedbackBoxMissedMasked => 'Missed · masked';
+
+  @override
+  String get feedbackBoxFp => 'False positive';
+
+  @override
+  String get feedbackBoxPreference => 'Keep visible';
 }

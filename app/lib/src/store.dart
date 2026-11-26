@@ -37,9 +37,6 @@ class SettingStore extends SqliteStore with ThemeSettings {
   /// Gallery cells show the whole image instead of a square crop.
   late final gridAspect = propertyDefault('gridAspect', false);
 
-  /// Keep exported images and box choices on the device as training data.
-  late final collect = propertyDefault('collect', false);
-
   /// Replace a released model with newer releases as they are published.
   late final autoUpdateModel = propertyDefault('autoUpdateModel', true);
 
@@ -51,20 +48,25 @@ class SettingStore extends SqliteStore with ThemeSettings {
     'offClasses',
     defaultValue: defaultOffClasses.toList(),
   );
+
+  /// Adjust per-class pre-selection thresholds locally from user edits.
+  late final adaptivePreselect = propertyDefault('adaptivePreselect', true);
+
+  /// JSON map of per-class threshold offsets learned on this device.
+  late final adaptiveOffsets = propertyDefault('adaptiveOffsets', '{}');
 }
 
 /// Faces are left to the user: a photo's faces are often meant to be seen.
 const defaultOffClasses = {'face'};
 
 /// What was done to a photo-library item, by asset id, for the gallery's
-/// badges: [redacted] or [annotated].
+/// badges.
 class MarksStore extends SqliteStore {
   MarksStore() : super('marks');
 
   static final instance = MarksStore();
 
   static const redacted = 'redacted';
-  static const annotated = 'annotated';
 
   String? of(String assetId) => get<String>(assetId);
 

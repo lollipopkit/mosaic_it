@@ -3,5 +3,3 @@
 pub mod api;
 #[rustfmt::skip]
 mod frb_generated;
-#[cfg(target_vendor = "apple")]
-mod vision;

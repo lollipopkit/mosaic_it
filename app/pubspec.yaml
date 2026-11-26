@@ -44,12 +44,9 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: any
-  macos_secure_bookmarks: ^0.3.0
   # Theme, components and shared utilities of lollipopkit's apps (submodule).
   fl_lib:
     path: packages/fl_lib
-  # Zips the collected training data for the share sheet.
-  archive: ^4.3.0
   # Material as a package (fl_lib's widgets and themes are built on it).
   material_ui: ^1.5.0
   photo_manager: ^3.12.0

@@ -1,7 +1,6 @@
 import '../l10n/app_localizations.dart';
 
-/// Localized label of a region class; unknown classes (label sets can carry
-/// their own) show as they are.
+/// Localized label of a region class; unknown classes show as they are.
 String classLabel(AppLocalizations l, String c) => switch (c) {
   'person_name' => l.classPersonName,
   'address' => l.classAddress,

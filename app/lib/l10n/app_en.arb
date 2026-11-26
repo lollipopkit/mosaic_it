@@ -50,19 +50,6 @@
       }
     }
   },
-  "reviewButton": "Review",
-  "@reviewButton": {
-    "description": "Confirm button of the label file picker"
-  },
-  "openingLabels": "Opening labels…",
-  "noImagesIn": "No images in {name}",
-  "@noImagesIn": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "saving": "Saving…",
   "exportHere": "Export here",
   "exportStoppedAt": "Export stopped at {name}",
@@ -108,7 +95,6 @@
   "checkingAndExporting": "Checking and exporting…",
   "cancel": "Cancel",
   "exportAnyway": "Export anyway",
-  "reviewPseudoLabels": "Review pseudo-labels (folder with coco.json)",
   "regionsTooltip": "Regions",
   "notCalibrated": "Model is not calibrated: pre-selection uses a fixed threshold.",
   "calibratedUnverified": "Calibrated on unverified data ({domain}): the recall guarantee does not apply yet.",
@@ -132,12 +118,14 @@
   "fillSolid": "Solid colour",
   "fillBlocks": "Grey mosaic",
   "fillNoise": "Noise",
-  "verifyNext": "Verify & next",
   "export": "Export",
   "pickOneModel": "Pick exactly one {formats} model",
   "@pickOneModel": {
     "placeholders": {
-      "formats": {"type": "String", "example": ".onnx"}
+      "formats": {
+        "type": "String",
+        "example": ".onnx"
+      }
     }
   },
   "pickSidecar": "Also pick {name}.json",
@@ -263,14 +251,6 @@
   "@classManual": {
     "description": "Label of the manual region class"
   },
-  "noLabelsIn": "No coco.json in {name}",
-  "@noLabelsIn": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
   "savedModelFailed": "The saved model could not be loaded; choose a model again. ({error})",
   "@savedModelFailed": {
     "placeholders": {
@@ -286,38 +266,7 @@
   "@classFinance": {
     "description": "Label of the finance region class: money amounts tied to the person (balance, transfer, income, payment, bill)"
   },
-  "collectTitle": "Collect training data",
-  "collectSubtitle": "Keep each exported image, the detected boxes and your choices on this device to train future models. Nothing is uploaded.",
-  "collectStats": "{count} images · {size}",
-  "@collectStats": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      },
-      "size": {
-        "type": "String"
-      }
-    }
-  },
-  "collectDelete": "Delete collected data",
-  "collectDeleteConfirm": "Delete all collected images and choices from this device?",
   "delete": "Delete",
-  "collectFailed": "Could not save training data: {error}",
-  "@collectFailed": {
-    "placeholders": {
-      "error": {
-        "type": "String"
-      }
-    }
-  },
-  "labelsSaved": "Saved labels for {count} images",
-  "@labelsSaved": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "undo": "Undo",
   "@undo": {
     "description": "Toolbar button: undo the last change to the boxes."
@@ -368,87 +317,6 @@
   "@pickClass": {
     "description": "Title of a list: choose what kind of private information this box holds."
   },
-  "annotateOf": "Annotate {index} / {total}",
-  "@annotateOf": {
-    "placeholders": {
-      "index": {
-        "type": "int"
-      },
-      "total": {
-        "type": "int"
-      }
-    },
-    "description": "Title bar while annotating (labelling images by hand to make training data): which image of the queue, e.g. 'Annotate 2 / 5'."
-  },
-  "suggestions": "Suggestions",
-  "@suggestions": {
-    "description": "Toggle chip while annotating: show the detector's boxes as suggestions the user can accept."
-  },
-  "skip": "Skip",
-  "@skip": {
-    "description": "Button while annotating: leave this image undecided and go to the next."
-  },
-  "nothingPrivate": "Nothing private",
-  "@nothingPrivate": {
-    "description": "Button while annotating: this image contains no private information; save it as such."
-  },
-  "next": "Next",
-  "@next": {
-    "description": "Main button while annotating: save the boxes of this image and go to the next image."
-  },
-  "annotateHint": "Tap a text line to box it, or drag to draw",
-  "@annotateHint": {
-    "description": "Hint over the image while annotating: tap a line of text to put a box on it, or drag a finger to draw a box."
-  },
-  "annotationData": "Annotation data",
-  "@annotationData": {
-    "description": "Page title and menu item: the training data the user made by annotating images on this device."
-  },
-  "statLabeled": "Labelled",
-  "@statLabeled": {
-    "description": "Count label: images annotated with boxes."
-  },
-  "statEmpty": "Nothing private",
-  "@statEmpty": {
-    "description": "Count label and tag: images marked as containing nothing private."
-  },
-  "statSkipped": "Skipped",
-  "@statSkipped": {
-    "description": "Count label and tag: images skipped while annotating."
-  },
-  "boxesPerClass": "Boxes per class",
-  "@boxesPerClass": {
-    "description": "Section header: number of boxes for each kind of private information."
-  },
-  "imagesHeader": "Images",
-  "@imagesHeader": {
-    "description": "Section header: list of annotated images."
-  },
-  "boxCount": "{count, plural, =1{1 box} other{{count} boxes}}",
-  "@boxCount": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    },
-    "description": "Tag on an annotated image: how many boxes it has."
-  },
-  "exportAll": "Export all",
-  "@exportAll": {
-    "description": "Button: share all annotation data as one file."
-  },
-  "deleteAll": "Delete all",
-  "@deleteAll": {
-    "description": "Menu item: delete all annotation data."
-  },
-  "annotateDeleteConfirm": "Delete all annotations and their images from this device?",
-  "@annotateDeleteConfirm": {
-    "description": "Confirmation before deleting all annotations and their images from this phone."
-  },
-  "noAnnotations": "No annotations yet. Select images and choose Annotate.",
-  "@noAnnotations": {
-    "description": "Empty state: nothing annotated yet; select images in the gallery and tap Annotate."
-  },
   "filterScreenshots": "Screenshots",
   "@filterScreenshots": {
     "description": "Gallery filter chip: the Screenshots album."
@@ -491,17 +359,9 @@
     },
     "description": "Main button after selecting photos: hide private information in them (redact)."
   },
-  "annotate": "Annotate",
-  "@annotate": {
-    "description": "Button after selecting photos: label them by hand to make training data (annotate)."
-  },
   "badgeRedacted": "Redacted",
   "@badgeRedacted": {
     "description": "Small tag on a gallery thumbnail: this photo was already redacted and exported."
-  },
-  "badgeAnnotated": "Annotated",
-  "@badgeAnnotated": {
-    "description": "Small tag on a gallery thumbnail: this photo was already annotated."
   },
   "photosDenied": "MosaicIt needs access to your photos to show them here. Photos never leave this device.",
   "@photosDenied": {
@@ -582,10 +442,6 @@
   "dataPrivacy": "Data and privacy",
   "@dataPrivacy": {
     "description": "Settings section header: data and privacy."
-  },
-  "localOnly": "Kept on this device only, never in iCloud or backups.",
-  "@localOnly": {
-    "description": "Note under collected data: it stays on this phone, never in iCloud or backups."
   },
   "model": "Model",
   "@model": {
@@ -752,5 +608,72 @@
         "type": "int"
       }
     }
-  }
+  },
+  "adaptivePreselectTitle": "Local adaptive pre-selection",
+  "@adaptivePreselectTitle": {
+    "description": "Settings toggle: adjust per-class pre-selection thresholds locally on this device from user edits."
+  },
+  "adaptiveLearnedCount": "{count, plural, =1{1 class adjusted} other{{count} classes adjusted}}",
+  "@adaptiveLearnedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "adaptiveReset": "Reset local preferences",
+  "adaptiveResetDone": "Local preferences reset",
+  "feedbackTitle": "Report detection issue",
+  "feedbackShort": "Feedback",
+  "feedbackMenu": "Report issue",
+  "feedbackAction": "Report",
+  "feedbackSubmit": "Submit",
+  "feedbackDone": "Done",
+  "feedbackSentTitle": "Feedback sent",
+  "feedbackAttachScreenshot": "Attach screenshot",
+  "feedbackModeMasked": "Errors only",
+  "feedbackModeFull": "Full image",
+  "feedbackModeText": "No image",
+  "feedbackTagMissed": "Missed",
+  "feedbackTagFalsePositive": "False positive",
+  "feedbackTagBoxDrift": "Box drift",
+  "feedbackTagWrongClass": "Wrong class",
+  "feedbackTagOther": "Other",
+  "feedbackNoteHint": "Optional note…",
+  "feedbackCountMasked": "Masked {count}",
+  "@feedbackCountMasked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feedbackCountMissed": "Missed {count}",
+  "@feedbackCountMissed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feedbackCountFp": "False positive {count}",
+  "@feedbackCountFp": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feedbackCountPreference": "Unchecked {count}",
+  "@feedbackCountPreference": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feedbackBoxMissed": "Missed",
+  "feedbackBoxMissedMasked": "Missed · masked",
+  "feedbackBoxFp": "False positive",
+  "feedbackBoxPreference": "Keep visible"
 }

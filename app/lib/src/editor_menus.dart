@@ -212,17 +212,18 @@ class _RegionSheetState extends State<_RegionSheet> {
   }
 }
 
-/// Where the export sheet sends the redacted images.
-enum ExportTarget { share, photos, photosDeleteOriginals, files }
+/// Where the export sheet sends the redacted images (or opens feedback).
+enum ExportTarget { share, photos, photosDeleteOriginals, files, feedback }
 
-/// Where to export to, the format and size, and whether to keep training
-/// data. Settings are saved as they change; the chosen target is returned.
+/// Where to export to, the format and size, and an optional feedback entry.
+/// Settings are saved as they change; the chosen target is returned.
 Future<ExportTarget?> showExportSheet(
   BuildContext context, {
   required AppSettings settings,
   required int images,
   required int regions,
   required bool fromLibrary,
+  int feedbackDiffCount = 0,
 }) => showResizableSheet<ExportTarget>(
   context,
   builder: (context) => StatefulBuilder(
@@ -293,12 +294,21 @@ Future<ExportTarget?> showExportSheet(
               child: ContextMenuButton.value(Text(sideLabel(side))),
             ),
           ),
+          const Divider(),
           ListTile(
-            title: Text(l.collectTitle),
-            trailing: SwitchX(
-              value: settings.collect,
-              onChanged: (v) => set((s) => s.collect = v),
+            leading: const Icon(Icons.flag_outlined),
+            title: Text(l.feedbackTitle),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (feedbackDiffCount > 0) ...[
+                  Badge.count(count: feedbackDiffCount),
+                  const SizedBox(width: 6),
+                ],
+                const Icon(Icons.chevron_right),
+              ],
             ),
+            onTap: () => Navigator.pop(context, ExportTarget.feedback),
           ),
         ],
       );

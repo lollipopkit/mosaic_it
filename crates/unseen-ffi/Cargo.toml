@@ -14,7 +14,6 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 unseen-core.workspace = true
 unseen-media.workspace = true
 anyhow.workspace = true
-serde_json.workspace = true
 image.workspace = true
 flutter_rust_bridge = "=2.13.0"
 
@@ -22,10 +21,6 @@ flutter_rust_bridge = "=2.13.0"
 # runtime when unavailable.
 [target.'cfg(target_vendor = "apple")'.dependencies]
 unseen-infer = { workspace = true, features = ["coreml"] }
-objc2 = "0.6"
-objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSString", "NSURL", "NSValue", "NSError", "NSArray", "NSDictionary", "NSEnumerator"] }
-objc2-vision = { version = "0.3", default-features = false, features = ["std", "VNRequest", "VNRequestHandler", "VNRecognizeTextRequest", "VNObservation", "VNTypes", "objc2-core-foundation"] }
-objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFCGTypes"] }
 
 # Android runs .tflite models on LiteRT (GPU, else XNNPACK), the detector and
 # YuNet alike, and ships without ONNX Runtime (~14 MB).

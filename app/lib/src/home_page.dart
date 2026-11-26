@@ -4,21 +4,18 @@ import 'dart:math';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:fl_lib/fl_lib.dart' show EmptyPane, StringUrlX;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 
 import '../l10n/app_localizations.dart';
-import 'annotate_page.dart';
-import 'annotation_data_page.dart';
+import 'adaptive_prefs.dart';
 import 'boxes.dart';
 import 'editor_page.dart';
+import 'feedback_sheet.dart';
 import 'gallery_grid.dart';
-import 'label_set.dart';
 import 'model_store.dart';
-import 'review_resume.dart';
 import 'rust/api.dart';
 import 'settings.dart';
 import 'store.dart';
@@ -28,7 +25,7 @@ import 'video_page.dart';
 enum _Filter { screenshots, all, videos, album }
 
 /// The home page is the photo library: pick screenshots (or a video), then
-/// redact or annotate them.
+/// redact them.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -102,25 +99,16 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadModel() => _run(_l.loadingModel, () async {
     final settings = await AppSettings.load();
     setState(() => _settings = settings);
-    try {
-      var s = await _openModel();
-      if (s == null) {
-        // First launch: the app ships without a model.
-        await _downloadModel();
-        s = await _openModel();
-      } else if (settings.autoUpdateModel) {
-        // Staged for the next launch; this one keeps the model it opened.
-        unawaited(ModelStore.update().then((_) {}, onError: (_) {}));
-      }
-      _setSession(s);
-    } finally {
-      // Label review (debug builds) continues where it was left.
-      if (kDebugMode) {
-        if (await ReviewResume.load() case final dir?) {
-          await _reviewLabelsAt(dir);
-        }
-      }
+    var s = await _openModel();
+    if (s == null) {
+      // First launch: the app ships without a model.
+      await _downloadModel();
+      s = await _openModel();
+    } else if (settings.autoUpdateModel) {
+      // Staged for the next launch; this one keeps the model it opened.
+      unawaited(ModelStore.update().then((_) {}, onError: (_) {}));
     }
+    _setSession(s);
   });
 
   Future<Session?> _openModel() async {
@@ -356,6 +344,18 @@ class _HomePageState extends State<HomePage> {
 
   // --- actions --------------------------------------------------------------
 
+  Shot _prepareShot(File image, Detected detected, {String? assetId}) {
+    final shot = Shot.detected(image, detected, assetId: assetId);
+    AdaptivePrefs.instance.apply(
+      shot,
+      enabled: _settings.adaptivePreselect,
+      offClasses: _settings.offClasses,
+      preset: _settings.threshold,
+      baseThresholds: _info?.selectThresholds ?? const {},
+    );
+    return shot;
+  }
+
   Future<void> _redact() async {
     final s = _session, info = _info;
     if (s == null || info == null) {
@@ -371,7 +371,7 @@ class _HomePageState extends State<HomePage> {
           setState(() => _busy = _l.detectingProgress(i + 1, files.length));
         }
         final d = await s.detect(imagePath: image.path);
-        shots.add(Shot.detected(image, d, assetId: id));
+        shots.add(_prepareShot(image, d, assetId: id));
       }
     });
     if (shots.isEmpty || !mounted) return;
@@ -379,18 +379,6 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute<void>(
         builder: (_) =>
             EditorPage(shots: shots, settings: _settings, model: s, info: info),
-      ),
-    );
-    setState(_selected.clear);
-  }
-
-  Future<void> _annotate() async {
-    List<(File, String?)> files = [];
-    await _run(_l.loading, () async => files = await _files());
-    if (files.isEmpty || !mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => AnnotatePage.fresh(files, model: _session),
       ),
     );
     setState(_selected.clear);
@@ -425,7 +413,7 @@ class _HomePageState extends State<HomePage> {
     await _run(_l.detecting, () async {
       for (final f in files) {
         final d = await s.detect(imagePath: f.path);
-        shots.add(Shot.detected(File(f.path), d));
+        shots.add(_prepareShot(File(f.path), d));
       }
     });
     if (shots.isEmpty || !mounted) return;
@@ -437,30 +425,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// Opens a folder holding `coco.json` and its images (pseudo-label
-  /// review, debug builds on desktop).
-  Future<void> _reviewLabels() async {
-    final dir = await getDirectoryPath(confirmButtonText: _l.reviewButton);
-    if (dir == null) return;
-    await _run(_l.openingLabels, () => _reviewLabelsAt(dir));
-  }
-
-  Future<void> _reviewLabelsAt(String dir) async {
-    final file = File('$dir/coco.json');
-    final name = Directory(dir).uri.pathSegments
-        .where((s) => s.isNotEmpty)
-        .last;
-    if (!await file.exists()) throw StateError(_l.noLabelsIn(name));
-    final set = await LabelSet.open(file);
-    if (set.shots.isEmpty) throw StateError(_l.noImagesIn(name));
-    await ReviewResume.save(dir);
-    if (!mounted) return;
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => AnnotatePage.review(set)));
-    await ReviewResume.clear();
-  }
-
   Future<void> _openSettings() async {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -468,6 +432,7 @@ class _HomePageState extends State<HomePage> {
           settings: _settings,
           classes: _info?.classes ?? const [],
           info: _info,
+          model: _session,
           onChooseModel: _chooseModel,
         ),
       ),
@@ -496,14 +461,6 @@ class _HomePageState extends State<HomePage> {
           PopupMenuButton<VoidCallback>(
             onSelected: (f) => f(),
             itemBuilder: (_) => [
-              PopupMenuItem(
-                value: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => AnnotationDataPage(model: _session),
-                  ),
-                ),
-                child: Text(_l.annotationData),
-              ),
               CheckedPopupMenuItem(
                 checked: SettingStore.instance.gridAspect.get(),
                 value: () {
@@ -514,11 +471,14 @@ class _HomePageState extends State<HomePage> {
               ),
               if (!_mobile)
                 PopupMenuItem(value: _openFiles, child: Text(_l.openFiles)),
-              if (kDebugMode && !_mobile)
-                PopupMenuItem(
-                  value: _reviewLabels,
-                  child: Text(_l.reviewPseudoLabels),
+              PopupMenuItem(
+                value: () => showFeedbackSheet(
+                  context,
+                  model: _session,
+                  info: _info,
                 ),
+                child: Text(_l.feedbackMenu),
+              ),
             ],
           ),
           IconButton(
@@ -539,25 +499,12 @@ class _HomePageState extends State<HomePage> {
           ? SafeArea(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                child: Row(
-                  children: [
-                    if (!_selected.any(_isVideo)) ...[
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _busy == null ? _annotate : null,
-                          child: Text(_l.annotate),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      flex: 2,
-                      child: FilledButton(
-                        onPressed: _busy == null ? _redact : null,
-                        child: Text(_l.redactImages(_selected.length)),
-                      ),
-                    ),
-                  ],
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _busy == null ? _redact : null,
+                    child: Text(_l.redactImages(_selected.length)),
+                  ),
                 ),
               ),
             )

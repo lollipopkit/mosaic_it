@@ -49,17 +49,6 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
-  String get reviewButton => 'Zkontrolovat';
-
-  @override
-  String get openingLabels => 'Otevírání štítků…';
-
-  @override
-  String noImagesIn(String name) {
-    return 'V $name nejsou žádné obrázky';
-  }
-
-  @override
   String get saving => 'Ukládání…';
 
   @override
@@ -109,10 +98,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get exportAnyway => 'Exportovat přesto';
 
   @override
-  String get reviewPseudoLabels =>
-      'Přezkoušet pseudoštítky (složka s coco.json)';
-
-  @override
   String get regionsTooltip => 'Oblasti';
 
   @override
@@ -144,9 +129,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get fillNoise => 'Šum';
-
-  @override
-  String get verifyNext => 'Ověřit a další';
 
   @override
   String get export => 'Exportovat';
@@ -259,11 +241,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get classManual => 'Ruční';
 
   @override
-  String noLabelsIn(String name) {
-    return 'V $name není soubor coco.json';
-  }
-
-  @override
   String savedModelFailed(String error) {
     return 'Uložený model se nepodařilo načíst; vyberte model znovu. ($error)';
   }
@@ -281,36 +258,7 @@ class AppLocalizationsCs extends AppLocalizations {
   String get classFinance => 'Částka';
 
   @override
-  String get collectTitle => 'Sbírat trénovací data';
-
-  @override
-  String get collectSubtitle =>
-      'Ukládat do tohoto zařízení každý exportovaný obrázek, nalezené oblasti a vaše volby pro trénování budoucích modelů. Nic se nenahrává.';
-
-  @override
-  String collectStats(int count, String size) {
-    return 'Obrázky: $count · $size';
-  }
-
-  @override
-  String get collectDelete => 'Smazat nasbíraná data';
-
-  @override
-  String get collectDeleteConfirm =>
-      'Smazat z tohoto zařízení všechny nasbírané obrázky a volby?';
-
-  @override
   String get delete => 'Smazat';
-
-  @override
-  String collectFailed(String error) {
-    return 'Trénovací data se nepodařilo uložit: $error';
-  }
-
-  @override
-  String labelsSaved(int count) {
-    return 'Štítky uloženy pro obrázky: $count';
-  }
 
   @override
   String get undo => 'Zpět';
@@ -355,73 +303,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get pickClass => 'Vyberte třídu';
-
-  @override
-  String annotateOf(int index, int total) {
-    return 'Anotovat $index / $total';
-  }
-
-  @override
-  String get suggestions => 'Návrhy';
-
-  @override
-  String get skip => 'Přeskočit';
-
-  @override
-  String get nothingPrivate => 'Žádné soukromé údaje';
-
-  @override
-  String get next => 'Další';
-
-  @override
-  String get annotateHint =>
-      'Klepnutím na řádek textu jej označte rámečkem, nebo přetažením nakreslete';
-
-  @override
-  String get annotationData => 'Anotační data';
-
-  @override
-  String get statLabeled => 'Označeno';
-
-  @override
-  String get statEmpty => 'Žádné soukromé údaje';
-
-  @override
-  String get statSkipped => 'Přeskočeno';
-
-  @override
-  String get boxesPerClass => 'Rámečky podle třídy';
-
-  @override
-  String get imagesHeader => 'Obrázky';
-
-  @override
-  String boxCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count rámečků',
-      many: '$count rámečků',
-      few: '$count rámečky',
-      one: '1 rámeček',
-      zero: '0 rámečků',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportAll => 'Exportovat vše';
-
-  @override
-  String get deleteAll => 'Smazat vše';
-
-  @override
-  String get annotateDeleteConfirm =>
-      'Smazat všechny anotace a jejich obrázky z tohoto zařízení?';
-
-  @override
-  String get noAnnotations =>
-      'Zatím žádné anotace. Vyberte obrázky a zvolte možnost Anotovat.';
 
   @override
   String get filterScreenshots => 'Snímky obrazovky';
@@ -471,13 +352,7 @@ class AppLocalizationsCs extends AppLocalizations {
   }
 
   @override
-  String get annotate => 'Anotovat';
-
-  @override
   String get badgeRedacted => 'Zakryto';
-
-  @override
-  String get badgeAnnotated => 'Anotováno';
 
   @override
   String get photosDenied =>
@@ -539,10 +414,6 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get dataPrivacy => 'Data a soukromí';
-
-  @override
-  String get localOnly =>
-      'Ukládá se pouze na tomto zařízení, nikdy v iCloudu nebo zálohách.';
 
   @override
   String get model => 'Model';
@@ -714,4 +585,107 @@ class AppLocalizationsCs extends AppLocalizations {
   String percent(int value) {
     return '$value%';
   }
+
+  @override
+  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+
+  @override
+  String adaptiveLearnedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classes adjusted',
+      one: '1 class adjusted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adaptiveReset => 'Reset local preferences';
+
+  @override
+  String get adaptiveResetDone => 'Local preferences reset';
+
+  @override
+  String get feedbackTitle => 'Report detection issue';
+
+  @override
+  String get feedbackShort => 'Feedback';
+
+  @override
+  String get feedbackMenu => 'Report issue';
+
+  @override
+  String get feedbackAction => 'Report';
+
+  @override
+  String get feedbackSubmit => 'Submit';
+
+  @override
+  String get feedbackDone => 'Done';
+
+  @override
+  String get feedbackSentTitle => 'Feedback sent';
+
+  @override
+  String get feedbackAttachScreenshot => 'Attach screenshot';
+
+  @override
+  String get feedbackModeMasked => 'Errors only';
+
+  @override
+  String get feedbackModeFull => 'Full image';
+
+  @override
+  String get feedbackModeText => 'No image';
+
+  @override
+  String get feedbackTagMissed => 'Missed';
+
+  @override
+  String get feedbackTagFalsePositive => 'False positive';
+
+  @override
+  String get feedbackTagBoxDrift => 'Box drift';
+
+  @override
+  String get feedbackTagWrongClass => 'Wrong class';
+
+  @override
+  String get feedbackTagOther => 'Other';
+
+  @override
+  String get feedbackNoteHint => 'Optional note…';
+
+  @override
+  String feedbackCountMasked(int count) {
+    return 'Masked $count';
+  }
+
+  @override
+  String feedbackCountMissed(int count) {
+    return 'Missed $count';
+  }
+
+  @override
+  String feedbackCountFp(int count) {
+    return 'False positive $count';
+  }
+
+  @override
+  String feedbackCountPreference(int count) {
+    return 'Unchecked $count';
+  }
+
+  @override
+  String get feedbackBoxMissed => 'Missed';
+
+  @override
+  String get feedbackBoxMissedMasked => 'Missed · masked';
+
+  @override
+  String get feedbackBoxFp => 'False positive';
+
+  @override
+  String get feedbackBoxPreference => 'Keep visible';
 }

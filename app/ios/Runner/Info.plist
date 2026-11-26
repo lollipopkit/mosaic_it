@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Show your screenshots and photos so you can redact or annotate them. Images stay on this device.</string>
+	<string>Show your screenshots and photos so you can redact them. Images stay on this device.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Scan QR codes. MosaicIt does not take or keep photos.</string>
 	<key>NSFaceIDUsageDescription</key>

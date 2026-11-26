@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
@@ -49,6 +49,9 @@ pub struct ModelInfo {
     /// The calibration data was human-verified; only then is the recall
     /// guarantee real.
     pub verified: bool,
+    /// Unscaled `select` threshold per class, including built-in detectors
+    /// such as `face`.
+    pub select_thresholds: HashMap<String, f32>,
 }
 
 /// The user's threshold preset; medium is the model's own thresholds.
@@ -274,6 +277,7 @@ impl Session {
             backend: det.backend_name(),
             domain: cal.map(|c| c.domain.clone()),
             verified: cal.is_some_and(|c| c.verified),
+            select_thresholds: det.base_select_thresholds(),
         }
     }
 
@@ -338,10 +342,10 @@ impl Session {
         })
     }
 
-    /// Redacts `rects`, runs the export self-check and writes `out_path`
-    /// (format from its extension, no metadata) if the check passes or
-    /// `force` is set. `max_side` scales the written image down so its longer
-    /// side is at most that many pixels; the check runs at full size.
+    /// Redacts `rects`, runs the export self-check (skipped when `force` is
+    /// set) and writes `out_path` (format from its extension, no metadata).
+    /// `max_side` scales the written image down so its longer side is at most
+    /// that many pixels; the check runs at full size.
     pub fn redact_and_export(
         &self,
         image_path: String,
@@ -356,6 +360,14 @@ impl Session {
         let style: RedactStyle = fill.into();
         let mut out = src.clone();
         redact(&mut out, &boxes, PAD, style);
+        if force {
+            write_image(&out, Path::new(&out_path), max_side).with_context(|| format!("writing {out_path}"))?;
+            return Ok(ExportOutcome {
+                written: true,
+                surviving: vec![],
+                correlated: vec![],
+            });
+        }
         let prev = self
             .recent
             .lock()
@@ -364,7 +376,7 @@ impl Session {
             .find(|(p, _)| *p == image_path)
             .map(|(_, c)| c.clone());
         let check = export_check(&mut self.lock(), &src, &out, prev.as_ref(), &boxes, PAD, style)?;
-        let written = check.passed() || force;
+        let written = check.passed();
         if written {
             write_image(&out, Path::new(&out_path), max_side).with_context(|| format!("writing {out_path}"))?;
         }
@@ -411,20 +423,6 @@ fn write_image(img: &image::RgbImage, path: &Path, max_side: Option<u32>) -> Res
     Ok(())
 }
 
-/// Every class a box can have, in id order: models/classes.json, the list
-/// training labels use. Annotation mode offers these without a model.
-#[frb(sync)]
-pub fn label_classes() -> Vec<String> {
-    let v: serde_json::Value =
-        serde_json::from_str(include_str!("../../../models/classes.json")).expect("models/classes.json is valid JSON");
-    v["classes"]
-        .as_array()
-        .expect("classes array")
-        .iter()
-        .map(|c| c["name"].as_str().expect("class name").to_string())
-        .collect()
-}
-
 /// A published release newer than the installed model.
 pub struct ModelUpdate {
     pub version: String,
@@ -454,63 +452,9 @@ pub fn model_update(manifest: Vec<u8>, installed: Option<String>) -> Result<Opti
         }))
 }
 
-/// An image's size and domain without detection (annotation mode), read from
-/// its header by the decoder `detect` uses.
-pub fn open_image(image_path: String) -> Result<Detected> {
-    let path = Path::new(&image_path);
-    let (width, height) = image::ImageReader::open(path)?
-        .with_guessed_format()?
-        .into_dimensions()
-        .with_context(|| format!("reading {image_path}"))?;
-    Ok(Detected {
-        width,
-        height,
-        regions: vec![],
-        hidden: vec![],
-        camera_photo: is_camera_photo(path),
-    })
-}
-
-/// Text line boxes on an image, in pixels, from the platform's on-device text
-/// recognition (Apple Vision). Only positions leave this function; the text is
-/// dropped. Annotation mode turns a tapped line into a box.
-pub fn text_lines(image_path: String) -> Result<Vec<PixelRect>> {
-    let (width, height) = image::ImageReader::open(&image_path)?
-        .with_guessed_format()?
-        .into_dimensions()
-        .with_context(|| format!("reading {image_path}"))?;
-    #[cfg(target_vendor = "apple")]
-    {
-        crate::vision::text_lines(&image_path, width as f32, height as f32)
-    }
-    #[cfg(not(target_vendor = "apple"))]
-    {
-        let _ = (width, height);
-        anyhow::bail!("text recognition is not available on this platform")
-    }
-}
-
 /// Hex BLAKE3 of a file's content.
 pub fn file_blake3(path: String) -> Result<String> {
     Ok(blake3_file(Path::new(&path))?)
-}
-
-/// Keeps `path` (a file or directory) out of iCloud and device backups. A
-/// no-op off Apple platforms; Android excludes paths in its backup rules.
-pub fn exclude_from_backup(path: String) -> Result<()> {
-    #[cfg(target_vendor = "apple")]
-    {
-        use objc2_foundation::{NSNumber, NSString, NSURL, NSURLIsExcludedFromBackupKey};
-        let url = NSURL::fileURLWithPath(&NSString::from_str(&path));
-        // SAFETY: the key takes an NSNumber holding a BOOL.
-        unsafe {
-            url.setResourceValue_forKey_error(Some(&NSNumber::numberWithBool(true)), NSURLIsExcludedFromBackupKey)
-        }
-        .map_err(|e| anyhow::anyhow!("{path}: {}", e.localizedDescription()))?;
-    }
-    #[cfg(not(target_vendor = "apple"))]
-    let _ = path;
-    Ok(())
 }
 
 /// Regions that look like `rect` of `image_path`, searched in `target_path`
@@ -799,13 +743,6 @@ impl VideoProject {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn label_classes_are_the_dataset_list_in_id_order() {
-        let c = super::label_classes();
-        assert_eq!(c.first().map(String::as_str), Some("person_name"));
-        assert!(c.contains(&"finance".to_string()));
-    }
-
     #[test]
     fn write_image_scales_down_and_encodes_by_extension() {
         let dir = std::env::temp_dir().join(format!("unseen-write-{}", std::process::id()));

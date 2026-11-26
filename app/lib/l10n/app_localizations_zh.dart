@@ -49,17 +49,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get reviewButton => '审核';
-
-  @override
-  String get openingLabels => '正在打开标签…';
-
-  @override
-  String noImagesIn(String name) {
-    return '$name 中没有图片';
-  }
-
-  @override
   String get saving => '正在保存…';
 
   @override
@@ -107,9 +96,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get exportAnyway => '仍然导出';
 
   @override
-  String get reviewPseudoLabels => '查看伪标签（包含 coco.json 的文件夹）';
-
-  @override
   String get regionsTooltip => '区域';
 
   @override
@@ -139,9 +125,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get fillNoise => '噪点';
-
-  @override
-  String get verifyNext => '验证并下一项';
 
   @override
   String get export => '导出';
@@ -252,11 +235,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get classManual => '手动';
 
   @override
-  String noLabelsIn(String name) {
-    return '$name 中没有 coco.json';
-  }
-
-  @override
   String savedModelFailed(String error) {
     return '无法加载已保存的模型，请重新选择模型。（$error）';
   }
@@ -274,34 +252,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get classFinance => '金额';
 
   @override
-  String get collectTitle => '收集训练数据';
-
-  @override
-  String get collectSubtitle => '在本机保存每张导出的图片、检测到的区块以及你的选择,用于训练以后的模型。不会上传任何内容。';
-
-  @override
-  String collectStats(int count, String size) {
-    return '$count 张图片 · $size';
-  }
-
-  @override
-  String get collectDelete => '删除已收集的数据';
-
-  @override
-  String get collectDeleteConfirm => '从本机删除所有已收集的图片和选择?';
-
-  @override
   String get delete => '删除';
-
-  @override
-  String collectFailed(String error) {
-    return '无法保存训练数据:$error';
-  }
-
-  @override
-  String labelsSaved(int count) {
-    return '已保存 $count 张图片的标注';
-  }
 
   @override
   String get undo => '撤销';
@@ -343,66 +294,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pickClass => '选择类别';
 
   @override
-  String annotateOf(int index, int total) {
-    return '标注 $index / $total';
-  }
-
-  @override
-  String get suggestions => '建议';
-
-  @override
-  String get skip => '跳过';
-
-  @override
-  String get nothingPrivate => '本张没有隐私';
-
-  @override
-  String get next => '下一张';
-
-  @override
-  String get annotateHint => '点文字行建框,或拖动画框';
-
-  @override
-  String get annotationData => '标注数据';
-
-  @override
-  String get statLabeled => '已标注';
-
-  @override
-  String get statEmpty => '无隐私';
-
-  @override
-  String get statSkipped => '跳过';
-
-  @override
-  String get boxesPerClass => '各类别框数';
-
-  @override
-  String get imagesHeader => '图片';
-
-  @override
-  String boxCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 个框',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportAll => '导出全部';
-
-  @override
-  String get deleteAll => '全部删除';
-
-  @override
-  String get annotateDeleteConfirm => '从本机删除所有标注及其图片?';
-
-  @override
-  String get noAnnotations => '还没有标注。选中图片后点“标注”。';
-
-  @override
   String get filterScreenshots => '截图';
 
   @override
@@ -436,13 +327,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get annotate => '标注';
-
-  @override
   String get badgeRedacted => '已打码';
-
-  @override
-  String get badgeAnnotated => '已标注';
 
   @override
   String get photosDenied => '码住 需要访问照片才能在这里显示。照片不会离开这台设备。';
@@ -503,9 +388,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dataPrivacy => '数据与隐私';
-
-  @override
-  String get localOnly => '只存在本机,不进 iCloud 和备份。';
 
   @override
   String get model => '模型';
@@ -676,6 +558,103 @@ class AppLocalizationsZh extends AppLocalizations {
   String percent(int value) {
     return '$value%';
   }
+
+  @override
+  String get adaptivePreselectTitle => '本机自适应预选';
+
+  @override
+  String adaptiveLearnedCount(int count) {
+    return '已调整 $count 个类别';
+  }
+
+  @override
+  String get adaptiveReset => '重置偏好';
+
+  @override
+  String get adaptiveResetDone => '已重置本机偏好';
+
+  @override
+  String get feedbackTitle => '反馈识别问题';
+
+  @override
+  String get feedbackShort => '反馈';
+
+  @override
+  String get feedbackMenu => '反馈问题';
+
+  @override
+  String get feedbackAction => '反馈错例';
+
+  @override
+  String get feedbackSubmit => '提交反馈';
+
+  @override
+  String get feedbackDone => '完成';
+
+  @override
+  String get feedbackSentTitle => '已提交反馈';
+
+  @override
+  String get feedbackAttachScreenshot => '选择截图';
+
+  @override
+  String get feedbackModeMasked => '仅错例区域';
+
+  @override
+  String get feedbackModeFull => '完整原图';
+
+  @override
+  String get feedbackModeText => '不含图片';
+
+  @override
+  String get feedbackTagMissed => '漏检';
+
+  @override
+  String get feedbackTagFalsePositive => '误检';
+
+  @override
+  String get feedbackTagBoxDrift => '框不准';
+
+  @override
+  String get feedbackTagWrongClass => '分类错';
+
+  @override
+  String get feedbackTagOther => '其他';
+
+  @override
+  String get feedbackNoteHint => '补充说明（可选）…';
+
+  @override
+  String feedbackCountMasked(int count) {
+    return '已遮盖 $count';
+  }
+
+  @override
+  String feedbackCountMissed(int count) {
+    return '漏检 $count';
+  }
+
+  @override
+  String feedbackCountFp(int count) {
+    return '误检 $count';
+  }
+
+  @override
+  String feedbackCountPreference(int count) {
+    return '不想遮 $count';
+  }
+
+  @override
+  String get feedbackBoxMissed => '漏检';
+
+  @override
+  String get feedbackBoxMissedMasked => '漏检·遮盖';
+
+  @override
+  String get feedbackBoxFp => '误检';
+
+  @override
+  String get feedbackBoxPreference => '不想遮';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -719,17 +698,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String similarSelectedAcross(int found, int added, int images) {
     return '已選取 $found 個相似區域（新增 $added 個），涵蓋 $images 張圖片';
-  }
-
-  @override
-  String get reviewButton => '檢視';
-
-  @override
-  String get openingLabels => '開啟標籤中…';
-
-  @override
-  String noImagesIn(String name) {
-    return '$name 中沒有圖片';
   }
 
   @override
@@ -780,9 +748,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get exportAnyway => '仍要匯出';
 
   @override
-  String get reviewPseudoLabels => '檢視偽標籤（包含 coco.json 的資料夾）';
-
-  @override
   String get regionsTooltip => '區域';
 
   @override
@@ -812,9 +777,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get fillNoise => '雜訊';
-
-  @override
-  String get verifyNext => '驗證並下一項';
 
   @override
   String get export => '匯出';
@@ -925,11 +887,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get classManual => '手動';
 
   @override
-  String noLabelsIn(String name) {
-    return '$name 中沒有 coco.json';
-  }
-
-  @override
   String savedModelFailed(String error) {
     return '無法載入已儲存的模型；請重新選擇模型。（$error）';
   }
@@ -947,34 +904,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get classFinance => '金額';
 
   @override
-  String get collectTitle => '收集訓練資料';
-
-  @override
-  String get collectSubtitle => '在本機保存每張匯出的圖片、偵測到的區塊以及你的選擇,用於訓練日後的模型。不會上傳任何內容。';
-
-  @override
-  String collectStats(int count, String size) {
-    return '$count 張圖片 · $size';
-  }
-
-  @override
-  String get collectDelete => '刪除已收集的資料';
-
-  @override
-  String get collectDeleteConfirm => '要從本機刪除所有已收集的圖片和選擇嗎?';
-
-  @override
   String get delete => '刪除';
-
-  @override
-  String collectFailed(String error) {
-    return '無法保存訓練資料:$error';
-  }
-
-  @override
-  String labelsSaved(int count) {
-    return '已儲存 $count 張圖片的標註';
-  }
 
   @override
   String get undo => '復原';
@@ -1018,68 +948,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get pickClass => '選擇類別';
 
   @override
-  String annotateOf(int index, int total) {
-    return '標註 $index / $total';
-  }
-
-  @override
-  String get suggestions => '建議';
-
-  @override
-  String get skip => '略過';
-
-  @override
-  String get nothingPrivate => '無隱私資訊';
-
-  @override
-  String get next => '下一張';
-
-  @override
-  String get annotateHint => '輕點文字行以框選，或拖曳以繪製';
-
-  @override
-  String get annotationData => '標註資料';
-
-  @override
-  String get statLabeled => '已標註';
-
-  @override
-  String get statEmpty => '無隱私資訊';
-
-  @override
-  String get statSkipped => '已略過';
-
-  @override
-  String get boxesPerClass => '各類別選取框數';
-
-  @override
-  String get imagesHeader => '影像';
-
-  @override
-  String boxCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 個選取框',
-      one: '1 個選取框',
-      zero: '0 個選取框',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportAll => '全部匯出';
-
-  @override
-  String get deleteAll => '全部刪除';
-
-  @override
-  String get annotateDeleteConfirm => '要從此裝置刪除所有標註及其影像嗎？';
-
-  @override
-  String get noAnnotations => '尚無標註。請選取影像並選擇「標註」。';
-
-  @override
   String get filterScreenshots => '螢幕截圖';
 
   @override
@@ -1115,13 +983,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   }
 
   @override
-  String get annotate => '標註';
-
-  @override
   String get badgeRedacted => '已遮蔽';
-
-  @override
-  String get badgeAnnotated => '已標註';
 
   @override
   String get photosDenied => '碼住 需要存取您的照片才能在此顯示。照片絕不會離開此裝置。';
@@ -1184,9 +1046,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get dataPrivacy => '資料與隱私';
 
   @override
-  String get localOnly => '僅保留在此裝置上，絕不會儲存在 iCloud 或備份中。';
-
-  @override
   String get model => '模型';
 
   @override
@@ -1227,4 +1086,101 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get classPersonalInfo => '個人資訊';
+
+  @override
+  String get adaptivePreselectTitle => '本機自適應預選';
+
+  @override
+  String adaptiveLearnedCount(int count) {
+    return '已調整 $count 個類別';
+  }
+
+  @override
+  String get adaptiveReset => '重設偏好';
+
+  @override
+  String get adaptiveResetDone => '已重設本機偏好';
+
+  @override
+  String get feedbackTitle => '回報辨識問題';
+
+  @override
+  String get feedbackShort => '回饋';
+
+  @override
+  String get feedbackMenu => '回報問題';
+
+  @override
+  String get feedbackAction => '回報錯例';
+
+  @override
+  String get feedbackSubmit => '提交回饋';
+
+  @override
+  String get feedbackDone => '完成';
+
+  @override
+  String get feedbackSentTitle => '已提交回饋';
+
+  @override
+  String get feedbackAttachScreenshot => '選擇截圖';
+
+  @override
+  String get feedbackModeMasked => '僅錯例區域';
+
+  @override
+  String get feedbackModeFull => '完整原圖';
+
+  @override
+  String get feedbackModeText => '不含圖片';
+
+  @override
+  String get feedbackTagMissed => '漏檢';
+
+  @override
+  String get feedbackTagFalsePositive => '誤檢';
+
+  @override
+  String get feedbackTagBoxDrift => '框不準';
+
+  @override
+  String get feedbackTagWrongClass => '分類錯';
+
+  @override
+  String get feedbackTagOther => '其他';
+
+  @override
+  String get feedbackNoteHint => '補充說明（選填）…';
+
+  @override
+  String feedbackCountMasked(int count) {
+    return '已遮蔽 $count';
+  }
+
+  @override
+  String feedbackCountMissed(int count) {
+    return '漏檢 $count';
+  }
+
+  @override
+  String feedbackCountFp(int count) {
+    return '誤檢 $count';
+  }
+
+  @override
+  String feedbackCountPreference(int count) {
+    return '不想遮 $count';
+  }
+
+  @override
+  String get feedbackBoxMissed => '漏檢';
+
+  @override
+  String get feedbackBoxMissedMasked => '漏檢·遮蔽';
+
+  @override
+  String get feedbackBoxFp => '誤檢';
+
+  @override
+  String get feedbackBoxPreference => '不想遮';
 }

@@ -7,7 +7,7 @@ import 'frb_generated.dart';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `analysed`, `boxes_of`, `keyframe_file`, `keyframe_file`, `lock`, `open`, `pixel_rect`, `region`, `write_image`
+// These functions are ignored because they are not marked as `pub`: `analysed`, `backends`, `boxes_of`, `keyframe_file`, `keyframe_file`, `lock`, `open`, `pixel_rect`, `region`, `write_image`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `fmt`, `from`
 
 /// What export would draw over each of `rects`, for the editor to overlay.
@@ -21,14 +21,11 @@ Future<List<PreviewPatch>> redactionPreview({
   fill: fill,
 );
 
-/// Every class a box can have, in id order: models/classes.json, the list
-/// training labels use. Annotation mode offers these without a model.
-List<String> labelClasses() => RustLib.instance.api.crateApiLabelClasses();
-
 /// The newest release this app can run in a downloaded `manifest`, if it is
 /// newer than the model at `installed`. Fails unless the manifest carries the
-/// publisher's signature; an installed model that is not a listed tiled
-/// release is the user's own and gets no update.
+/// publisher's signature; an installed model that is not a listed release of
+/// this platform's variant (`litert` on Android, else `tiled`) is the user's
+/// own and gets no update.
 Future<ModelUpdate?> modelUpdate({
   required List<int> manifest,
   String? installed,
@@ -37,25 +34,9 @@ Future<ModelUpdate?> modelUpdate({
   installed: installed,
 );
 
-/// An image's size and domain without detection (annotation mode), read from
-/// its header by the decoder `detect` uses.
-Future<Detected> openImage({required String imagePath}) =>
-    RustLib.instance.api.crateApiOpenImage(imagePath: imagePath);
-
-/// Text line boxes on an image, in pixels, from the platform's on-device text
-/// recognition (Apple Vision). Only positions leave this function; the text is
-/// dropped. Annotation mode turns a tapped line into a box.
-Future<List<PixelRect>> textLines({required String imagePath}) =>
-    RustLib.instance.api.crateApiTextLines(imagePath: imagePath);
-
 /// Hex BLAKE3 of a file's content.
 Future<String> fileBlake3({required String path}) =>
     RustLib.instance.api.crateApiFileBlake3(path: path);
-
-/// Keeps `path` (a file or directory) out of iCloud and device backups. A
-/// no-op off Apple platforms; Android excludes paths in its backup rules.
-Future<void> excludeFromBackup({required String path}) =>
-    RustLib.instance.api.crateApiExcludeFromBackup(path: path);
 
 /// Regions that look like `rect` of `image_path`, searched in `target_path`
 /// (same scale assumed) or, without one, in the same image excluding `rect`.
@@ -89,10 +70,10 @@ abstract class Session implements RustOpaqueInterface {
         cacheDir: cacheDir,
       );
 
-  /// Redacts `rects`, runs the export self-check and writes `out_path`
-  /// (format from its extension, no metadata) if the check passes or
-  /// `force` is set. `max_side` scales the written image down so its longer
-  /// side is at most that many pixels; the check runs at full size.
+  /// Redacts `rects`, runs the export self-check (skipped when `force` is
+  /// set) and writes `out_path` (format from its extension, no metadata).
+  /// `max_side` scales the written image down so its longer side is at most
+  /// that many pixels; the check runs at full size.
   Future<ExportOutcome> redactAndExport({
     required String imagePath,
     required String outPath,
@@ -344,16 +325,25 @@ class ModelInfo {
   /// guarantee real.
   final bool verified;
 
+  /// Unscaled `select` threshold per class, including built-in detectors
+  /// such as `face`.
+  final Map<String, double> selectThresholds;
+
   const ModelInfo({
     required this.classes,
     required this.backend,
     this.domain,
     required this.verified,
+    required this.selectThresholds,
   });
 
   @override
   int get hashCode =>
-      classes.hashCode ^ backend.hashCode ^ domain.hashCode ^ verified.hashCode;
+      classes.hashCode ^
+      backend.hashCode ^
+      domain.hashCode ^
+      verified.hashCode ^
+      selectThresholds.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -363,7 +353,8 @@ class ModelInfo {
           classes == other.classes &&
           backend == other.backend &&
           domain == other.domain &&
-          verified == other.verified;
+          verified == other.verified &&
+          selectThresholds == other.selectThresholds;
 }
 
 /// A published release newer than the installed model.

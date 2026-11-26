@@ -49,17 +49,6 @@ class AppLocalizationsHy extends AppLocalizations {
   }
 
   @override
-  String get reviewButton => 'Դիտարկել';
-
-  @override
-  String get openingLabels => 'Բացում է նշումները…';
-
-  @override
-  String noImagesIn(String name) {
-    return 'Չկան նկարներ $name-ում';
-  }
-
-  @override
   String get saving => 'Պահպանում է…';
 
   @override
@@ -110,10 +99,6 @@ class AppLocalizationsHy extends AppLocalizations {
   String get exportAnyway => 'Արտահանել այնուամենայնիվ';
 
   @override
-  String get reviewPseudoLabels =>
-      'Դիտարկել կեղծ-նշումները (coco.json պարունակող թղթապանակ)';
-
-  @override
   String get regionsTooltip => 'Տարածքներ';
 
   @override
@@ -145,9 +130,6 @@ class AppLocalizationsHy extends AppLocalizations {
 
   @override
   String get fillNoise => 'Շեղում';
-
-  @override
-  String get verifyNext => 'Ստուգել և հաջորդը';
 
   @override
   String get export => 'Արտահանել';
@@ -261,11 +243,6 @@ class AppLocalizationsHy extends AppLocalizations {
   String get classManual => 'Ձեռքով';
 
   @override
-  String noLabelsIn(String name) {
-    return '$name-ում coco.json չկա';
-  }
-
-  @override
   String savedModelFailed(String error) {
     return 'Պահպանված մոդելը չի կարող լիցքավորվել։ Ընտրեք մոդելը նորից։ ($error)';
   }
@@ -283,36 +260,7 @@ class AppLocalizationsHy extends AppLocalizations {
   String get classFinance => 'Գումար';
 
   @override
-  String get collectTitle => 'Հավաքել ուսուցման տվյալներ';
-
-  @override
-  String get collectSubtitle =>
-      'Պահել այս սարքում յուրաքանչյուր արտահանված պատկեր, հայտնաբերված տարածքները և ձեր ընտրությունները՝ ապագա մոդելներ ուսուցանելու համար։ Ոչինչ չի վերբեռնվում։';
-
-  @override
-  String collectStats(int count, String size) {
-    return 'Պատկերներ՝ $count · $size';
-  }
-
-  @override
-  String get collectDelete => 'Ջնջել հավաքված տվյալները';
-
-  @override
-  String get collectDeleteConfirm =>
-      'Ջնջե՞լ այս սարքից բոլոր հավաքված պատկերներն ու ընտրությունները։';
-
-  @override
   String get delete => 'Ջնջել';
-
-  @override
-  String collectFailed(String error) {
-    return 'Չհաջողվեց պահել ուսուցման տվյալները՝ $error';
-  }
-
-  @override
-  String labelsSaved(int count) {
-    return 'Պիտակները պահվեցին $count պատկերի համար';
-  }
 
   @override
   String get undo => 'Վերադարձնել';
@@ -360,74 +308,6 @@ class AppLocalizationsHy extends AppLocalizations {
   String get pickClass => 'Ընտրել դաս';
 
   @override
-  String annotateOf(int index, int total) {
-    return 'Կարգավորել $index / $total';
-  }
-
-  @override
-  String get suggestions => 'Հուշումներ';
-
-  @override
-  String get skip => 'Բաց թողնել';
-
-  @override
-  String get nothingPrivate => 'Ոչինչ գաղտնի';
-
-  @override
-  String get next => 'Հաջորդը';
-
-  @override
-  String get annotateHint =>
-      'Սեղմեք տեքստի տողին՝ փակելու համար, կամ քաշեք՝ նկարելու համար';
-
-  @override
-  String get annotationData => 'Կարգավորման տվյալներ';
-
-  @override
-  String get statLabeled => 'Կարգավորված';
-
-  @override
-  String get statEmpty => 'Ոչինչ գաղտնի';
-
-  @override
-  String get statSkipped => 'Բաց թողնված';
-
-  @override
-  String get boxesPerClass => 'Բաքսեր ըստ դասի';
-
-  @override
-  String get imagesHeader => 'Պատկերներ';
-
-  @override
-  String boxCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count քառակուսի',
-      many: '$count քառակուսի',
-      few: '$count քառակուսի',
-      two: '2 քառակուսի',
-      one: '1 քառակուսի',
-      zero: '0 քառակուսի',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportAll => 'Արտահանել բոլորը';
-
-  @override
-  String get deleteAll => 'Ջնջել բոլորը';
-
-  @override
-  String get annotateDeleteConfirm =>
-      'Ջնջե՞լ բոլոր կարգավորումները և դրանց պատկերները այս սարքից։';
-
-  @override
-  String get noAnnotations =>
-      'Դեռ կարգավորումներ չկան։ Ընտրեք պատկերներ և ընտրեք «Կարգավորել»։';
-
-  @override
   String get filterScreenshots => 'Էկրանի նկարներ';
 
   @override
@@ -467,13 +347,7 @@ class AppLocalizationsHy extends AppLocalizations {
   }
 
   @override
-  String get annotate => 'Կարգավորել';
-
-  @override
   String get badgeRedacted => 'Թաքցված';
-
-  @override
-  String get badgeAnnotated => 'Կարգավորված';
 
   @override
   String get photosDenied =>
@@ -535,10 +409,6 @@ class AppLocalizationsHy extends AppLocalizations {
 
   @override
   String get dataPrivacy => 'Տվյալներ և գաղտնիություն';
-
-  @override
-  String get localOnly =>
-      'Պահվում է միայն այս սարքում, երբեք չի լինում iCloud-ում կամ պահուստներում։';
 
   @override
   String get model => 'Մոդել';
@@ -710,4 +580,107 @@ class AppLocalizationsHy extends AppLocalizations {
   String percent(int value) {
     return '$value%';
   }
+
+  @override
+  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+
+  @override
+  String adaptiveLearnedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classes adjusted',
+      one: '1 class adjusted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adaptiveReset => 'Reset local preferences';
+
+  @override
+  String get adaptiveResetDone => 'Local preferences reset';
+
+  @override
+  String get feedbackTitle => 'Report detection issue';
+
+  @override
+  String get feedbackShort => 'Feedback';
+
+  @override
+  String get feedbackMenu => 'Report issue';
+
+  @override
+  String get feedbackAction => 'Report';
+
+  @override
+  String get feedbackSubmit => 'Submit';
+
+  @override
+  String get feedbackDone => 'Done';
+
+  @override
+  String get feedbackSentTitle => 'Feedback sent';
+
+  @override
+  String get feedbackAttachScreenshot => 'Attach screenshot';
+
+  @override
+  String get feedbackModeMasked => 'Errors only';
+
+  @override
+  String get feedbackModeFull => 'Full image';
+
+  @override
+  String get feedbackModeText => 'No image';
+
+  @override
+  String get feedbackTagMissed => 'Missed';
+
+  @override
+  String get feedbackTagFalsePositive => 'False positive';
+
+  @override
+  String get feedbackTagBoxDrift => 'Box drift';
+
+  @override
+  String get feedbackTagWrongClass => 'Wrong class';
+
+  @override
+  String get feedbackTagOther => 'Other';
+
+  @override
+  String get feedbackNoteHint => 'Optional note…';
+
+  @override
+  String feedbackCountMasked(int count) {
+    return 'Masked $count';
+  }
+
+  @override
+  String feedbackCountMissed(int count) {
+    return 'Missed $count';
+  }
+
+  @override
+  String feedbackCountFp(int count) {
+    return 'False positive $count';
+  }
+
+  @override
+  String feedbackCountPreference(int count) {
+    return 'Unchecked $count';
+  }
+
+  @override
+  String get feedbackBoxMissed => 'Missed';
+
+  @override
+  String get feedbackBoxMissedMasked => 'Missed · masked';
+
+  @override
+  String get feedbackBoxFp => 'False positive';
+
+  @override
+  String get feedbackBoxPreference => 'Keep visible';
 }

@@ -49,17 +49,6 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get reviewButton => 'Xem xét';
-
-  @override
-  String get openingLabels => 'Đang mở nhãn…';
-
-  @override
-  String noImagesIn(String name) {
-    return 'Không có hình ảnh trong $name';
-  }
-
-  @override
   String get saving => 'Đang lưu…';
 
   @override
@@ -107,9 +96,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get exportAnyway => 'Vẫn xuất';
 
   @override
-  String get reviewPseudoLabels => 'Xem lại nhãn giả (thư mục có coco.json)';
-
-  @override
   String get regionsTooltip => 'Các vùng';
 
   @override
@@ -141,9 +127,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get fillNoise => 'Nhiễu';
-
-  @override
-  String get verifyNext => 'Xác minh & tiếp theo';
 
   @override
   String get export => 'Xuất';
@@ -255,11 +238,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get classManual => 'Thủ công';
 
   @override
-  String noLabelsIn(String name) {
-    return 'Không có coco.json trong $name';
-  }
-
-  @override
   String savedModelFailed(String error) {
     return 'Không thể tải mô hình đã lưu; hãy chọn mô hình khác. ($error)';
   }
@@ -277,36 +255,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get classFinance => 'Số tiền';
 
   @override
-  String get collectTitle => 'Thu thập dữ liệu huấn luyện';
-
-  @override
-  String get collectSubtitle =>
-      'Lưu trên thiết bị này mỗi ảnh đã xuất, các vùng được phát hiện và lựa chọn của bạn để huấn luyện các mô hình sau này. Không có gì được tải lên.';
-
-  @override
-  String collectStats(int count, String size) {
-    return '$count ảnh · $size';
-  }
-
-  @override
-  String get collectDelete => 'Xóa dữ liệu đã thu thập';
-
-  @override
-  String get collectDeleteConfirm =>
-      'Xóa tất cả ảnh và lựa chọn đã thu thập khỏi thiết bị này?';
-
-  @override
   String get delete => 'Xóa';
-
-  @override
-  String collectFailed(String error) {
-    return 'Không thể lưu dữ liệu huấn luyện: $error';
-  }
-
-  @override
-  String labelsSaved(int count) {
-    return 'Đã lưu nhãn cho $count ảnh';
-  }
 
   @override
   String get undo => 'Hoàn tác';
@@ -354,73 +303,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get pickClass => 'Chọn một lớp';
 
   @override
-  String annotateOf(int index, int total) {
-    return 'Ghi chú $index / $total';
-  }
-
-  @override
-  String get suggestions => 'Gợi ý';
-
-  @override
-  String get skip => 'Bỏ qua';
-
-  @override
-  String get nothingPrivate => 'Không có thông tin riêng tư';
-
-  @override
-  String get next => 'Tiếp theo';
-
-  @override
-  String get annotateHint =>
-      'Chạm vào một dòng văn bản để tạo khung, hoặc kéo để vẽ';
-
-  @override
-  String get annotationData => 'Dữ liệu ghi chú';
-
-  @override
-  String get statLabeled => 'Đã gán nhãn';
-
-  @override
-  String get statEmpty => 'Không có thông tin riêng tư';
-
-  @override
-  String get statSkipped => 'Đã bỏ qua';
-
-  @override
-  String get boxesPerClass => 'Số khung theo lớp';
-
-  @override
-  String get imagesHeader => 'Ảnh';
-
-  @override
-  String boxCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count khung',
-      many: 'nhiều khung',
-      few: 'vài khung',
-      two: '2 khung',
-      one: '1 khung',
-      zero: '0 khung',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportAll => 'Xuất tất cả';
-
-  @override
-  String get deleteAll => 'Xóa tất cả';
-
-  @override
-  String get annotateDeleteConfirm =>
-      'Xóa tất cả ghi chú và ảnh của chúng khỏi thiết bị này?';
-
-  @override
-  String get noAnnotations => 'Chưa có ghi chú nào. Chọn ảnh và chọn Ghi chú.';
-
-  @override
   String get filterScreenshots => 'Ảnh chụp màn hình';
 
   @override
@@ -459,13 +341,7 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get annotate => 'Ghi chú';
-
-  @override
   String get badgeRedacted => 'Đã che';
-
-  @override
-  String get badgeAnnotated => 'Đã ghi chú';
 
   @override
   String get photosDenied =>
@@ -527,10 +403,6 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get dataPrivacy => 'Dữ liệu và quyền riêng tư';
-
-  @override
-  String get localOnly =>
-      'Chỉ được giữ trên thiết bị này, không bao giờ trong iCloud hoặc bản sao lưu.';
 
   @override
   String get model => 'Mô hình';
@@ -702,4 +574,107 @@ class AppLocalizationsVi extends AppLocalizations {
   String percent(int value) {
     return '$value%';
   }
+
+  @override
+  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+
+  @override
+  String adaptiveLearnedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classes adjusted',
+      one: '1 class adjusted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adaptiveReset => 'Reset local preferences';
+
+  @override
+  String get adaptiveResetDone => 'Local preferences reset';
+
+  @override
+  String get feedbackTitle => 'Report detection issue';
+
+  @override
+  String get feedbackShort => 'Feedback';
+
+  @override
+  String get feedbackMenu => 'Report issue';
+
+  @override
+  String get feedbackAction => 'Report';
+
+  @override
+  String get feedbackSubmit => 'Submit';
+
+  @override
+  String get feedbackDone => 'Done';
+
+  @override
+  String get feedbackSentTitle => 'Feedback sent';
+
+  @override
+  String get feedbackAttachScreenshot => 'Attach screenshot';
+
+  @override
+  String get feedbackModeMasked => 'Errors only';
+
+  @override
+  String get feedbackModeFull => 'Full image';
+
+  @override
+  String get feedbackModeText => 'No image';
+
+  @override
+  String get feedbackTagMissed => 'Missed';
+
+  @override
+  String get feedbackTagFalsePositive => 'False positive';
+
+  @override
+  String get feedbackTagBoxDrift => 'Box drift';
+
+  @override
+  String get feedbackTagWrongClass => 'Wrong class';
+
+  @override
+  String get feedbackTagOther => 'Other';
+
+  @override
+  String get feedbackNoteHint => 'Optional note…';
+
+  @override
+  String feedbackCountMasked(int count) {
+    return 'Masked $count';
+  }
+
+  @override
+  String feedbackCountMissed(int count) {
+    return 'Missed $count';
+  }
+
+  @override
+  String feedbackCountFp(int count) {
+    return 'False positive $count';
+  }
+
+  @override
+  String feedbackCountPreference(int count) {
+    return 'Unchecked $count';
+  }
+
+  @override
+  String get feedbackBoxMissed => 'Missed';
+
+  @override
+  String get feedbackBoxMissedMasked => 'Missed · masked';
+
+  @override
+  String get feedbackBoxFp => 'False positive';
+
+  @override
+  String get feedbackBoxPreference => 'Keep visible';
 }

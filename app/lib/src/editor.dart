@@ -64,15 +64,10 @@ void drawDashedRect(
   line(r.bottomLeft, r.topLeft);
 }
 
-/// What the editor is for: redacting (detections, shown as they will be
-/// hidden) or annotating (labelled boxes, shown in their class colours).
-enum EditorKind { redact, annotate }
-
 /// The shown image of [session] with its boxes.
 ///
-/// - Tap: redact toggles a box; annotate makes it the active box (accepting
-///   it when it is an unselected suggestion).
-/// - Long press: makes the box active and calls [onLongPress] (its menu).
+/// - Tap toggles a box (or adds a tapped hidden detection).
+/// - Long press makes the box active and calls [onLongPress] (its menu).
 /// - Drag on the active box moves it, drag on a corner handle resizes it.
 /// - With [drawing], a one-finger drag draws a box of [drawClass].
 /// - Two fingers always zoom and pan.
@@ -80,13 +75,10 @@ class BoxEditor extends StatefulWidget {
   const BoxEditor({
     super.key,
     required this.session,
-    required this.kind,
     this.drawing = false,
     this.drawClass = manualClass,
     this.fill,
     this.onLongPress,
-    this.textLines = const [],
-    this.onLineTap,
     this.merging = false,
     this.mergeFrom,
     this.onMergePick,
@@ -98,22 +90,16 @@ class BoxEditor extends StatefulWidget {
   final EdgeInsets fitPadding;
 
   final EditSession session;
-  final EditorKind kind;
   final bool drawing;
 
   /// Class of boxes drawn with [drawing].
   final String drawClass;
 
-  /// How selected boxes will be hidden (redact); the editor shows exactly that.
+  /// How selected boxes will be hidden; the editor shows exactly that.
   final Fill? fill;
 
   /// Called with the box and its rectangle on screen, for a menu beside it.
   final void Function(EditBox box, Rect onScreen)? onLongPress;
-
-  /// Text lines found on the image (annotate): tapping one that no box covers
-  /// calls [onLineTap] with its rectangle.
-  final List<Rect> textLines;
-  final ValueChanged<Rect>? onLineTap;
 
   /// The user picks boxes to merge: a tap on a box calls [onMergePick] with
   /// it instead of selecting it, a tap elsewhere with null (merging ends).
@@ -213,7 +199,7 @@ class _BoxEditorState extends State<BoxEditor> {
   /// Schedules new previews when the selection or the fill changed. The old
   /// ones stay on screen until the new ones are decoded.
   void _refreshPreviews() {
-    final f = widget.kind == EditorKind.redact ? widget.fill : null;
+    final f = widget.fill;
     final rects = [
       for (final b in _shot.boxes)
         if (b.selected) b.rect,
@@ -407,8 +393,6 @@ class _BoxEditorState extends State<BoxEditor> {
         source: BoxSource.drawn,
       );
       _shot.boxes.add(b);
-      // Annotating: the new box is ready to adjust or re-class.
-      if (widget.kind == EditorKind.annotate) _s.active = b;
       _s.changed();
     } else if (_recorded) {
       _s.changed();
@@ -424,62 +408,39 @@ class _BoxEditorState extends State<BoxEditor> {
       widget.onMergePick?.call(shown);
       return;
     }
-    if (widget.kind == EditorKind.redact) {
-      if (shown == null) {
-        _s.active = null;
-        final low = _hit(p, among: _offered);
-        if (low == null) return;
-        _s.record();
-        _shot.boxes.add(
-          EditBox(
-            rect: low.rect,
-            className: low.className,
-            score: low.score,
-            selected: true,
-            source: BoxSource.tapped,
-          ),
-        );
-        _s.changed();
-        return;
-      }
-      final b = shown;
-      _s.record();
-      if (b.source == BoxSource.tapped) {
-        // Added by a tap, so a tap takes it away again.
-        _shot.boxes.remove(b);
-        _s.active = null;
-        _s.changed();
-        return;
-      }
-      // A value over several lines is redacted whole.
-      final on = !b.selected;
-      for (final x in _s.groupOf(b)) {
-        x.selected = on;
-      }
+    if (shown == null) {
       _s.active = null;
+      final low = _hit(p, among: _offered);
+      if (low == null) return;
+      _s.record();
+      _shot.boxes.add(
+        EditBox(
+          rect: low.rect,
+          className: low.className,
+          score: low.score,
+          selected: true,
+          source: BoxSource.tapped,
+        ),
+      );
       _s.changed();
       return;
     }
     final b = shown;
-    if (b != null) {
-      if (!b.selected) {
-        // A model suggestion: tapping accepts it (with its other lines).
-        _s.record();
-        for (final x in _s.groupOf(b)) {
-          x.selected = true;
-        }
-      }
-      _s.active = b;
+    _s.record();
+    if (b.source == BoxSource.tapped) {
+      // Added by a tap, so a tap takes it away again.
+      _shot.boxes.remove(b);
+      _s.active = null;
       _s.changed();
       return;
     }
-    for (final line in widget.textLines) {
-      if (line.contains(p) && !_covered(line)) {
-        widget.onLineTap?.call(line);
-        return;
-      }
+    // A value over several lines is redacted whole.
+    final on = !b.selected;
+    for (final x in _s.groupOf(b)) {
+      x.selected = on;
     }
     _s.active = null;
+    _s.changed();
   }
 
   /// A box of the shot already covers most of [line].
@@ -546,7 +507,6 @@ class _BoxEditorState extends State<BoxEditor> {
                       listenable: _view,
                       builder: (context, _) => CustomPaint(
                         painter: _BoxPainter(
-                          kind: widget.kind,
                           boxes: _shot.boxes,
                           active: _s.active,
                           mergeFrom: widget.mergeFrom,
@@ -554,14 +514,7 @@ class _BoxEditorState extends State<BoxEditor> {
                             _Draw(:final rect) => rect,
                             _ => null,
                           },
-                          lines: widget.kind == EditorKind.annotate
-                              ? [
-                                  for (final l in widget.textLines)
-                                    if (!_covered(l)) l,
-                                ]
-                              : const [],
                           zoom: _zoom,
-                          fitScale: _fitScale,
                           label: (c) => classLabel(l10n, c),
                           previews: _previews,
                           accent: scheme.primary,
@@ -582,21 +535,17 @@ class _BoxEditorState extends State<BoxEditor> {
 
 class _BoxPainter extends CustomPainter {
   _BoxPainter({
-    required this.kind,
     required this.boxes,
     required this.active,
     required this.mergeFrom,
     required this.drawing,
-    required this.lines,
     required this.zoom,
-    required this.fitScale,
     required this.label,
     required this.previews,
     required this.accent,
     required this.score,
   });
 
-  final EditorKind kind;
   final List<EditBox> boxes;
 
   final EditBox? active;
@@ -604,18 +553,12 @@ class _BoxPainter extends CustomPainter {
   /// The box a merge starts from; highlighted until the second is picked.
   final EditBox? mergeFrom;
   final Rect? drawing;
-
-  /// Text lines that can be tapped into a box (annotate).
-  final List<Rect> lines;
   final double zoom;
-
-  /// [zoom] at which the image fits the viewport.
-  final double fitScale;
 
   /// Display name of a class.
   final String Function(String) label;
 
-  /// Redaction previews of the selected boxes (redact).
+  /// Redaction previews of the selected boxes.
   final List<(Rect, ui.Image)> previews;
   final Color accent;
   final String Function(double) score;
@@ -624,99 +567,35 @@ class _BoxPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // Constant on-screen widths whatever the zoom.
     final px = 1 / zoom;
-    for (final l in lines) {
-      drawDashedRect(
-        canvas,
-        l.inflate(2 * px),
-        accent.withValues(alpha: .7),
-        px,
-        1.2,
+    for (final (r, im) in previews) {
+      canvas.drawImageRect(
+        im,
+        Offset.zero & Size(im.width.toDouble(), im.height.toDouble()),
+        r,
+        Paint()..filterQuality = FilterQuality.none,
       );
     }
-    if (kind == EditorKind.redact) {
-      for (final (r, im) in previews) {
-        canvas.drawImageRect(
-          im,
-          Offset.zero & Size(im.width.toDouble(), im.height.toDouble()),
-          r,
-          Paint()..filterQuality = FilterQuality.none,
-        );
-      }
-      // Selected: the fill and the class colour around it. Not selected: a
-      // dashed suggestion.
-      for (final b in boxes) {
-        final c = classColor(b.className);
-        if (b.selected) {
-          canvas.drawRRect(
-            RRect.fromRectAndRadius(
-              b.rect.inflate(px),
-              Radius.circular(3 * px),
-            ),
-            Paint()
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 1.5 * px
-              ..color = c,
-          );
-        } else {
-          drawDashedRect(canvas, b.rect, c, px, 1.5);
-        }
-      }
-    } else {
-      // Labels grow with the zoom (up to 3x) so they stay readable.
-      final labelSize = 11 * px * (zoom / fitScale).clamp(1.0, 3.0);
-      // One label per value: on the first line of a group, which is joined
-      // to its other lines.
-      final groups = <int, List<EditBox>>{};
-      for (final b in boxes) {
-        if (b.group case final g?) groups.putIfAbsent(g, () => []).add(b);
-      }
-      for (final parts in groups.values) {
-        parts.sort((a, b) => a.rect.top.compareTo(b.rect.top));
-        for (var i = 1; i < parts.length; i++) {
-          final c = classColor(parts[i].className);
-          _dashedLine(
-            canvas,
-            parts[i - 1].rect.bottomLeft,
-            parts[i].rect.topLeft,
-            c,
-            px,
-          );
-        }
-      }
-      for (final b in boxes) {
-        final c = classColor(b.className);
-        if (!b.selected) {
-          // A suggestion not yet accepted.
-          drawDashedRect(canvas, b.rect, c, px, 1.5);
-          continue;
-        }
-        canvas
-          ..drawRect(b.rect, Paint()..color = c.withValues(alpha: .14))
-          ..drawRect(
-            b.rect,
-            Paint()
-              ..style = PaintingStyle.stroke
-              ..strokeWidth = 2 * px
-              ..color = c,
-          );
-        if (b.group case final g? when groups[g]!.first != b) continue;
-        final tp = TextPainter(
-          text: TextSpan(
-            text: ' ${label(b.className)} ',
-            style: TextStyle(
-              fontSize: labelSize,
-              color: Colors.white,
-              backgroundColor: c,
-            ),
+    // Selected: the fill and the class colour around it. Not selected: a
+    // dashed suggestion.
+    for (final b in boxes) {
+      final c = classColor(b.className);
+      if (b.selected) {
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            b.rect.inflate(px),
+            Radius.circular(3 * px),
           ),
-          textDirection: TextDirection.ltr,
-        )..layout();
-        tp.paint(canvas, b.rect.topLeft - Offset(0, tp.height));
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.5 * px
+            ..color = c,
+        );
+      } else {
+        drawDashedRect(canvas, b.rect, c, px, 1.5);
       }
     }
     if (active case final a?) {
-      // Redact: in the class colour, labelled with class and score.
-      final c = kind == EditorKind.redact ? classColor(a.className) : accent;
+      final c = classColor(a.className);
       canvas.drawRect(
         a.rect,
         Paint()
@@ -724,33 +603,31 @@ class _BoxPainter extends CustomPainter {
           ..strokeWidth = 2 * px
           ..color = c,
       );
-      if (kind == EditorKind.redact) {
-        final tp = TextPainter(
-          text: TextSpan(
-            text: [
-              label(a.className),
-              if (a.score case final s?) score(s),
-            ].join(' '),
-            style: TextStyle(
-              fontSize: 12 * px,
-              fontWeight: FontWeight.w500,
-              color: c.computeLuminance() > .4 ? Colors.black : Colors.white,
-            ),
+      final tp = TextPainter(
+        text: TextSpan(
+          text: [
+            label(a.className),
+            if (a.score case final s?) score(s),
+          ].join(' '),
+          style: TextStyle(
+            fontSize: 12 * px,
+            fontWeight: FontWeight.w500,
+            color: c.computeLuminance() > .4 ? Colors.black : Colors.white,
           ),
-          textDirection: TextDirection.ltr,
-        )..layout();
-        final chip = Rect.fromLTWH(
-          a.rect.left,
-          a.rect.top - tp.height - 4 * px,
-          tp.width + 10 * px,
-          tp.height + 2 * px,
-        );
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(chip, Radius.circular(4 * px)),
-          Paint()..color = c,
-        );
-        tp.paint(canvas, chip.topLeft + Offset(5 * px, px));
-      }
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final chip = Rect.fromLTWH(
+        a.rect.left,
+        a.rect.top - tp.height - 4 * px,
+        tp.width + 10 * px,
+        tp.height + 2 * px,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(chip, Radius.circular(4 * px)),
+        Paint()..color = c,
+      );
+      tp.paint(canvas, chip.topLeft + Offset(5 * px, px));
       for (final h in [
         a.rect.topLeft,
         a.rect.topRight,
@@ -779,25 +656,6 @@ class _BoxPainter extends CustomPainter {
       );
     }
     if (drawing case final d?) drawDashedRect(canvas, d, accent, px, 2);
-  }
-
-  static void _dashedLine(
-    Canvas canvas,
-    Offset a,
-    Offset b,
-    Color c,
-    double px,
-  ) {
-    final paint = Paint()
-      ..strokeWidth = 1.5 * px
-      ..color = c;
-    final len = (b - a).distance;
-    if (len == 0) return;
-    final dir = (b - a) / len;
-    for (var t = 0.0; t < len; t += 7 * px) {
-      final e = t + 4 * px < len ? t + 4 * px : len;
-      canvas.drawLine(a + dir * t, a + dir * e, paint);
-    }
   }
 
   @override

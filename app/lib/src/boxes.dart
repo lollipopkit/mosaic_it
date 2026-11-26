@@ -20,9 +20,6 @@ enum BoxSource {
 
   /// Reported by the export check as still readable.
   exportCheck,
-
-  /// Read from a COCO file under label review.
-  label,
 }
 
 /// A box in the editor: a detection or one the user drew.
@@ -35,8 +32,8 @@ class EditBox {
     this.score,
     this.review = false,
     this.suggested = false,
-    this.origin,
   }) : initialSelected = selected,
+       shownSelected = selected,
        initialClass = className,
        initialRect = rect;
 
@@ -73,15 +70,17 @@ class EditBox {
 
   final BoxSource source;
 
-  /// State when the box appeared, before the user touched it.
+  /// State from the detector, before adaptive pre-selection or user edits.
   final bool initialSelected;
+
+  /// Selection state shown to the user before manual edits (after local
+  /// adaptive pre-selection).
+  bool shownSelected;
+
   final String initialClass;
   final Rect initialRect;
 
-  /// The COCO annotation this box was read from (label review only).
-  final Map<String, dynamic>? origin;
-
-  /// Null score: drawn, found, or a label without one.
+  /// Null score: drawn or found by find-all.
   bool get manual => score == null;
 }
 

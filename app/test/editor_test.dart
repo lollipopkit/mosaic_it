@@ -30,7 +30,6 @@ void main() {
   Future<EditSession> pump(
     WidgetTester t,
     List<EditBox> boxes, {
-    EditorKind kind = EditorKind.redact,
     bool drawing = false,
     List<EditBox> hidden = const [],
   }) async {
@@ -45,7 +44,7 @@ void main() {
         home: SizedBox(
           width: 400,
           height: 400,
-          child: BoxEditor(session: s, kind: kind, drawing: drawing),
+          child: BoxEditor(session: s, drawing: drawing),
         ),
       ),
     );
@@ -130,21 +129,6 @@ void main() {
     expect(b.rect, const Rect.fromLTRB(100, 100, 200, 140));
   });
 
-  testWidgets(
-    'annotating: tapping a suggestion accepts it and makes it active',
-    (t) async {
-      final suggestion = box(
-        const Rect.fromLTRB(20, 20, 120, 60),
-        selected: false,
-        cls: 'address',
-      );
-      final s = await pump(t, [suggestion], kind: EditorKind.annotate);
-      await t.tapAt(const Offset(60, 40));
-      expect(suggestion.selected, isTrue);
-      expect(s.active, same(suggestion));
-    },
-  );
-
   testWidgets('one finger on empty space pans the view', (t) async {
     final b = box(const Rect.fromLTRB(100, 100, 150, 150), selected: false);
     await pump(t, [b]);
@@ -226,7 +210,6 @@ void main() {
           height: 400,
           child: BoxEditor(
             session: s,
-            kind: EditorKind.annotate,
             merging: true,
             mergeFrom: a,
             onMergePick: picked.add,

@@ -49,17 +49,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get reviewButton => 'Revisar';
-
-  @override
-  String get openingLabels => 'Abrindo rótulos…';
-
-  @override
-  String noImagesIn(String name) {
-    return 'Nenhuma imagem em $name';
-  }
-
-  @override
   String get saving => 'Salvando…';
 
   @override
@@ -107,10 +96,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get exportAnyway => 'Exportar mesmo assim';
 
   @override
-  String get reviewPseudoLabels =>
-      'Revisar rótulos pseudo (pasta com coco.json)';
-
-  @override
   String get regionsTooltip => 'Regiões';
 
   @override
@@ -142,9 +127,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get fillNoise => 'Ruído';
-
-  @override
-  String get verifyNext => 'Verificar e próximo';
 
   @override
   String get export => 'Exportar';
@@ -256,11 +238,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get classManual => 'Manual';
 
   @override
-  String noLabelsIn(String name) {
-    return 'Nenhum coco.json em $name';
-  }
-
-  @override
   String savedModelFailed(String error) {
     return 'O modelo salvo não pôde ser carregado; escolha um modelo novamente. ($error)';
   }
@@ -278,36 +255,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get classFinance => 'Valor';
 
   @override
-  String get collectTitle => 'Coletar dados de treinamento';
-
-  @override
-  String get collectSubtitle =>
-      'Guardar neste dispositivo cada imagem exportada, as áreas detectadas e suas escolhas para treinar modelos futuros. Nada é enviado.';
-
-  @override
-  String collectStats(int count, String size) {
-    return '$count imagens · $size';
-  }
-
-  @override
-  String get collectDelete => 'Excluir dados coletados';
-
-  @override
-  String get collectDeleteConfirm =>
-      'Excluir deste dispositivo todas as imagens e escolhas coletadas?';
-
-  @override
   String get delete => 'Excluir';
-
-  @override
-  String collectFailed(String error) {
-    return 'Não foi possível salvar os dados de treinamento: $error';
-  }
-
-  @override
-  String labelsSaved(int count) {
-    return 'Rótulos salvos para $count imagens';
-  }
 
   @override
   String get undo => 'Desfazer';
@@ -352,71 +300,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pickClass => 'Escolher uma classe';
 
   @override
-  String annotateOf(int index, int total) {
-    return 'Anotar $index / $total';
-  }
-
-  @override
-  String get suggestions => 'Sugestões';
-
-  @override
-  String get skip => 'Pular';
-
-  @override
-  String get nothingPrivate => 'Nada privado';
-
-  @override
-  String get next => 'Próximo';
-
-  @override
-  String get annotateHint =>
-      'Toque em uma linha de texto para encaixotá-la ou arraste para desenhar';
-
-  @override
-  String get annotationData => 'Dados de anotação';
-
-  @override
-  String get statLabeled => 'Rótulos';
-
-  @override
-  String get statEmpty => 'Nada privado';
-
-  @override
-  String get statSkipped => 'Puladas';
-
-  @override
-  String get boxesPerClass => 'Caixas por classe';
-
-  @override
-  String get imagesHeader => 'Imagens';
-
-  @override
-  String boxCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count caixas',
-      one: '1 caixa',
-      zero: '0 caixas',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportAll => 'Exportar tudo';
-
-  @override
-  String get deleteAll => 'Excluir tudo';
-
-  @override
-  String get annotateDeleteConfirm =>
-      'Excluir todas as anotações e suas imagens deste dispositivo?';
-
-  @override
-  String get noAnnotations =>
-      'Nenhuma anotação ainda. Selecione imagens e escolha Anotar.';
-
-  @override
   String get filterScreenshots => 'Capturas de tela';
 
   @override
@@ -452,13 +335,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get annotate => 'Anotar';
-
-  @override
   String get badgeRedacted => 'Ocultado';
-
-  @override
-  String get badgeAnnotated => 'Anotado';
 
   @override
   String get photosDenied =>
@@ -520,10 +397,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get dataPrivacy => 'Dados e privacidade';
-
-  @override
-  String get localOnly =>
-      'Mantido apenas neste dispositivo, nunca no iCloud ou em backups.';
 
   @override
   String get model => 'Modelo';
@@ -695,6 +568,109 @@ class AppLocalizationsPt extends AppLocalizations {
   String percent(int value) {
     return '$value%';
   }
+
+  @override
+  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+
+  @override
+  String adaptiveLearnedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classes adjusted',
+      one: '1 class adjusted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adaptiveReset => 'Reset local preferences';
+
+  @override
+  String get adaptiveResetDone => 'Local preferences reset';
+
+  @override
+  String get feedbackTitle => 'Report detection issue';
+
+  @override
+  String get feedbackShort => 'Feedback';
+
+  @override
+  String get feedbackMenu => 'Report issue';
+
+  @override
+  String get feedbackAction => 'Report';
+
+  @override
+  String get feedbackSubmit => 'Submit';
+
+  @override
+  String get feedbackDone => 'Done';
+
+  @override
+  String get feedbackSentTitle => 'Feedback sent';
+
+  @override
+  String get feedbackAttachScreenshot => 'Attach screenshot';
+
+  @override
+  String get feedbackModeMasked => 'Errors only';
+
+  @override
+  String get feedbackModeFull => 'Full image';
+
+  @override
+  String get feedbackModeText => 'No image';
+
+  @override
+  String get feedbackTagMissed => 'Missed';
+
+  @override
+  String get feedbackTagFalsePositive => 'False positive';
+
+  @override
+  String get feedbackTagBoxDrift => 'Box drift';
+
+  @override
+  String get feedbackTagWrongClass => 'Wrong class';
+
+  @override
+  String get feedbackTagOther => 'Other';
+
+  @override
+  String get feedbackNoteHint => 'Optional note…';
+
+  @override
+  String feedbackCountMasked(int count) {
+    return 'Masked $count';
+  }
+
+  @override
+  String feedbackCountMissed(int count) {
+    return 'Missed $count';
+  }
+
+  @override
+  String feedbackCountFp(int count) {
+    return 'False positive $count';
+  }
+
+  @override
+  String feedbackCountPreference(int count) {
+    return 'Unchecked $count';
+  }
+
+  @override
+  String get feedbackBoxMissed => 'Missed';
+
+  @override
+  String get feedbackBoxMissedMasked => 'Missed · masked';
+
+  @override
+  String get feedbackBoxFp => 'False positive';
+
+  @override
+  String get feedbackBoxPreference => 'Keep visible';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).
@@ -738,17 +714,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   @override
   String similarSelectedAcross(int found, int added, int images) {
     return '$found regiões semelhantes selecionadas ($added novas) em $images imagens';
-  }
-
-  @override
-  String get reviewButton => 'Rever';
-
-  @override
-  String get openingLabels => 'A abrir etiquetas…';
-
-  @override
-  String noImagesIn(String name) {
-    return 'Sem imagens em $name';
   }
 
   @override
@@ -799,10 +764,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get exportAnyway => 'Exportar mesmo assim';
 
   @override
-  String get reviewPseudoLabels =>
-      'Rever pseudoetiquetas (pasta com coco.json)';
-
-  @override
   String get regionsTooltip => 'Regiões';
 
   @override
@@ -834,9 +795,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get fillNoise => 'Ruído';
-
-  @override
-  String get verifyNext => 'Verificar e avançar';
 
   @override
   String get export => 'Exportar';
@@ -948,11 +906,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get classManual => 'Manual';
 
   @override
-  String noLabelsIn(String name) {
-    return 'Sem coco.json em $name';
-  }
-
-  @override
   String savedModelFailed(String error) {
     return 'Não foi possível carregar o modelo guardado; escolha um modelo novamente. ($error)';
   }
@@ -970,36 +923,7 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get classFinance => 'Valor';
 
   @override
-  String get collectTitle => 'Recolher dados de treino';
-
-  @override
-  String get collectSubtitle =>
-      'Guardar neste dispositivo cada imagem exportada, as áreas detetadas e as suas escolhas para treinar modelos futuros. Nada é enviado.';
-
-  @override
-  String collectStats(int count, String size) {
-    return '$count imagens · $size';
-  }
-
-  @override
-  String get collectDelete => 'Eliminar dados recolhidos';
-
-  @override
-  String get collectDeleteConfirm =>
-      'Eliminar deste dispositivo todas as imagens e escolhas recolhidas?';
-
-  @override
   String get delete => 'Eliminar';
-
-  @override
-  String collectFailed(String error) {
-    return 'Não foi possível guardar os dados de treino: $error';
-  }
-
-  @override
-  String labelsSaved(int count) {
-    return 'Etiquetas guardadas para $count imagens';
-  }
 
   @override
   String get undo => 'Desfazer';
@@ -1047,74 +971,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get pickClass => 'Escolher uma classe';
 
   @override
-  String annotateOf(int index, int total) {
-    return 'Anotar $index / $total';
-  }
-
-  @override
-  String get suggestions => 'Sugestões';
-
-  @override
-  String get skip => 'Ignorar';
-
-  @override
-  String get nothingPrivate => 'Nada privado';
-
-  @override
-  String get next => 'Seguinte';
-
-  @override
-  String get annotateHint =>
-      'Toque numa linha de texto para a encaixotar ou arraste para desenhar';
-
-  @override
-  String get annotationData => 'Dados de anotação';
-
-  @override
-  String get statLabeled => 'Etiquetadas';
-
-  @override
-  String get statEmpty => 'Nada privado';
-
-  @override
-  String get statSkipped => 'Ignoradas';
-
-  @override
-  String get boxesPerClass => 'Caixas por classe';
-
-  @override
-  String get imagesHeader => 'Imagens';
-
-  @override
-  String boxCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count caixas',
-      many: 'muitas caixas',
-      few: 'poucas caixas',
-      two: '2 caixas',
-      one: '1 caixa',
-      zero: '0 caixas',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportAll => 'Exportar tudo';
-
-  @override
-  String get deleteAll => 'Eliminar tudo';
-
-  @override
-  String get annotateDeleteConfirm =>
-      'Eliminar todas as anotações e as respetivas imagens deste dispositivo?';
-
-  @override
-  String get noAnnotations =>
-      'Ainda não há anotações. Selecione imagens e escolha Anotar.';
-
-  @override
   String get filterScreenshots => 'Capturas de ecrã';
 
   @override
@@ -1153,13 +1009,7 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   }
 
   @override
-  String get annotate => 'Anotar';
-
-  @override
   String get badgeRedacted => 'Ocultada';
-
-  @override
-  String get badgeAnnotated => 'Anotada';
 
   @override
   String get photosDenied =>
@@ -1221,10 +1071,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get dataPrivacy => 'Dados e privacidade';
-
-  @override
-  String get localOnly =>
-      'Mantido apenas neste dispositivo, nunca no iCloud ou nas cópias de segurança.';
 
   @override
   String get model => 'Modelo';
