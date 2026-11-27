@@ -40,17 +40,26 @@ void main(List<String> args) async {
           ..sort((a, b) => a.path.compareTo(b.path));
         for (final entry in entries) {
           if (entry is! File) continue;
-          final lower = entry.uri.pathSegments.last.toLowerCase();
+          final fileName = entry.uri.pathSegments.last;
+          final lower = fileName.toLowerCase();
           final isOrtRuntime =
               lower == 'directml.dll' ||
               (lower.startsWith('onnxruntime') && lower.endsWith('.dll'));
           if (!isOrtRuntime || !seenNames.add(lower)) continue;
+          // Copy out of Cargo's target dir as a regular file preserving the
+          // expected DLL name: ort-sys symlinks DirectML.dll on Windows and
+          // Flutter's install_code_assets fails when copying Windows symlinks.
+          final target = File(
+            '${Directory.fromUri(input.outputDirectory).path}'
+            '${Platform.pathSeparator}$fileName',
+          );
+          File(entry.resolveSymbolicLinksSync()).copySync(target.path);
           output.assets.code.add(
             CodeAsset(
               package: input.packageName,
               name: 'native/$lower',
               linkMode: DynamicLoadingBundled(),
-              file: entry.uri,
+              file: target.uri,
             ),
           );
         }
