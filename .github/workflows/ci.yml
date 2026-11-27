@@ -51,6 +51,54 @@ jobs:
       # pinned in its rust-toolchain.toml.
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - run: flutter pub get
+      - name: Verify zero-network offline app policy
+        run: |
+          python3 - <<'PY'
+          import pathlib, plistlib, re, sys
+          import xml.etree.ElementTree as ET
+
+          ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
+          TOOLS_NS = "{http://schemas.android.com/tools}"
+
+          # 1. Main AndroidManifest must not declare INTERNET.
+          main_xml = ET.parse("android/app/src/main/AndroidManifest.xml").getroot()
+          for perm in main_xml.findall("uses-permission"):
+              if perm.attrib.get(f"{ANDROID_NS}name") == "android.permission.INTERNET":
+                  sys.exit("main AndroidManifest.xml must not declare INTERNET")
+
+          # 2. Release AndroidManifest must explicitly remove INTERNET.
+          rel_xml = ET.parse("android/app/src/release/AndroidManifest.xml").getroot()
+          removed = any(
+              perm.attrib.get(f"{ANDROID_NS}name") == "android.permission.INTERNET"
+              and perm.attrib.get(f"{TOOLS_NS}node") == "remove"
+              for perm in rel_xml.findall("uses-permission")
+          )
+          if not removed:
+              sys.exit("release AndroidManifest.xml must remove INTERNET with tools:node=\"remove\"")
+
+          # 3. macOS Release entitlements must not enable any network entitlement.
+          with open("macos/Runner/Release.entitlements", "rb") as f:
+              ent = plistlib.load(f)
+          for key, val in ent.items():
+              if key.startswith("com.apple.security.network.") and val:
+                  sys.exit(f"Release.entitlements must not enable {key}")
+
+          # 4. pubspec.yaml must not directly depend on HTTP client packages.
+          pubspec = pathlib.Path("pubspec.yaml").read_text()
+          if re.search(r"^[ \t]+(dio|http|connectivity_plus|web_socket_channel):", pubspec, re.M):
+              sys.exit("pubspec.yaml must not depend on networking packages")
+
+          # 5. App Dart sources must not import/use HTTP or socket APIs.
+          forbidden = re.compile(
+              r"(package:(dio|http)/|\b(HttpClient|WebSocket|RawSocket|ServerSocket|HttpServer)\b|Socket\.connect)"
+          )
+          for p in pathlib.Path("lib").rglob("*.dart"):
+              if "l10n" in p.parts:
+                  continue
+              if m := forbidden.search(p.read_text()):
+                  sys.exit(f"Forbidden networking reference {m.group(0)!r} in {p}")
+          print("Zero-network policy verified.")
+          PY
       - run: dart run license_checker check-licenses -c license_config.yaml -i
       - run: dart format --output=none --set-exit-if-changed lib test hook
       - run: flutter analyze

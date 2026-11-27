@@ -102,20 +102,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get regionsTooltip => 'Περιοχές';
 
   @override
-  String get notCalibrated =>
-      'Το μοντέλο δεν έχει βαθμονομηθεί: η προεπιλογή χρησιμοποιεί σταθερό όριο.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'Βαθμονομημένο σε μη επαληθευμένα δεδομένα ($domain): η εγγύηση ανακάλυψης δεν ισχύει ακόμα.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'Βαθμονομημένο για εικόνες $domain. Άλλα είδη εικόνων βρίσκονται εκτός εγγύησης.';
-  }
-
-  @override
   String get cameraPhoto =>
       'Αυτή είναι φωτογραφία από κάμερα· ο ανιχνευτής είναι σχεδιασμένος για στιγμιότυπα οθόνης, οπότε τα πλαίσια εδώ είναι αναξιόπιστα.';
 
@@ -671,10 +657,6 @@ class AppLocalizationsEl extends AppLocalizations {
   String get introNoNetPermTitle => 'Zero network permissions';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
   String get introBundledModelTitle => 'Bundled on-device model';
 
   @override
@@ -696,4 +678,33 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
 }

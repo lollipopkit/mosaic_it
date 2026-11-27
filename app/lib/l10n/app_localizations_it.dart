@@ -102,20 +102,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get regionsTooltip => 'Regioni';
 
   @override
-  String get notCalibrated =>
-      'Il modello non è calibrato: la preselezione usa una soglia fissa.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'Calibrato su dati non verificati ($domain): la garanzia di richiamo non si applica ancora.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'Calibrato per immagini $domain. Altri tipi di immagini sono fuori dalla garanzia.';
-  }
-
-  @override
   String get cameraPhoto =>
       'Questa è una foto della fotocamera; il rilevatore è fatto per gli screenshot, quindi le sue caselle qui sono inaffidabili.';
 
@@ -665,39 +651,66 @@ class AppLocalizationsIt extends AppLocalizations {
   String get feedbackBoxPreference => 'Keep visible';
 
   @override
-  String get introOfflineTitle => 'No network access';
+  String get introOfflineTitle => 'Nessun accesso alla rete';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+      'MosaicIt non contiene codice di rete e non richiede permessi di rete. Il modello è integrato nell’app e immagini e video non lasciano mai il dispositivo.';
 
   @override
-  String get introNoNetPermTitle => 'Zero network permissions';
+  String get introNoNetPermTitle => 'Zero permessi di rete';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
-  String get introBundledModelTitle => 'Bundled on-device model';
+  String get introBundledModelTitle => 'Modello integrato sul dispositivo';
 
   @override
   String introBundledModelBody(String version) {
-    return 'unseen-det $version · on-device';
+    return 'unseen-det $version · integrato';
   }
 
   @override
-  String get introBundledReady => 'Bundled detector ready';
+  String get introBundledReady => 'Modello integrato pronto';
 
   @override
-  String get introPhotosGranted => 'Photo access granted';
+  String get introPhotosGranted => 'Accesso alle foto consentito';
 
   @override
-  String get resetBundledModel => 'Use bundled model';
+  String get resetBundledModel => 'Usa modello integrato';
 
   @override
-  String get reviewIntro => 'Show intro again';
+  String get reviewIntro => 'Mostra di nuovo l’introduzione';
 
   @override
-  String get feedbackOpenWeb => 'Open web form';
+  String get feedbackOpenWeb => 'Apri modulo web';
+
+  @override
+  String get introNoNetPermBodyIos =>
+      'Nessuna richiesta di rete · solo sul dispositivo';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'Nessun permesso INTERNET dichiarato';
+
+  @override
+  String get introNoNetPermBodyDesktop =>
+      'Nessun accesso di rete nella sandbox';
+
+  @override
+  String get customModel => 'Modello personalizzato';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classi';
+  }
+
+  @override
+  String get copyImage => 'Copia immagine';
+
+  @override
+  String get copiedToClipboard => 'Copiato negli appunti';
+
+  @override
+  String get copyFailed => 'Impossibile copiare l’immagine';
+
+  @override
+  String get peekOriginal => 'Tieni premuto per vedere l’originale';
 }

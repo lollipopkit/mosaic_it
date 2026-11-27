@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -16,6 +17,7 @@ import 'feedback_sheet.dart';
 import 'gallery_grid.dart';
 import 'intro_page.dart';
 import 'model_store.dart';
+import 'platform_bridge.dart';
 import 'rust/api.dart';
 import 'settings.dart';
 import 'store.dart';
@@ -55,17 +57,33 @@ class _HomePageState extends State<HomePage> {
   /// In the order they were tapped.
   final _selected = <AssetEntity>[];
 
+  /// File paths received from OS share/open-with before the model finished loading.
+  final _pendingIncoming = <String>[];
+  final _incomingQueue = <List<String>>[];
+  bool _drainingIncoming = false;
+  StreamSubscription<List<String>>? _incomingSub;
+
   static const _pageSize = 120;
   static final _mobile = Platform.isIOS || Platform.isAndroid;
+  static const _videoExts = {'mp4', 'mov', 'm4v', 'mkv', 'webm', 'avi'};
 
   AppLocalizations get _l => AppLocalizations.of(context);
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadModel();
+    _incomingSub = PlatformBridge.incomingFiles.listen(_handleIncomingPaths);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       _checkLibrary();
+      await _loadModel();
+      if (!mounted) return;
+      final cold = await PlatformBridge.drainIncomingFiles();
+      if (!mounted) return;
+      final initial = <String>[..._pendingIncoming, ...cold];
+      _pendingIncoming.clear();
+      if (initial.isNotEmpty) {
+        _enqueueIncoming(initial);
+      }
     });
     _lifecycle = AppLifecycleListener(
       onResume: () {
@@ -82,6 +100,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    _incomingSub?.cancel();
     _lifecycle.dispose();
     PhotoManager.removeChangeCallback(_libraryChanged);
     PhotoManager.stopChangeNotify();
@@ -100,7 +119,7 @@ class _HomePageState extends State<HomePage> {
     });
     Session? s;
     try {
-      s = await ModelStore.load();
+      s = await ModelStore.takePreloadedOrLoad();
     } catch (e) {
       if (hasCustom) {
         // A broken custom import falls back to the bundled model.
@@ -111,8 +130,111 @@ class _HomePageState extends State<HomePage> {
         throw StateError(_l.savedModelFailed('$e'));
       }
     }
-    if (mounted) _setSession(s);
+    if (mounted) {
+      _setSession(s);
+    }
   });
+
+  void _handleIncomingPaths(List<String> paths) {
+    if (!mounted || paths.isEmpty) return;
+    if (_session == null || _info == null) {
+      _pendingIncoming.addAll(paths);
+      return;
+    }
+    _enqueueIncoming(paths);
+  }
+
+  void _enqueueIncoming(List<String> paths) {
+    _incomingQueue.add(paths);
+    if (_drainingIncoming) return;
+    unawaited(_drainIncomingQueue());
+  }
+
+  Future<void> _drainIncomingQueue() async {
+    _drainingIncoming = true;
+    try {
+      while (_incomingQueue.isNotEmpty && mounted) {
+        final batch = _incomingQueue.removeAt(0);
+        await _openExternalPaths(batch);
+      }
+    } finally {
+      _drainingIncoming = false;
+    }
+  }
+
+  static bool _isVideoPath(String path) {
+    final dot = path.lastIndexOf('.');
+    if (dot < 0) return false;
+    return _videoExts.contains(path.substring(dot + 1).toLowerCase());
+  }
+
+  Future<void> _openExternalPaths(List<String> paths) async {
+    final s = _session, info = _info;
+    if (s == null || info == null || !mounted) return;
+    final files = [
+      for (final p in paths)
+        if (File(p).existsSync()) File(p),
+    ];
+    if (files.isEmpty) return;
+    // Return to the root route before starting detection so the progress bar is
+    // visible and repeated shares never stack editors on top of each other.
+    Navigator.of(context).popUntil((r) => r.isFirst);
+    if (!mounted) return;
+    if (files.length == 1 && _isVideoPath(files.single.path)) {
+      unawaited(
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => VideoPage(
+              session: s,
+              video: files.single,
+              fill: _settings.fill,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    final images = [
+      for (final f in files)
+        if (!_isVideoPath(f.path)) f,
+    ];
+    if (images.isEmpty) return;
+    final shots = <Shot>[];
+    Object? firstError;
+    await _run(_l.detecting, () async {
+      for (final (i, image) in images.indexed) {
+        if (!mounted) return;
+        if (images.length > 1) {
+          setState(() => _busy = _l.detectingProgress(i + 1, images.length));
+        }
+        try {
+          final d = await s.detect(imagePath: image.path);
+          shots.add(_prepareShot(image, d));
+        } catch (e) {
+          firstError ??= e;
+        }
+      }
+      if (shots.isEmpty && firstError != null) {
+        throw firstError!;
+      }
+    });
+    if (shots.isEmpty || !mounted) return;
+    if (firstError != null) {
+      _toast(_message(firstError!));
+    }
+    unawaited(
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => EditorPage(
+            shots: shots,
+            settings: _settings,
+            model: s,
+            info: info,
+          ),
+        ),
+      ),
+    );
+  }
 
   Future<void> _resetBundledModel() => _run(_l.loadingModel, () async {
     await ModelStore.clearCustom();

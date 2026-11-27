@@ -101,20 +101,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get regionsTooltip => 'Области';
 
   @override
-  String get notCalibrated =>
-      'Модель не откалибрована: предварительный выбор использует фиксированный порог.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'Откалибрована на неподтверждённых данных ($domain): гарантия полноты пока не действует.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'Откалибрована для изображений типа $domain. Другие типы изображений не покрываются гарантией.';
-  }
-
-  @override
   String get cameraPhoto =>
       'Это фото с камеры; детектор предназначен для скриншотов, поэтому его рамки здесь ненадёжны.';
 
@@ -669,39 +655,65 @@ class AppLocalizationsRu extends AppLocalizations {
   String get feedbackBoxPreference => 'Keep visible';
 
   @override
-  String get introOfflineTitle => 'No network access';
+  String get introOfflineTitle => 'Без доступа к сети';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+      'MosaicIt не содержит сетевого кода и не запрашивает сетевых разрешений. Модель встроена в приложение, а изображения и видео не покидают устройство.';
 
   @override
-  String get introNoNetPermTitle => 'Zero network permissions';
+  String get introNoNetPermTitle => 'Без сетевых разрешений';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
-  String get introBundledModelTitle => 'Bundled on-device model';
+  String get introBundledModelTitle => 'Встроенная локальная модель';
 
   @override
   String introBundledModelBody(String version) {
-    return 'unseen-det $version · on-device';
+    return 'unseen-det $version · встроена';
   }
 
   @override
-  String get introBundledReady => 'Bundled detector ready';
+  String get introBundledReady => 'Встроенная модель готова';
 
   @override
-  String get introPhotosGranted => 'Photo access granted';
+  String get introPhotosGranted => 'Доступ к фото предоставлен';
 
   @override
-  String get resetBundledModel => 'Use bundled model';
+  String get resetBundledModel => 'Использовать встроенную модель';
 
   @override
-  String get reviewIntro => 'Show intro again';
+  String get reviewIntro => 'Показать введение снова';
 
   @override
-  String get feedbackOpenWeb => 'Open web form';
+  String get feedbackOpenWeb => 'Открыть веб-форму';
+
+  @override
+  String get introNoNetPermBodyIos =>
+      'Без сетевых запросов · только на устройстве';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'Разрешение INTERNET отсутствует';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'Без сетевого доступа в песочнице';
+
+  @override
+  String get customModel => 'Пользовательская модель';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count классов';
+  }
+
+  @override
+  String get copyImage => 'Копировать изображение';
+
+  @override
+  String get copiedToClipboard => 'Скопировано в буфер обмена';
+
+  @override
+  String get copyFailed => 'Не удалось скопировать изображение';
+
+  @override
+  String get peekOriginal => 'Удерживайте для просмотра оригинала';
 }

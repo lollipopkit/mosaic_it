@@ -102,20 +102,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get regionsTooltip => 'المناطق';
 
   @override
-  String get notCalibrated =>
-      'النموذج غير مُعاير: يستخدم التحديد المسبق عتبة ثابتة.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'معاير على بيانات غير مُتحقق منها ($domain): ضمان الاسترجاع لا ينطبق بعد.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'معاير لصور $domain. أنواع الصور الأخرى خارج نطاق الضمان.';
-  }
-
-  @override
   String get cameraPhoto =>
       'هذه صورة كاميرا؛ الكاشف مصمم لالتقاطات الشاشة، لذا فإن صناديقه هنا غير موثوقة.';
 
@@ -677,10 +663,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get introNoNetPermTitle => 'Zero network permissions';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
   String get introBundledModelTitle => 'Bundled on-device model';
 
   @override
@@ -702,4 +684,33 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
 }

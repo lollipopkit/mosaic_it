@@ -99,19 +99,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get regionsTooltip => '区域';
 
   @override
-  String get notCalibrated => '模型未校准：预选使用固定阈值。';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return '在未经验证的数据 ($domain) 上校准：召回率保证尚未生效。';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return '已针对 $domain 图片进行校准。其他类型的图片不在保证范围内。';
-  }
-
-  @override
   String get cameraPhoto => '这是一张相机照片；检测器专为截图设计，因此此处的框选不可靠。';
 
   @override
@@ -641,9 +628,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get introNoNetPermTitle => '零网络权限';
 
   @override
-  String get introNoNetPermBody => 'Android 无 INTERNET 权限 · macOS 无网络访问沙盒';
-
-  @override
   String get introBundledModelTitle => '检测模型已内置';
 
   @override
@@ -665,6 +649,35 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => '前往网页提交';
+
+  @override
+  String get introNoNetPermBodyIos => '不发起任何网络请求 · 仅本机运行';
+
+  @override
+  String get introNoNetPermBodyAndroid => '未申请 INTERNET 网络权限';
+
+  @override
+  String get introNoNetPermBodyDesktop => '沙盒未申请网络访问权限';
+
+  @override
+  String get customModel => '自定义模型';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count 个类别';
+  }
+
+  @override
+  String get copyImage => '复制图片';
+
+  @override
+  String get copiedToClipboard => '已复制到剪贴板';
+
+  @override
+  String get copyFailed => '复制图片失败';
+
+  @override
+  String get peekOriginal => '按住查看原图';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -759,19 +772,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get regionsTooltip => '區域';
-
-  @override
-  String get notCalibrated => '模型未校準：預選使用固定閾值。';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return '已針對未驗證資料 ($domain) 進行校準：召回率保證尚未生效。';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return '已針對 $domain 圖片進行校準。其他類型的圖片不在保證範圍內。';
-  }
 
   @override
   String get cameraPhoto => '這是相機照片；偵測器是為截圖設計的，因此此處的框選結果不可靠。';
@@ -1187,9 +1187,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get introNoNetPermTitle => '零網路權限';
 
   @override
-  String get introNoNetPermBody => 'Android 無 INTERNET 權限 · macOS 無網路存取沙盒';
-
-  @override
   String get introBundledModelTitle => '偵測模型已內建';
 
   @override
@@ -1211,4 +1208,33 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get feedbackOpenWeb => '前往網頁提交';
+
+  @override
+  String get introNoNetPermBodyIos => '不發起任何網路請求 · 僅本機執行';
+
+  @override
+  String get introNoNetPermBodyAndroid => '未申請 INTERNET 網路權限';
+
+  @override
+  String get introNoNetPermBodyDesktop => '沙盒未申請網路存取權限';
+
+  @override
+  String get customModel => '自訂模型';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count 個類別';
+  }
+
+  @override
+  String get copyImage => '複製圖片';
+
+  @override
+  String get copiedToClipboard => '已複製到剪貼簿';
+
+  @override
+  String get copyFailed => '複製圖片失敗';
+
+  @override
+  String get peekOriginal => '按住檢視原圖';
 }

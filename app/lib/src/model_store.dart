@@ -9,8 +9,8 @@ import 'rust/api.dart';
 /// Android, ONNX elsewhere.
 final modelExtensions = [Platform.isAndroid ? '.tflite' : '.onnx'];
 
-/// Version label of the detector bundled inside the app package.
-const bundledModelVersion = '0.5.0';
+/// Fallback version label when `bundled.stamp` is absent (e.g. unit tests).
+const defaultBundledModelVersion = '0.5.0';
 
 bool _isModel(String path) => modelExtensions.any(path.endsWith);
 
@@ -21,6 +21,16 @@ class ModelStore {
   static const _androidChannel = MethodChannel(
     'com.lollipopkit.unseen/bundled_model',
   );
+
+  static String? _cachedBundledVersion;
+  static Future<File?>? _bundledInFlight;
+  static Future<Session?>? _preloaded;
+  static int _preloadGen = 0;
+
+  /// Version string read from `bundled.stamp` next to the bundled model
+  /// (falling back to [defaultBundledModelVersion] before extraction or in tests).
+  static String get bundledModelVersion =>
+      _cachedBundledVersion ?? defaultBundledModelVersion;
 
   static Future<Directory> _dir() async {
     final d = Directory(
@@ -37,14 +47,39 @@ class ModelStore {
     return null;
   }
 
+  static void _readStampNear(File model) {
+    final stamp = File('${model.parent.path}/bundled.stamp');
+    if (!stamp.existsSync()) return;
+    try {
+      final firstLine = stamp.readAsLinesSync().firstOrNull?.trim();
+      if (firstLine != null && firstLine.isNotEmpty) {
+        _cachedBundledVersion = firstLine;
+      }
+    } catch (_) {}
+  }
+
   /// A custom model imported manually by the user (overrides [bundled]).
   static Future<File?> custom() async => _modelIn(await _dir());
 
   /// Whether a user-imported custom model is currently active.
   static Future<bool> hasCustomModel() async => await custom() != null;
 
+  /// Invalidates any in-flight or completed preloaded session, waiting for
+  /// active file reads to finish and disposing the native session to avoid leaks.
+  static Future<void> _invalidatePreload() async {
+    _preloadGen++;
+    final pending = _preloaded;
+    _preloaded = null;
+    if (pending != null) {
+      try {
+        (await pending)?.dispose();
+      } catch (_) {}
+    }
+  }
+
   /// Removes any user-imported custom model so [load] falls back to [bundled].
   static Future<void> clearCustom() async {
+    await _invalidatePreload();
     final d = await _dir();
     for (final f in d.listSync().whereType<File>()) {
       await f.delete();
@@ -55,7 +90,17 @@ class ModelStore {
   ///
   /// - iOS / macOS: opened directly from the read-only app bundle.
   /// - Android: streamed once from APK `assets/models/` into app support.
-  static Future<File?> bundled() async {
+  static Future<File?> bundled() {
+    return _bundledInFlight ??= () async {
+      try {
+        return await _resolveBundled();
+      } finally {
+        _bundledInFlight = null;
+      }
+    }();
+  }
+
+  static Future<File?> _resolveBundled() async {
     if (Platform.isAndroid) {
       final dest = '${(await _dir()).path}/bundled';
       final path = await _androidChannel.invokeMethod<String>('extract', {
@@ -63,7 +108,11 @@ class ModelStore {
       });
       if (path == null) return null;
       final f = File(path);
-      return f.existsSync() && File('${f.path}.json').existsSync() ? f : null;
+      if (f.existsSync() && File('${f.path}.json').existsSync()) {
+        _readStampNear(f);
+        return f;
+      }
+      return null;
     }
     final exeDir = File(Platform.resolvedExecutable).parent;
     final candidates = <Directory>[
@@ -73,18 +122,56 @@ class ModelStore {
       Directory('${exeDir.path}/models'),
     ];
     for (final dir in candidates) {
-      if (_modelIn(dir) case final found?) return found;
+      if (_modelIn(dir) case final found?) {
+        _readStampNear(found);
+        return found;
+      }
     }
     return null;
+  }
+
+  /// Reads the bundled version label from `bundled.stamp` when available.
+  static Future<String> resolveBundledVersion() async {
+    if (_cachedBundledVersion != null) return _cachedBundledVersion!;
+    try {
+      await bundled();
+    } catch (_) {}
+    return bundledModelVersion;
   }
 
   /// The active stored model (custom override first, otherwise bundled).
   static Future<File?> current() async => await custom() ?? await bundled();
 
+  /// Starts loading the active model in the background (e.g. while the user
+  /// reads the first-launch IntroPage) so [takePreloadedOrLoad] finishes immediately.
+  static void preload() {
+    if (_preloaded != null) return;
+    final gen = _preloadGen;
+    _preloaded = load().then((s) {
+      if (gen != _preloadGen) {
+        s?.dispose();
+        return null;
+      }
+      return s;
+    }, onError: (_) => null);
+  }
+
+  /// Returns an already-preloaded session if available, otherwise calls [load].
+  static Future<Session?> takePreloadedOrLoad() async {
+    final pending = _preloaded;
+    _preloaded = null;
+    if (pending != null) {
+      final s = await pending;
+      if (s != null) return s;
+    }
+    return load();
+  }
+
   /// Copies a model and its sidecar, picked together by the user, validates
   /// that the runtime can open it, and only then replaces any previous custom
   /// model so a corrupt import never breaks the active installation.
   static Future<Session> importAndOpen(List<String> paths) async {
+    await _invalidatePreload();
     final (model, sidecar) = pickModelFiles(paths);
     // Pickers may rename what they copy (Android's file_selector gives a
     // file without a registered MIME type another extension), so the format

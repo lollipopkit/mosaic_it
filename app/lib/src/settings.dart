@@ -356,15 +356,13 @@ class _SettingsPageState extends State<SettingsPage> {
           if (widget.info case final i?)
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: Text(switch ((i.domain, i.verified)) {
-                (null, _) => t.notCalibrated,
-                (final d?, false) => t.calibratedUnverified(d),
-                (final d?, true) => t.calibratedFor(d),
-              }),
-              subtitle: Text(
+              title: Text(
                 widget.hasCustomModel
-                    ? i.backend
-                    : '${t.introBundledModelBody(bundledModelVersion)} · ${i.backend}',
+                    ? t.customModel
+                    : t.introBundledModelBody(ModelStore.bundledModelVersion),
+              ),
+              subtitle: Text(
+                '${i.backend} · ${t.modelClassCount(i.classes.length)}',
               ),
             ),
           if (widget.hasCustomModel && widget.onResetModel != null)
@@ -390,7 +388,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ListTile(
             leading: const Icon(Icons.wifi_off_rounded),
             title: Text(t.introOfflineTitle),
-            subtitle: Text(t.introNoNetPermBody),
+            subtitle: Text(platformNoNetPermBody(t)),
           ),
           ListTile(
             leading: const Icon(Icons.info_outline),

@@ -7,6 +7,14 @@ import 'package:unseen/l10n/app_localizations.dart';
 import 'package:unseen/src/boxes.dart';
 import 'package:unseen/src/edit_session.dart';
 import 'package:unseen/src/editor.dart';
+import 'package:unseen/src/editor_page.dart';
+import 'package:unseen/src/rust/api.dart';
+import 'package:unseen/src/settings.dart';
+
+class _FakeSession implements Session {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   // A 1x1 PNG; the editor scales it to the declared image size, which equals
@@ -243,4 +251,57 @@ void main() {
     s.record();
     expect(s.canRedo, isFalse);
   });
+
+  testWidgets(
+    'EditorPage top bar fits 360dp width at 1.3x text scale and toggles peek',
+    (t) async {
+      final boxes = [
+        box(const Rect.fromLTRB(10, 10, 100, 60)),
+        box(const Rect.fromLTRB(120, 10, 200, 60), selected: false),
+      ];
+      final shot = Shot(png, const Size(400, 400), boxes);
+      const info = ModelInfo(
+        classes: ['phone', 'email'],
+        backend: 'CPU',
+        selectThresholds: {'phone': 0.5, 'email': 0.5},
+        verified: false,
+      );
+      await t.binding.setSurfaceSize(const Size(360, 640));
+      addTearDown(() => t.binding.setSurfaceSize(null));
+      await t.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(
+            size: Size(360, 640),
+            textScaler: TextScaler.linear(1.3),
+          ),
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: EditorPage(
+              shots: [shot],
+              settings: AppSettings(
+                fillStyle: FillStyle.solid,
+                fillColor: 0x000000,
+              ),
+              model: _FakeSession(),
+              info: info,
+            ),
+          ),
+        ),
+      );
+      await t.pump();
+      expect(t.takeException(), isNull);
+      expect(find.text('1 / 2'), findsOneWidget);
+
+      // Hold-to-peek swaps the icon and releases cleanly on pointer up.
+      final peekFinder = find.byIcon(Icons.visibility_outlined);
+      expect(peekFinder, findsOneWidget);
+      final gesture = await t.startGesture(t.getCenter(peekFinder));
+      await t.pump();
+      expect(find.byIcon(Icons.visibility), findsOneWidget);
+      await gesture.up();
+      await t.pump();
+      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+    },
+  );
 }

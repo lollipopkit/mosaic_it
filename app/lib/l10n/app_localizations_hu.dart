@@ -102,20 +102,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get regionsTooltip => 'Régiók';
 
   @override
-  String get notCalibrated =>
-      'A modell nem kalibrált: az előválasztás rögzített küszöbértéket használ.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'Nem ellenőrzött adatokon kalibrálva ($domain): a felismerési garancia még nem vonatkozik.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'Kalibrálva $domain típusú képekre. Más típusú képek nem tartoznak a garancia körébe.';
-  }
-
-  @override
   String get cameraPhoto =>
       'Ez egy fényképezőgépes felvétel; az érzékelő képernyőfotókra készült, ezért itt a keretei nem megbízhatóak.';
 
@@ -669,10 +655,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get introNoNetPermTitle => 'Zero network permissions';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
   String get introBundledModelTitle => 'Bundled on-device model';
 
   @override
@@ -694,4 +676,33 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
 }

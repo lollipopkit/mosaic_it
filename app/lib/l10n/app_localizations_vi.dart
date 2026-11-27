@@ -99,20 +99,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get regionsTooltip => 'Các vùng';
 
   @override
-  String get notCalibrated =>
-      'Mô hình chưa được hiệu chuẩn: việc chọn trước sử dụng ngưỡng cố định.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'Đã hiệu chuẩn trên dữ liệu chưa xác minh ($domain): cam kết độ nhạy chưa áp dụng.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'Đã hiệu chuẩn cho hình ảnh $domain. Các loại hình ảnh khác nằm ngoài phạm vi cam kết.';
-  }
-
-  @override
   String get cameraPhoto =>
       'Đây là ảnh chụp bằng máy ảnh; bộ phát hiện được thiết kế cho ảnh chụp màn hình, nên các khung ở đây không đáng tin cậy.';
 
@@ -663,10 +649,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get introNoNetPermTitle => 'Zero network permissions';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
   String get introBundledModelTitle => 'Bundled on-device model';
 
   @override
@@ -688,4 +670,33 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
 }

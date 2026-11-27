@@ -302,24 +302,6 @@ abstract class AppLocalizations {
   /// **'Regions'**
   String get regionsTooltip;
 
-  /// No description provided for @notCalibrated.
-  ///
-  /// In en, this message translates to:
-  /// **'Model is not calibrated: pre-selection uses a fixed threshold.'**
-  String get notCalibrated;
-
-  /// No description provided for @calibratedUnverified.
-  ///
-  /// In en, this message translates to:
-  /// **'Calibrated on unverified data ({domain}): the recall guarantee does not apply yet.'**
-  String calibratedUnverified(String domain);
-
-  /// No description provided for @calibratedFor.
-  ///
-  /// In en, this message translates to:
-  /// **'Calibrated for {domain} images. Other kinds of images are outside the guarantee.'**
-  String calibratedFor(String domain);
-
   /// No description provided for @cameraPhoto.
   ///
   /// In en, this message translates to:
@@ -1208,12 +1190,6 @@ abstract class AppLocalizations {
   /// **'Zero network permissions'**
   String get introNoNetPermTitle;
 
-  /// No description provided for @introNoNetPermBody.
-  ///
-  /// In en, this message translates to:
-  /// **'No Android INTERNET permission · no macOS network entitlement'**
-  String get introNoNetPermBody;
-
   /// No description provided for @introBundledModelTitle.
   ///
   /// In en, this message translates to:
@@ -1255,6 +1231,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open web form'**
   String get feedbackOpenWeb;
+
+  /// No description provided for @introNoNetPermBodyIos.
+  ///
+  /// In en, this message translates to:
+  /// **'No network requests · on-device only'**
+  String get introNoNetPermBodyIos;
+
+  /// No description provided for @introNoNetPermBodyAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'No INTERNET permission declared'**
+  String get introNoNetPermBodyAndroid;
+
+  /// No description provided for @introNoNetPermBodyDesktop.
+  ///
+  /// In en, this message translates to:
+  /// **'No network entitlement in sandbox'**
+  String get introNoNetPermBodyDesktop;
+
+  /// No description provided for @customModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom model'**
+  String get customModel;
+
+  /// No description provided for @modelClassCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} classes'**
+  String modelClassCount(int count);
+
+  /// No description provided for @copyImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy image'**
+  String get copyImage;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
+
+  /// No description provided for @copyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not copy image'**
+  String get copyFailed;
+
+  /// No description provided for @peekOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to compare original'**
+  String get peekOriginal;
 }
 
 class _AppLocalizationsDelegate

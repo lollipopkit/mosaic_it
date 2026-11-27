@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fl_lib/fl_lib.dart' show IntroPage, IntroPageArgs;
 import 'package:material_ui/material_ui.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -10,6 +12,13 @@ import 'store.dart';
 /// Public GitHub repository for MosaicIt (AGPL-3.0).
 const mosaicRepoUrl = 'https://github.com/lollipopkit/mosaic_it';
 const mosaicRepoDisplay = 'github.com/lollipopkit/mosaic_it';
+
+/// Concise platform-specific zero-network fact shown in Intro and Settings.
+String platformNoNetPermBody(AppLocalizations l) {
+  if (Platform.isAndroid) return l.introNoNetPermBodyAndroid;
+  if (Platform.isMacOS) return l.introNoNetPermBodyDesktop;
+  return l.introNoNetPermBodyIos;
+}
 
 /// Opens [url] in the system browser only (`LaunchMode.externalApplication`),
 /// never falling back to an in-app WebView (which would fail without network
@@ -39,13 +48,20 @@ class MosaicIntroPage extends StatefulWidget {
 
 class _MosaicIntroPageState extends State<MosaicIntroPage> {
   PermissionState? _permission;
+  String _modelVersion = ModelStore.bundledModelVersion;
   late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
     _readPermission();
+    _readModelVersion();
     _lifecycle = AppLifecycleListener(onResume: _readPermission);
+  }
+
+  Future<void> _readModelVersion() async {
+    final v = await ModelStore.resolveBundledVersion();
+    if (mounted && v != _modelVersion) setState(() => _modelVersion = v);
   }
 
   @override
@@ -155,13 +171,13 @@ class _MosaicIntroPageState extends State<MosaicIntroPage> {
             ListTile(
               leading: Icon(Icons.shield_outlined, color: scheme.primary),
               title: Text(l.introNoNetPermTitle),
-              subtitle: Text(l.introNoNetPermBody),
+              subtitle: Text(platformNoNetPermBody(l)),
             ),
             const Divider(height: 1),
             ListTile(
               leading: Icon(Icons.memory, color: scheme.primary),
               title: Text(l.introBundledModelTitle),
-              subtitle: Text(l.introBundledModelBody(bundledModelVersion)),
+              subtitle: Text(l.introBundledModelBody(_modelVersion)),
             ),
           ],
         ),
@@ -269,7 +285,7 @@ class _MosaicIntroPageState extends State<MosaicIntroPage> {
         child: ListTile(
           leading: Icon(Icons.check_circle_outline, color: scheme.primary),
           title: Text(l.introBundledReady),
-          subtitle: Text(l.introBundledModelBody(bundledModelVersion)),
+          subtitle: Text(l.introBundledModelBody(_modelVersion)),
         ),
       ),
     ]);

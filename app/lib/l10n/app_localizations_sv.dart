@@ -102,20 +102,6 @@ class AppLocalizationsSv extends AppLocalizations {
   String get regionsTooltip => 'Områden';
 
   @override
-  String get notCalibrated =>
-      'Modellen är inte kalibrerad: förval använder en fast tröskelvärde.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'Kalibrerad på verifierad data ($domain): garanti för träffsäkerhet gäller inte ännu.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'Kalibrerad för $domain-bilder. Andra typer av bilder ligger utanför garantin.';
-  }
-
-  @override
   String get cameraPhoto =>
       'Detta är ett kamerabild; detektorn är gjord för skärmdumpar, så rutor här är opålitliga.';
 
@@ -668,10 +654,6 @@ class AppLocalizationsSv extends AppLocalizations {
   String get introNoNetPermTitle => 'Zero network permissions';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
   String get introBundledModelTitle => 'Bundled on-device model';
 
   @override
@@ -693,4 +675,33 @@ class AppLocalizationsSv extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
 }

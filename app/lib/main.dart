@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'l10n/app_localizations.dart';
 import 'src/home_page.dart';
 import 'src/intro_page.dart';
+import 'src/model_store.dart';
+import 'src/platform_bridge.dart';
 import 'src/rust/frb_generated.dart';
 import 'src/store.dart';
 
@@ -85,6 +87,15 @@ class _RootPage extends StatefulWidget {
 
 class _RootPageState extends State<_RootPage> {
   late bool _introSeen = SettingStore.instance.introSeen.get();
+
+  @override
+  void initState() {
+    super.initState();
+    PlatformBridge.ensureInitialized();
+    // Preload the bundled model in the background while the user reads the
+    // first-launch intro so detection is ready immediately on HomePage.
+    if (!_introSeen) ModelStore.preload();
+  }
 
   @override
   Widget build(BuildContext context) {

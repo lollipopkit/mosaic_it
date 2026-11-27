@@ -21,6 +21,7 @@ import 'boxes.dart';
 import 'edit_session.dart';
 import 'editor.dart';
 import 'l10n.dart';
+import 'platform_bridge.dart';
 import 'settings.dart';
 
 /// The first entry of a box's menu: its class (and score), to change it.
@@ -213,7 +214,14 @@ class _RegionSheetState extends State<_RegionSheet> {
 }
 
 /// Where the export sheet sends the redacted images (or opens feedback).
-enum ExportTarget { share, photos, photosDeleteOriginals, files, feedback }
+enum ExportTarget {
+  copy,
+  share,
+  photos,
+  photosDeleteOriginals,
+  files,
+  feedback,
+}
 
 /// Where to export to, the format and size, and an optional feedback entry.
 /// Settings are saved as they change; the chosen target is returned.
@@ -249,6 +257,8 @@ Future<ExportTarget?> showExportSheet(
       return SheetScaffold.rows(
         title: Text(l.exportSummary(images, regions)),
         rows: [
+          if (images == 1 && PlatformBridge.supportsCopyImage)
+            target(ExportTarget.copy, l.copyImage, Icons.copy_outlined),
           if (mobile) ...[
             target(ExportTarget.share, l.share, Icons.ios_share),
             target(ExportTarget.photos, l.saveToPhotos, Icons.download),

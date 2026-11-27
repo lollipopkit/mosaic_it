@@ -102,20 +102,6 @@ class AppLocalizationsKa extends AppLocalizations {
   String get regionsTooltip => 'რეგიონები';
 
   @override
-  String get notCalibrated =>
-      'მოდელი არ არის კალიბრირებული: წინასწარი არჩევა ფიქსირებულ ზღვარს იყენებს.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'კალიბრირებულია ვერაფრად დადასტურებულ მონაცემებზე ($domain): დახსოვნის გარანტია ჯერ არ მოქმედებს.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'კალიბრირებულია $domain სურათებისთვის. სხვა ტიპის სურათები გარანტიის გარეთაა.';
-  }
-
-  @override
   String get cameraPhoto =>
       'ეს კამერის ფოტოა; დეტექტორი ეკრანის სურათებისთვისაა შექმნილი, ამიტომ აქ მისი ყუთები არაიმედოვანია.';
 
@@ -673,10 +659,6 @@ class AppLocalizationsKa extends AppLocalizations {
   String get introNoNetPermTitle => 'Zero network permissions';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
   String get introBundledModelTitle => 'Bundled on-device model';
 
   @override
@@ -698,4 +680,33 @@ class AppLocalizationsKa extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
 }

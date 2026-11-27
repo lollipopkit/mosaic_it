@@ -96,23 +96,6 @@
   "cancel": "Cancel",
   "exportAnyway": "Export anyway",
   "regionsTooltip": "Regions",
-  "notCalibrated": "Model is not calibrated: pre-selection uses a fixed threshold.",
-  "calibratedUnverified": "Calibrated on unverified data ({domain}): the recall guarantee does not apply yet.",
-  "@calibratedUnverified": {
-    "placeholders": {
-      "domain": {
-        "type": "String"
-      }
-    }
-  },
-  "calibratedFor": "Calibrated for {domain} images. Other kinds of images are outside the guarantee.",
-  "@calibratedFor": {
-    "placeholders": {
-      "domain": {
-        "type": "String"
-      }
-    }
-  },
   "cameraPhoto": "This is a camera photo; the detector is made for screenshots, so its boxes here are unreliable.",
   "modeDraw": "Draw",
   "fillSolid": "Solid colour",
@@ -655,7 +638,6 @@
   "introOfflineTitle": "No network access",
   "introOfflineBody": "MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.",
   "introNoNetPermTitle": "Zero network permissions",
-  "introNoNetPermBody": "No Android INTERNET permission · no macOS network entitlement",
   "introBundledModelTitle": "Bundled on-device model",
   "introBundledModelBody": "unseen-det {version} · on-device",
   "@introBundledModelBody": {
@@ -669,5 +651,21 @@
   "introPhotosGranted": "Photo access granted",
   "resetBundledModel": "Use bundled model",
   "reviewIntro": "Show intro again",
-  "feedbackOpenWeb": "Open web form"
+  "feedbackOpenWeb": "Open web form",
+  "introNoNetPermBodyIos": "No network requests · on-device only",
+  "introNoNetPermBodyAndroid": "No INTERNET permission declared",
+  "introNoNetPermBodyDesktop": "No network entitlement in sandbox",
+  "customModel": "Custom model",
+  "modelClassCount": "{count} classes",
+  "@modelClassCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copyImage": "Copy image",
+  "copiedToClipboard": "Copied to clipboard",
+  "copyFailed": "Could not copy image",
+  "peekOriginal": "Hold to compare original"
 }

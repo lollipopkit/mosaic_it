@@ -101,20 +101,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get regionsTooltip => 'Oblasti';
 
   @override
-  String get notCalibrated =>
-      'Model není kalibrovaný: předvýběr používá pevný práh.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'Kalibrovaný na neověřených datech ($domain): záruka citlivosti zatím neplatí.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'Kalibrovaný pro obrázky $domain. Jiné typy obrázků jsou mimo záruku.';
-  }
-
-  @override
   String get cameraPhoto =>
       'Toto je foto z kamery; detektor je určen pro snímky obrazovky, takže jeho rámečky zde nejsou spolehlivé.';
 
@@ -674,10 +660,6 @@ class AppLocalizationsCs extends AppLocalizations {
   String get introNoNetPermTitle => 'Zero network permissions';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
   String get introBundledModelTitle => 'Bundled on-device model';
 
   @override
@@ -699,4 +681,33 @@ class AppLocalizationsCs extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
 }

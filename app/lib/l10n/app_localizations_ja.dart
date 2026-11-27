@@ -99,19 +99,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get regionsTooltip => '領域';
 
   @override
-  String get notCalibrated => 'モデルはキャリブレーションされていません: 事前選択には固定しきい値が使用されます。';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return '未検証データ ($domain) でキャリブレーションされました: 再現率の保証はまだ適用されません。';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return '$domain 画像用にキャリブレーションされました。他の種類の画像は保証の対象外です。';
-  }
-
-  @override
   String get cameraPhoto =>
       'これはカメラ写真です。検出器はスクリーンショット用に作られているため、ここでのボックスは信頼できません。';
 
@@ -643,39 +630,64 @@ class AppLocalizationsJa extends AppLocalizations {
   String get feedbackBoxPreference => 'Keep visible';
 
   @override
-  String get introOfflineTitle => 'No network access';
+  String get introOfflineTitle => 'ネットワーク機能なし';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+      'MosaicIt には通信コードがなく、ネットワーク権限も要求しません。検出モデルはアプリに内蔵されており、画像や動画は端末外に送信されません。';
 
   @override
-  String get introNoNetPermTitle => 'Zero network permissions';
+  String get introNoNetPermTitle => 'ネットワーク権限ゼロ';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
-  String get introBundledModelTitle => 'Bundled on-device model';
+  String get introBundledModelTitle => '内蔵オンデバイスモデル';
 
   @override
   String introBundledModelBody(String version) {
-    return 'unseen-det $version · on-device';
+    return 'unseen-det $version · 端末内蔵';
   }
 
   @override
-  String get introBundledReady => 'Bundled detector ready';
+  String get introBundledReady => '内蔵モデルの準備完了';
 
   @override
-  String get introPhotosGranted => 'Photo access granted';
+  String get introPhotosGranted => '写真へのアクセスを許可済み';
 
   @override
-  String get resetBundledModel => 'Use bundled model';
+  String get resetBundledModel => '内蔵モデルに戻す';
 
   @override
-  String get reviewIntro => 'Show intro again';
+  String get reviewIntro => 'イントロをもう一度見る';
 
   @override
-  String get feedbackOpenWeb => 'Open web form';
+  String get feedbackOpenWeb => 'ブラウザで送信';
+
+  @override
+  String get introNoNetPermBodyIos => '通信なし・端末内のみで処理';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'INTERNET 権限を未宣言';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'サンドボックスに通信権限なし';
+
+  @override
+  String get customModel => 'カスタムモデル';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count クラス';
+  }
+
+  @override
+  String get copyImage => '画像をコピー';
+
+  @override
+  String get copiedToClipboard => 'クリップボードにコピーしました';
+
+  @override
+  String get copyFailed => '画像をコピーできませんでした';
+
+  @override
+  String get peekOriginal => '長押しで元の画像を表示';
 }

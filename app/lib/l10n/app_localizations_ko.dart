@@ -99,19 +99,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get regionsTooltip => '영역';
 
   @override
-  String get notCalibrated => '모델이 보정되지 않았습니다: 사전 선택에 고정 임계값이 사용됩니다.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return '검증되지 않은 데이터($domain)로 보정됨: 재현율 보증이 아직 적용되지 않습니다.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return '$domain 이미지에 대해 보정됨. 다른 유형의 이미지는 보증 범위 밖입니다.';
-  }
-
-  @override
   String get cameraPhoto =>
       '이것은 카메라 사진입니다. 감지기는 스크린샷용으로 만들어졌으므로 여기의 박스는 신뢰할 수 없습니다.';
 
@@ -643,39 +630,64 @@ class AppLocalizationsKo extends AppLocalizations {
   String get feedbackBoxPreference => 'Keep visible';
 
   @override
-  String get introOfflineTitle => 'No network access';
+  String get introOfflineTitle => '네트워크 기능 없음';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+      'MosaicIt에는 네트워크 코드가 없으며 네트워크 권한도 요청하지 않습니다. 감지 모델이 앱에 내장되어 있어 이미지와 동영상이 기기 밖으로 전송되지 않습니다.';
 
   @override
-  String get introNoNetPermTitle => 'Zero network permissions';
+  String get introNoNetPermTitle => '네트워크 권한 없음';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
-  String get introBundledModelTitle => 'Bundled on-device model';
+  String get introBundledModelTitle => '내장 온디바이스 모델';
 
   @override
   String introBundledModelBody(String version) {
-    return 'unseen-det $version · on-device';
+    return 'unseen-det $version · 기기 내장';
   }
 
   @override
-  String get introBundledReady => 'Bundled detector ready';
+  String get introBundledReady => '내장 모델 준비 완료';
 
   @override
-  String get introPhotosGranted => 'Photo access granted';
+  String get introPhotosGranted => '사진 접근 권한 허용됨';
 
   @override
-  String get resetBundledModel => 'Use bundled model';
+  String get resetBundledModel => '내장 모델로 복원';
 
   @override
-  String get reviewIntro => 'Show intro again';
+  String get reviewIntro => '소개 다시 보기';
 
   @override
-  String get feedbackOpenWeb => 'Open web form';
+  String get feedbackOpenWeb => '브라우저에서 제출';
+
+  @override
+  String get introNoNetPermBodyIos => '네트워크 요청 없음 · 기기 내 처리';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'INTERNET 권한 미선언';
+
+  @override
+  String get introNoNetPermBodyDesktop => '샌드박스에 네트워크 권한 없음';
+
+  @override
+  String get customModel => '사용자 지정 모델';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count개 클래스';
+  }
+
+  @override
+  String get copyImage => '이미지 복사';
+
+  @override
+  String get copiedToClipboard => '클립보드에 복사됨';
+
+  @override
+  String get copyFailed => '이미지를 복사할 수 없음';
+
+  @override
+  String get peekOriginal => '길게 눌러 원본 비교';
 }

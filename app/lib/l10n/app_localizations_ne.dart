@@ -102,20 +102,6 @@ class AppLocalizationsNe extends AppLocalizations {
   String get regionsTooltip => 'क्षेत्रहरू';
 
   @override
-  String get notCalibrated =>
-      'मोडेल क्यालिब्रेट गरिएको छैन: पूर्व-छनोट एउटा निश्चित थ्रेसहोल्ड प्रयोग गर्दछ।';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'असत्यापित डेटामा ($domain) क्यालिब्रेट गरिएको: रिक्ल ग्यारेन्टी अहिले लागू हुँदैन।';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return '$domain तस्बिरहरूका लागि क्यालिब्रेट गरिएको। अन्य प्रकारका तस्बिरहरू ग्यारेन्टी बाहिर छन्।';
-  }
-
-  @override
   String get cameraPhoto =>
       'यो क्यामेरा तस्बिर हो; डिटेक्टर स्क्रिनसटका लागि बनाइएको छ, त्यसैले यहाँका बक्सहरू विश्वसनीय हुँदैनन्।';
 
@@ -668,10 +654,6 @@ class AppLocalizationsNe extends AppLocalizations {
   String get introNoNetPermTitle => 'Zero network permissions';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
   String get introBundledModelTitle => 'Bundled on-device model';
 
   @override
@@ -693,4 +675,33 @@ class AppLocalizationsNe extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
 }

@@ -101,20 +101,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get regionsTooltip => 'Područja';
 
   @override
-  String get notCalibrated =>
-      'Model nije kalibriran: preodabir koristi fiksni prag.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'Kalibrirano na neprovjerenim podacima ($domain): garancija prepoznavanja još ne vrijedi.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'Kalibrirano za slike $domain. Ostale vrste slika nisu pokrivene garancijom.';
-  }
-
-  @override
   String get cameraPhoto =>
       'Ovo je fotografija s kamere; detektor je namijenjen za snimke ekrana, pa su ovdje njegovi okviri nepouzdani.';
 
@@ -673,10 +659,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get introNoNetPermTitle => 'Zero network permissions';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
   String get introBundledModelTitle => 'Bundled on-device model';
 
   @override
@@ -698,4 +680,33 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
 }

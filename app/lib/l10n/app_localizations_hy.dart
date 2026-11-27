@@ -102,20 +102,6 @@ class AppLocalizationsHy extends AppLocalizations {
   String get regionsTooltip => 'Տարածքներ';
 
   @override
-  String get notCalibrated =>
-      'Մոդելը չի կալիբրված. նախնական ընտրությունը օգտագործում է ֆիքսված շեմ։';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'Կալիբրված է ստուգված տվյալների վրա ($domain). Հիշողության երաշխիքը դեռ չի կիրառվում։';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'Կալիբրված է $domain նկարների համար։ Այլ տեսակի նկարները երաշխիքի սահմաններից դուրս են։';
-  }
-
-  @override
   String get cameraPhoto =>
       'Սա ֆոտոխցիկի նկար է. հայտնաբերիչը նախատեսված է էկրանի նկարների համար, ուստի այստեղ նրա քառակուսիները անհուսալի են։';
 
@@ -669,10 +655,6 @@ class AppLocalizationsHy extends AppLocalizations {
   String get introNoNetPermTitle => 'Zero network permissions';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
   String get introBundledModelTitle => 'Bundled on-device model';
 
   @override
@@ -694,4 +676,33 @@ class AppLocalizationsHy extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
 }

@@ -102,20 +102,6 @@ class AppLocalizationsBn extends AppLocalizations {
   String get regionsTooltip => 'অঞ্চল';
 
   @override
-  String get notCalibrated =>
-      'মডেলটি ক্যালিব্রেট করা হয়নি: প্রি-নির্বাচন একটি নির্দিষ্ট থ্রেশহোল্ড ব্যবহার করে।';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'অনিশ্চিত ডেটা ($domain)-এ ক্যালিব্রেট করা হয়েছে: রিকল গ্যারান্টি এখনও প্রযোজ্য নয়।';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return '$domain ছবির জন্য ক্যালিব্রেট করা হয়েছে। অন্যান্য ধরনের ছবি গ্যারান্টির বাইরে।';
-  }
-
-  @override
   String get cameraPhoto =>
       'এটি একটি ক্যামেরা ছবি; ডিটেক্টরটি স্ক্রিনশটের জন্য তৈরি, তাই এখানে এর বক্সগুলি নির্ভরযোগ্য নয়।';
 
@@ -669,10 +655,6 @@ class AppLocalizationsBn extends AppLocalizations {
   String get introNoNetPermTitle => 'Zero network permissions';
 
   @override
-  String get introNoNetPermBody =>
-      'No Android INTERNET permission · no macOS network entitlement';
-
-  @override
   String get introBundledModelTitle => 'Bundled on-device model';
 
   @override
@@ -694,4 +676,33 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
 }

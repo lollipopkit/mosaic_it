@@ -18,6 +18,7 @@ import 'editor.dart';
 import 'editor_menus.dart';
 import 'feedback.dart';
 import 'feedback_sheet.dart';
+import 'platform_bridge.dart';
 import 'rust/api.dart';
 import 'settings.dart';
 import 'store.dart';
@@ -57,6 +58,9 @@ class _EditorPageState extends State<EditorPage> {
   /// On from the start: a missed value is one drag away; two fingers move
   /// the view.
   bool _drawing = true;
+  bool _peeking = false;
+  final _peekPointers = <int>{};
+  late final AppLifecycleListener _lifecycle;
   String? _busy;
 
   /// Taps on boxes merge them into [_mergeFrom] (the first one tapped when
@@ -75,7 +79,29 @@ class _EditorPageState extends State<EditorPage> {
   static final _mobile = Platform.isIOS || Platform.isAndroid;
 
   @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(
+      onInactive: _stopPeeking,
+      onHide: _stopPeeking,
+    );
+  }
+
+  void _stopPeeking() {
+    _peekPointers.clear();
+    if (_peeking && mounted) setState(() => _peeking = false);
+  }
+
+  @override
+  void deactivate() {
+    _peekPointers.clear();
+    _peeking = false;
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
+    _lifecycle.dispose();
     _s.dispose();
     super.dispose();
   }
@@ -239,10 +265,10 @@ class _EditorPageState extends State<EditorPage> {
     final shots = _s.shots;
     final ext = widget.settings.exportFormat.extension;
     String name(Shot s) => '${_stem(s)}-redacted.$ext';
-    // Where each shot is written: a temp dir on phones, a chosen file or
-    // folder on desktops.
+    // Where each shot is written: a temp dir on phones (or for clipboard copy),
+    // a chosen file or folder on desktops.
     final Map<Shot, String> targets;
-    if (_mobile) {
+    if (_mobile || target == ExportTarget.copy) {
       final dir = await getTemporaryDirectory();
       targets = {for (final shot in shots) shot: '${dir.path}/${name(shot)}'};
     } else if (shots.length == 1) {
@@ -282,6 +308,22 @@ class _EditorPageState extends State<EditorPage> {
             },
           );
     switch (target) {
+      case ExportTarget.copy:
+        final outPath = written.values.first;
+        var ok = false;
+        try {
+          ok = await PlatformBridge.copyImageToClipboard(outPath);
+        } finally {
+          try {
+            await File(outPath).delete();
+          } catch (_) {}
+        }
+        if (mounted) {
+          _toast(
+            ok ? _l.copiedToClipboard : _l.copyFailed,
+            action: ok ? feedbackAction : null,
+          );
+        }
       case ExportTarget.share:
         await SharePlus.instance.share(
           ShareParams(files: [for (final p in written.values) XFile(p)]),
@@ -519,6 +561,7 @@ class _EditorPageState extends State<EditorPage> {
               merging: _merging,
               mergeFrom: _mergeFrom,
               onMergePick: _mergePick,
+              peekOriginal: _peeking,
               fitPadding: EdgeInsets.fromLTRB(
                 12,
                 inset.top + _topBar,
@@ -554,7 +597,7 @@ class _EditorPageState extends State<EditorPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Frosted(
                           child: Row(
                             children: [
@@ -572,21 +615,77 @@ class _EditorPageState extends State<EditorPage> {
                           ),
                         ),
                         const Spacer(),
-                        Frosted(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 9,
+                        () {
+                          final button = Semantics(
+                            button: true,
+                            label: _l.peekOriginal,
+                            child: Listener(
+                              behavior: HitTestBehavior.opaque,
+                              onPointerDown: (e) {
+                                _peekPointers.add(e.pointer);
+                                if (!_peeking) setState(() => _peeking = true);
+                              },
+                              onPointerUp: (e) {
+                                _peekPointers.remove(e.pointer);
+                                if (_peekPointers.isEmpty && _peeking) {
+                                  setState(() => _peeking = false);
+                                }
+                              },
+                              onPointerCancel: (e) {
+                                _peekPointers.remove(e.pointer);
+                                if (_peekPointers.isEmpty && _peeking) {
+                                  setState(() => _peeking = false);
+                                }
+                              },
+                              child: SizedBox.square(
+                                dimension: 48,
+                                child: Center(
+                                  child: Icon(
+                                    _peeking
+                                        ? Icons.visibility
+                                        : Icons.visibility_outlined,
+                                    size: 20,
+                                    color: _peeking ? scheme.primary : null,
+                                  ),
+                                ),
+                              ),
                             ),
-                            child: Text(
-                              _l.selectedOf(selected, shot.boxes.length),
-                              style: const TextStyle(
-                                fontFeatures: [ui.FontFeature.tabularFigures()],
+                          );
+                          return Frosted(
+                            shape: const CircleBorder(),
+                            child: _mobile
+                                ? button
+                                : Tooltip(
+                                    message: _l.peekOriginal,
+                                    child: button,
+                                  ),
+                          );
+                        }(),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Semantics(
+                            label: _l.selectedOf(selected, shot.boxes.length),
+                            child: Frosted(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
+                                child: Text(
+                                  '$selected / ${shot.boxes.length}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontFeatures: [
+                                      ui.FontFeature.tabularFigures(),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         IconButton.filled(
                           style: const ButtonStyle(
                             fixedSize: WidgetStatePropertyAll(Size.square(48)),
