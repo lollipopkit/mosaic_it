@@ -13,18 +13,16 @@ No CocoaPods: plugins come in through Swift Package Manager (enabled in
 hook in `hook/build.dart` (frb's `FlutterRustBridgeNativeAssetsBuilder`). The
 toolchain and targets are pinned in `crates/unseen-ffi/rust-toolchain.toml`.
 iOS simulators are arm64 only (ONNX Runtime has no x86_64 simulator build).
-On Android the hook links the NDK C++ runtime statically (`ORT_CXX_STDLIB`,
-plus `c++abi` from `crates/unseen-ffi/build.rs`) so the APK ships no
-`libc++_shared.so`; inference uses NNAPI, the only EP in ORT's prebuilt
-Android binaries.
+Android runs `.tflite` models on LiteRT (GPU, else CPU) and ships no ONNX
+Runtime; the APK is arm64-v8a only.
 
 On phones images come from Photos (`image_picker`; iOS photos arrive as JPEG
 since the decoder has no HEIC) and exports go to the share sheet
 (`share_plus`); desktops use file dialogs.
 
 The model is downloaded on first launch ([docs/release.md](../docs/release.md)).
-A model can also be imported by hand: the `*.onnx` together with its
-`*.onnx.json` sidecar ([docs/model.md](../docs/model.md)). On narrow screens the region list is in a drawer.
+A model can also be imported by hand: the `*.onnx` (`*.tflite` on Android)
+together with its `.json` sidecar ([docs/model.md](../docs/model.md)). On narrow screens the region list is in a drawer.
 
 - Open several images at once; a strip at the bottom switches between them,
   "Find similar" searches all of them, and Export checks and writes each.

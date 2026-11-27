@@ -128,7 +128,7 @@ class _VideoPageState extends State<VideoPage> {
           selected: _on.contains(b.track),
           review: s.tracks[b.track].state == RegionState.review,
           suggested: s.tracks[b.track].state == RegionState.suggested,
-          // Video boxes are not collected; tracks keep their own origin.
+          // Tracks keep their own origin.
           source: BoxSource.detector,
         ),
       ),
@@ -350,7 +350,6 @@ class _VideoPageState extends State<VideoPage> {
         // One view (fit, zoom) for the whole video.
         key: ValueKey(widget.video.path),
         session: session,
-        kind: EditorKind.redact,
         drawing: _drawing,
         fill: widget.fill,
       ),

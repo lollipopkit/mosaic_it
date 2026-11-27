@@ -63,6 +63,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  Map<String, double> dco_decode_Map_String_f_32_None(dynamic raw);
+
+  @protected
   Session
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSession(
     dynamic raw,
@@ -161,6 +164,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<(String, double)> dco_decode_list_record_string_f_32(dynamic raw);
+
+  @protected
   List<Region> dco_decode_list_region(dynamic raw);
 
   @protected
@@ -198,6 +204,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PreviewPatch dco_decode_preview_patch(dynamic raw);
+
+  @protected
+  (String, double) dco_decode_record_string_f_32(dynamic raw);
 
   @protected
   Region dco_decode_region(dynamic raw);
@@ -265,6 +274,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   VideoProject
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVideoProject(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  Map<String, double> sse_decode_Map_String_f_32_None(
     SseDeserializer deserializer,
   );
 
@@ -375,6 +389,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<(String, double)> sse_decode_list_record_string_f_32(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<Region> sse_decode_list_region(SseDeserializer deserializer);
 
   @protected
@@ -418,6 +437,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PreviewPatch sse_decode_preview_patch(SseDeserializer deserializer);
+
+  @protected
+  (String, double) sse_decode_record_string_f_32(SseDeserializer deserializer);
 
   @protected
   Region sse_decode_region(SseDeserializer deserializer);
@@ -495,6 +517,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerVideoProject(
     VideoProject self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_Map_String_f_32_None(
+    Map<String, double> self,
     SseSerializer serializer,
   );
 
@@ -636,6 +664,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_record_string_f_32(
+    List<(String, double)> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_region(List<Region> self, SseSerializer serializer);
 
   @protected
@@ -685,6 +719,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_preview_patch(PreviewPatch self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_record_string_f_32(
+    (String, double) self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_region(Region self, SseSerializer serializer);

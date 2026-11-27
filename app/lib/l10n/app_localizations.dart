@@ -236,24 +236,6 @@ abstract class AppLocalizations {
   /// **'{found} similar regions selected ({added} new) across {images} images'**
   String similarSelectedAcross(int found, int added, int images);
 
-  /// Confirm button of the label file picker
-  ///
-  /// In en, this message translates to:
-  /// **'Review'**
-  String get reviewButton;
-
-  /// No description provided for @openingLabels.
-  ///
-  /// In en, this message translates to:
-  /// **'Opening labels…'**
-  String get openingLabels;
-
-  /// No description provided for @noImagesIn.
-  ///
-  /// In en, this message translates to:
-  /// **'No images in {name}'**
-  String noImagesIn(String name);
-
   /// No description provided for @saving.
   ///
   /// In en, this message translates to:
@@ -314,12 +296,6 @@ abstract class AppLocalizations {
   /// **'Export anyway'**
   String get exportAnyway;
 
-  /// No description provided for @reviewPseudoLabels.
-  ///
-  /// In en, this message translates to:
-  /// **'Review pseudo-labels (folder with coco.json)'**
-  String get reviewPseudoLabels;
-
   /// No description provided for @regionsTooltip.
   ///
   /// In en, this message translates to:
@@ -374,12 +350,6 @@ abstract class AppLocalizations {
   /// **'Noise'**
   String get fillNoise;
 
-  /// No description provided for @verifyNext.
-  ///
-  /// In en, this message translates to:
-  /// **'Verify & next'**
-  String get verifyNext;
-
   /// No description provided for @export.
   ///
   /// In en, this message translates to:
@@ -389,8 +359,8 @@ abstract class AppLocalizations {
   /// No description provided for @pickOneModel.
   ///
   /// In en, this message translates to:
-  /// **'Pick exactly one .onnx model'**
-  String get pickOneModel;
+  /// **'Pick exactly one {formats} model'**
+  String pickOneModel(String formats);
 
   /// No description provided for @pickSidecar.
   ///
@@ -554,12 +524,6 @@ abstract class AppLocalizations {
   /// **'Manual'**
   String get classManual;
 
-  /// No description provided for @noLabelsIn.
-  ///
-  /// In en, this message translates to:
-  /// **'No coco.json in {name}'**
-  String noLabelsIn(String name);
-
   /// No description provided for @savedModelFailed.
   ///
   /// In en, this message translates to:
@@ -584,59 +548,17 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settings;
 
-  /// Label of the finance region class: personal money amounts (balance, transfer, income)
+  /// Label of the finance region class: money amounts tied to the person (balance, transfer, income, payment, bill)
   ///
   /// In en, this message translates to:
   /// **'Finance'**
   String get classFinance;
-
-  /// No description provided for @collectTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Collect training data'**
-  String get collectTitle;
-
-  /// No description provided for @collectSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Keep each exported image, the detected boxes and your choices on this device to train future models. Nothing is uploaded.'**
-  String get collectSubtitle;
-
-  /// No description provided for @collectStats.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} images · {size}'**
-  String collectStats(int count, String size);
-
-  /// No description provided for @collectDelete.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete collected data'**
-  String get collectDelete;
-
-  /// No description provided for @collectDeleteConfirm.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete all collected images and choices from this device?'**
-  String get collectDeleteConfirm;
 
   /// No description provided for @delete.
   ///
   /// In en, this message translates to:
   /// **'Delete'**
   String get delete;
-
-  /// No description provided for @collectFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not save training data: {error}'**
-  String collectFailed(String error);
-
-  /// No description provided for @labelsSaved.
-  ///
-  /// In en, this message translates to:
-  /// **'Saved labels for {count} images'**
-  String labelsSaved(int count);
 
   /// Toolbar button: undo the last change to the boxes.
   ///
@@ -698,108 +620,6 @@ abstract class AppLocalizations {
   /// **'Choose a class'**
   String get pickClass;
 
-  /// Title bar while annotating (labelling images by hand to make training data): which image of the queue, e.g. 'Annotate 2 / 5'.
-  ///
-  /// In en, this message translates to:
-  /// **'Annotate {index} / {total}'**
-  String annotateOf(int index, int total);
-
-  /// Toggle chip while annotating: show the detector's boxes as suggestions the user can accept.
-  ///
-  /// In en, this message translates to:
-  /// **'Suggestions'**
-  String get suggestions;
-
-  /// Button while annotating: leave this image undecided and go to the next.
-  ///
-  /// In en, this message translates to:
-  /// **'Skip'**
-  String get skip;
-
-  /// Button while annotating: this image contains no private information; save it as such.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing private'**
-  String get nothingPrivate;
-
-  /// Main button while annotating: save the boxes of this image and go to the next image.
-  ///
-  /// In en, this message translates to:
-  /// **'Next'**
-  String get next;
-
-  /// Hint over the image while annotating: tap a line of text to put a box on it, or drag a finger to draw a box.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap a text line to box it, or drag to draw'**
-  String get annotateHint;
-
-  /// Page title and menu item: the training data the user made by annotating images on this device.
-  ///
-  /// In en, this message translates to:
-  /// **'Annotation data'**
-  String get annotationData;
-
-  /// Count label: images annotated with boxes.
-  ///
-  /// In en, this message translates to:
-  /// **'Labelled'**
-  String get statLabeled;
-
-  /// Count label and tag: images marked as containing nothing private.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing private'**
-  String get statEmpty;
-
-  /// Count label and tag: images skipped while annotating.
-  ///
-  /// In en, this message translates to:
-  /// **'Skipped'**
-  String get statSkipped;
-
-  /// Section header: number of boxes for each kind of private information.
-  ///
-  /// In en, this message translates to:
-  /// **'Boxes per class'**
-  String get boxesPerClass;
-
-  /// Section header: list of annotated images.
-  ///
-  /// In en, this message translates to:
-  /// **'Images'**
-  String get imagesHeader;
-
-  /// Tag on an annotated image: how many boxes it has.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 box} other{{count} boxes}}'**
-  String boxCount(int count);
-
-  /// Button: share all annotation data as one file.
-  ///
-  /// In en, this message translates to:
-  /// **'Export all'**
-  String get exportAll;
-
-  /// Menu item: delete all annotation data.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete all'**
-  String get deleteAll;
-
-  /// Confirmation before deleting all annotations and their images from this phone.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete all annotations and their images from this device?'**
-  String get annotateDeleteConfirm;
-
-  /// Empty state: nothing annotated yet; select images in the gallery and tap Annotate.
-  ///
-  /// In en, this message translates to:
-  /// **'No annotations yet. Select images and choose Annotate.'**
-  String get noAnnotations;
-
   /// Gallery filter chip: the Screenshots album.
   ///
   /// In en, this message translates to:
@@ -848,23 +668,11 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Redact 1 image} other{Redact {count} images}}'**
   String redactImages(int count);
 
-  /// Button after selecting photos: label them by hand to make training data (annotate).
-  ///
-  /// In en, this message translates to:
-  /// **'Annotate'**
-  String get annotate;
-
   /// Small tag on a gallery thumbnail: this photo was already redacted and exported.
   ///
   /// In en, this message translates to:
   /// **'Redacted'**
   String get badgeRedacted;
-
-  /// Small tag on a gallery thumbnail: this photo was already annotated.
-  ///
-  /// In en, this message translates to:
-  /// **'Annotated'**
-  String get badgeAnnotated;
 
   /// Shown when the app has no photo access: why it needs it, and that photos never leave the phone.
   ///
@@ -986,12 +794,6 @@ abstract class AppLocalizations {
   /// **'Data and privacy'**
   String get dataPrivacy;
 
-  /// Note under collected data: it stays on this phone, never in iCloud or backups.
-  ///
-  /// In en, this message translates to:
-  /// **'Kept on this device only, never in iCloud or backups.'**
-  String get localOnly;
-
   /// Settings section header: the detection model.
   ///
   /// In en, this message translates to:
@@ -1057,6 +859,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Secret'**
   String get classSecret;
+
+  /// Class of private information: a picture of a real person or part of one (body, selfie, video call).
+  ///
+  /// In en, this message translates to:
+  /// **'Person'**
+  String get classPerson;
+
+  /// Class of private information: health data (sleep, heart rate, weight, diagnosis, medication).
+  ///
+  /// In en, this message translates to:
+  /// **'Health'**
+  String get classHealth;
+
+  /// Class of private information: other details tied to a person (gender, age, birthday, relatives, job, dates of personal events).
+  ///
+  /// In en, this message translates to:
+  /// **'Personal info'**
+  String get classPersonalInfo;
 
   /// Editor top bar: selected regions of the shown image
   ///
@@ -1243,6 +1063,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{value}%'**
   String percent(int value);
+
+  /// Settings toggle: adjust per-class pre-selection thresholds locally on this device from user edits.
+  ///
+  /// In en, this message translates to:
+  /// **'Local adaptive pre-selection'**
+  String get adaptivePreselectTitle;
+
+  /// No description provided for @adaptiveLearnedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 class adjusted} other{{count} classes adjusted}}'**
+  String adaptiveLearnedCount(int count);
+
+  /// No description provided for @adaptiveReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset local preferences'**
+  String get adaptiveReset;
+
+  /// No description provided for @adaptiveResetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Local preferences reset'**
+  String get adaptiveResetDone;
+
+  /// No description provided for @feedbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report detection issue'**
+  String get feedbackTitle;
+
+  /// No description provided for @feedbackShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback'**
+  String get feedbackShort;
+
+  /// No description provided for @feedbackMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Report issue'**
+  String get feedbackMenu;
+
+  /// No description provided for @feedbackAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get feedbackAction;
+
+  /// No description provided for @feedbackSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit'**
+  String get feedbackSubmit;
+
+  /// No description provided for @feedbackDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get feedbackDone;
+
+  /// No description provided for @feedbackSentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback sent'**
+  String get feedbackSentTitle;
+
+  /// No description provided for @feedbackAttachScreenshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach screenshot'**
+  String get feedbackAttachScreenshot;
+
+  /// No description provided for @feedbackModeMasked.
+  ///
+  /// In en, this message translates to:
+  /// **'Errors only'**
+  String get feedbackModeMasked;
+
+  /// No description provided for @feedbackModeFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full image'**
+  String get feedbackModeFull;
+
+  /// No description provided for @feedbackModeText.
+  ///
+  /// In en, this message translates to:
+  /// **'No image'**
+  String get feedbackModeText;
+
+  /// No description provided for @feedbackTagMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get feedbackTagMissed;
+
+  /// No description provided for @feedbackTagFalsePositive.
+  ///
+  /// In en, this message translates to:
+  /// **'False positive'**
+  String get feedbackTagFalsePositive;
+
+  /// No description provided for @feedbackTagBoxDrift.
+  ///
+  /// In en, this message translates to:
+  /// **'Box drift'**
+  String get feedbackTagBoxDrift;
+
+  /// No description provided for @feedbackTagWrongClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong class'**
+  String get feedbackTagWrongClass;
+
+  /// No description provided for @feedbackTagOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get feedbackTagOther;
+
+  /// No description provided for @feedbackNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional note…'**
+  String get feedbackNoteHint;
+
+  /// No description provided for @feedbackCountMasked.
+  ///
+  /// In en, this message translates to:
+  /// **'Masked {count}'**
+  String feedbackCountMasked(int count);
+
+  /// No description provided for @feedbackCountMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed {count}'**
+  String feedbackCountMissed(int count);
+
+  /// No description provided for @feedbackCountFp.
+  ///
+  /// In en, this message translates to:
+  /// **'False positive {count}'**
+  String feedbackCountFp(int count);
+
+  /// No description provided for @feedbackCountPreference.
+  ///
+  /// In en, this message translates to:
+  /// **'Unchecked {count}'**
+  String feedbackCountPreference(int count);
+
+  /// No description provided for @feedbackBoxMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed'**
+  String get feedbackBoxMissed;
+
+  /// No description provided for @feedbackBoxMissedMasked.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed · masked'**
+  String get feedbackBoxMissedMasked;
+
+  /// No description provided for @feedbackBoxFp.
+  ///
+  /// In en, this message translates to:
+  /// **'False positive'**
+  String get feedbackBoxFp;
+
+  /// No description provided for @feedbackBoxPreference.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep visible'**
+  String get feedbackBoxPreference;
 }
 
 class _AppLocalizationsDelegate

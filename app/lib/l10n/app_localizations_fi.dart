@@ -49,17 +49,6 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get reviewButton => 'Tarkista';
-
-  @override
-  String get openingLabels => 'Avataan merkintöjä…';
-
-  @override
-  String noImagesIn(String name) {
-    return 'Ei kuvia kohdassa $name';
-  }
-
-  @override
   String get saving => 'Tallennetaan…';
 
   @override
@@ -110,10 +99,6 @@ class AppLocalizationsFi extends AppLocalizations {
   String get exportAnyway => 'Vie silti';
 
   @override
-  String get reviewPseudoLabels =>
-      'Tarkista vääriä merkkejä (kansio, jossa on coco.json)';
-
-  @override
   String get regionsTooltip => 'Alueet';
 
   @override
@@ -147,13 +132,12 @@ class AppLocalizationsFi extends AppLocalizations {
   String get fillNoise => 'Melu';
 
   @override
-  String get verifyNext => 'Vahvista ja seuraava';
-
-  @override
   String get export => 'Vie';
 
   @override
-  String get pickOneModel => 'Valitse täsmälleen yksi .onnx-malli';
+  String pickOneModel(String formats) {
+    return 'Valitse täsmälleen yksi $formats-malli';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -262,11 +246,6 @@ class AppLocalizationsFi extends AppLocalizations {
   String get classManual => 'Manuaalinen';
 
   @override
-  String noLabelsIn(String name) {
-    return 'Ei coco.json-tiedostoa kohdassa $name';
-  }
-
-  @override
   String savedModelFailed(String error) {
     return 'Tallennettua mallia ei voitu ladata; valitse malli uudelleen. ($error)';
   }
@@ -284,36 +263,7 @@ class AppLocalizationsFi extends AppLocalizations {
   String get classFinance => 'Summa';
 
   @override
-  String get collectTitle => 'Kerää opetusdataa';
-
-  @override
-  String get collectSubtitle =>
-      'Tallenna jokainen viety kuva, tunnistetut alueet ja valintasi tälle laitteelle tulevien mallien opettamiseen. Mitään ei ladata palvelimelle.';
-
-  @override
-  String collectStats(int count, String size) {
-    return '$count kuvaa · $size';
-  }
-
-  @override
-  String get collectDelete => 'Poista kerätyt tiedot';
-
-  @override
-  String get collectDeleteConfirm =>
-      'Poistetaanko kaikki kerätyt kuvat ja valinnat tältä laitteelta?';
-
-  @override
   String get delete => 'Poista';
-
-  @override
-  String collectFailed(String error) {
-    return 'Opetusdataa ei voitu tallentaa: $error';
-  }
-
-  @override
-  String labelsSaved(int count) {
-    return 'Merkinnät tallennettu $count kuvalle';
-  }
 
   @override
   String get undo => 'Kumoa';
@@ -361,74 +311,6 @@ class AppLocalizationsFi extends AppLocalizations {
   String get pickClass => 'Valitse luokka';
 
   @override
-  String annotateOf(int index, int total) {
-    return 'Merkitse $index / $total';
-  }
-
-  @override
-  String get suggestions => 'Ehdotukset';
-
-  @override
-  String get skip => 'Ohita';
-
-  @override
-  String get nothingPrivate => 'Ei yksityistä';
-
-  @override
-  String get next => 'Seuraava';
-
-  @override
-  String get annotateHint =>
-      'Kosketa tekstiriviä rajataksesi sen tai vedä piirtääksesi rajan';
-
-  @override
-  String get annotationData => 'Merkitsemistiedot';
-
-  @override
-  String get statLabeled => 'Merkitty';
-
-  @override
-  String get statEmpty => 'Ei yksityistä';
-
-  @override
-  String get statSkipped => 'Ohitettu';
-
-  @override
-  String get boxesPerClass => 'Rajat luokan mukaan';
-
-  @override
-  String get imagesHeader => 'Kuvat';
-
-  @override
-  String boxCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count rajaa',
-      many: '$count rajaa',
-      few: '$count rajaa',
-      two: '2 rajaa',
-      one: '1 raja',
-      zero: '0 rajaa',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportAll => 'Vie kaikki';
-
-  @override
-  String get deleteAll => 'Poista kaikki';
-
-  @override
-  String get annotateDeleteConfirm =>
-      'Haluatko poistaa kaikki merkinnät ja niiden kuvat tältä laitteelta?';
-
-  @override
-  String get noAnnotations =>
-      'Ei vielä merkintöjä. Valitse kuvia ja valitse Merkitse.';
-
-  @override
   String get filterScreenshots => 'Kuvakaappaukset';
 
   @override
@@ -467,13 +349,7 @@ class AppLocalizationsFi extends AppLocalizations {
   }
 
   @override
-  String get annotate => 'Merkitse';
-
-  @override
   String get badgeRedacted => 'Piilotettu';
-
-  @override
-  String get badgeAnnotated => 'Merkitty';
 
   @override
   String get photosDenied =>
@@ -537,10 +413,6 @@ class AppLocalizationsFi extends AppLocalizations {
   String get dataPrivacy => 'Tiedot ja yksityisyys';
 
   @override
-  String get localOnly =>
-      'Säilytetään vain tällä laitteella, ei koskaan iCloudissa tai varmuuskopioissa.';
-
-  @override
   String get model => 'Malli';
 
   @override
@@ -573,6 +445,15 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get classSecret => 'Salaisuus';
+
+  @override
+  String get classPerson => 'Henkilö';
+
+  @override
+  String get classHealth => 'Terveys';
+
+  @override
+  String get classPersonalInfo => 'Henkilötiedot';
 
   @override
   String selectedOf(int selected, int total) {
@@ -701,4 +582,107 @@ class AppLocalizationsFi extends AppLocalizations {
   String percent(int value) {
     return '$value%';
   }
+
+  @override
+  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+
+  @override
+  String adaptiveLearnedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classes adjusted',
+      one: '1 class adjusted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adaptiveReset => 'Reset local preferences';
+
+  @override
+  String get adaptiveResetDone => 'Local preferences reset';
+
+  @override
+  String get feedbackTitle => 'Report detection issue';
+
+  @override
+  String get feedbackShort => 'Feedback';
+
+  @override
+  String get feedbackMenu => 'Report issue';
+
+  @override
+  String get feedbackAction => 'Report';
+
+  @override
+  String get feedbackSubmit => 'Submit';
+
+  @override
+  String get feedbackDone => 'Done';
+
+  @override
+  String get feedbackSentTitle => 'Feedback sent';
+
+  @override
+  String get feedbackAttachScreenshot => 'Attach screenshot';
+
+  @override
+  String get feedbackModeMasked => 'Errors only';
+
+  @override
+  String get feedbackModeFull => 'Full image';
+
+  @override
+  String get feedbackModeText => 'No image';
+
+  @override
+  String get feedbackTagMissed => 'Missed';
+
+  @override
+  String get feedbackTagFalsePositive => 'False positive';
+
+  @override
+  String get feedbackTagBoxDrift => 'Box drift';
+
+  @override
+  String get feedbackTagWrongClass => 'Wrong class';
+
+  @override
+  String get feedbackTagOther => 'Other';
+
+  @override
+  String get feedbackNoteHint => 'Optional note…';
+
+  @override
+  String feedbackCountMasked(int count) {
+    return 'Masked $count';
+  }
+
+  @override
+  String feedbackCountMissed(int count) {
+    return 'Missed $count';
+  }
+
+  @override
+  String feedbackCountFp(int count) {
+    return 'False positive $count';
+  }
+
+  @override
+  String feedbackCountPreference(int count) {
+    return 'Unchecked $count';
+  }
+
+  @override
+  String get feedbackBoxMissed => 'Missed';
+
+  @override
+  String get feedbackBoxMissedMasked => 'Missed · masked';
+
+  @override
+  String get feedbackBoxFp => 'False positive';
+
+  @override
+  String get feedbackBoxPreference => 'Keep visible';
 }

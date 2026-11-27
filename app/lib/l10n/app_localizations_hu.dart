@@ -49,17 +49,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get reviewButton => 'Áttekintés';
-
-  @override
-  String get openingLabels => 'Címkék megnyitása…';
-
-  @override
-  String noImagesIn(String name) {
-    return 'Nincsenek képek a(z) $name mappában';
-  }
-
-  @override
   String get saving => 'Mentés…';
 
   @override
@@ -110,10 +99,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get exportAnyway => 'Exportálás mindenképpen';
 
   @override
-  String get reviewPseudoLabels =>
-      'Álnyilvántartások áttekintése (coco.json mappával)';
-
-  @override
   String get regionsTooltip => 'Régiók';
 
   @override
@@ -147,13 +132,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get fillNoise => 'Zaj';
 
   @override
-  String get verifyNext => 'Ellenőrzés és következő';
-
-  @override
   String get export => 'Exportálás';
 
   @override
-  String get pickOneModel => 'Válasszon pontosan egy .onnx modellt';
+  String pickOneModel(String formats) {
+    return 'Válasszon pontosan egy $formats modellt';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -260,11 +244,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get classManual => 'Kézi';
 
   @override
-  String noLabelsIn(String name) {
-    return 'Nincs coco.json a(z) $name mappában';
-  }
-
-  @override
   String savedModelFailed(String error) {
     return 'A mentett modell nem tölthető be; válasszon újra egy modellt. ($error)';
   }
@@ -282,36 +261,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get classFinance => 'Összeg';
 
   @override
-  String get collectTitle => 'Tanítóadatok gyűjtése';
-
-  @override
-  String get collectSubtitle =>
-      'Minden exportált kép, a felismert területek és a választásaid mentése erre az eszközre a jövőbeli modellek tanításához. Semmi sem kerül feltöltésre.';
-
-  @override
-  String collectStats(int count, String size) {
-    return '$count kép · $size';
-  }
-
-  @override
-  String get collectDelete => 'Gyűjtött adatok törlése';
-
-  @override
-  String get collectDeleteConfirm =>
-      'Törlöd az összes gyűjtött képet és választást erről az eszközről?';
-
-  @override
   String get delete => 'Törlés';
-
-  @override
-  String collectFailed(String error) {
-    return 'A tanítóadatok mentése nem sikerült: $error';
-  }
-
-  @override
-  String labelsSaved(int count) {
-    return '$count kép címkéi mentve';
-  }
 
   @override
   String get undo => 'Visszavonás';
@@ -359,74 +309,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get pickClass => 'Osztály kiválasztása';
 
   @override
-  String annotateOf(int index, int total) {
-    return 'Jelölés: $index / $total';
-  }
-
-  @override
-  String get suggestions => 'Javaslatok';
-
-  @override
-  String get skip => 'Kihagyás';
-
-  @override
-  String get nothingPrivate => 'Nincs privát adat';
-
-  @override
-  String get next => 'Következő';
-
-  @override
-  String get annotateHint =>
-      'Érintsen meg egy szövegsort a bekeretezéshez, vagy húzzon a rajzoláshoz';
-
-  @override
-  String get annotationData => 'Jelölési adatok';
-
-  @override
-  String get statLabeled => 'Jelölve';
-
-  @override
-  String get statEmpty => 'Nincs privát adat';
-
-  @override
-  String get statSkipped => 'Kihagyva';
-
-  @override
-  String get boxesPerClass => 'Keretek osztályonként';
-
-  @override
-  String get imagesHeader => 'Képek';
-
-  @override
-  String boxCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count keret',
-      many: 'sok keret',
-      few: 'néhány keret',
-      two: '2 keret',
-      one: '1 keret',
-      zero: '0 keret',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportAll => 'Összes exportálása';
-
-  @override
-  String get deleteAll => 'Összes törlése';
-
-  @override
-  String get annotateDeleteConfirm =>
-      'Törli az összes jelölést és a hozzá tartozó képeket erről az eszközről?';
-
-  @override
-  String get noAnnotations =>
-      'Még nincsenek jelölések. Válasszon ki képeket, és érintse meg a Jelölés gombot.';
-
-  @override
   String get filterScreenshots => 'Képernyőfotók';
 
   @override
@@ -465,13 +347,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get annotate => 'Jelölés';
-
-  @override
   String get badgeRedacted => 'Eltakarva';
-
-  @override
-  String get badgeAnnotated => 'Jelölve';
 
   @override
   String get photosDenied =>
@@ -535,10 +411,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dataPrivacy => 'Adatok és adatvédelem';
 
   @override
-  String get localOnly =>
-      'Csak ezen az eszközön tárolva, sosem az iCloud-ban vagy mentésekben.';
-
-  @override
   String get model => 'Modell';
 
   @override
@@ -571,6 +443,15 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get classSecret => 'Titkos adat';
+
+  @override
+  String get classPerson => 'Személy';
+
+  @override
+  String get classHealth => 'Egészség';
+
+  @override
+  String get classPersonalInfo => 'Személyes adatok';
 
   @override
   String selectedOf(int selected, int total) {
@@ -699,4 +580,107 @@ class AppLocalizationsHu extends AppLocalizations {
   String percent(int value) {
     return '$value%';
   }
+
+  @override
+  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+
+  @override
+  String adaptiveLearnedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classes adjusted',
+      one: '1 class adjusted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adaptiveReset => 'Reset local preferences';
+
+  @override
+  String get adaptiveResetDone => 'Local preferences reset';
+
+  @override
+  String get feedbackTitle => 'Report detection issue';
+
+  @override
+  String get feedbackShort => 'Feedback';
+
+  @override
+  String get feedbackMenu => 'Report issue';
+
+  @override
+  String get feedbackAction => 'Report';
+
+  @override
+  String get feedbackSubmit => 'Submit';
+
+  @override
+  String get feedbackDone => 'Done';
+
+  @override
+  String get feedbackSentTitle => 'Feedback sent';
+
+  @override
+  String get feedbackAttachScreenshot => 'Attach screenshot';
+
+  @override
+  String get feedbackModeMasked => 'Errors only';
+
+  @override
+  String get feedbackModeFull => 'Full image';
+
+  @override
+  String get feedbackModeText => 'No image';
+
+  @override
+  String get feedbackTagMissed => 'Missed';
+
+  @override
+  String get feedbackTagFalsePositive => 'False positive';
+
+  @override
+  String get feedbackTagBoxDrift => 'Box drift';
+
+  @override
+  String get feedbackTagWrongClass => 'Wrong class';
+
+  @override
+  String get feedbackTagOther => 'Other';
+
+  @override
+  String get feedbackNoteHint => 'Optional note…';
+
+  @override
+  String feedbackCountMasked(int count) {
+    return 'Masked $count';
+  }
+
+  @override
+  String feedbackCountMissed(int count) {
+    return 'Missed $count';
+  }
+
+  @override
+  String feedbackCountFp(int count) {
+    return 'False positive $count';
+  }
+
+  @override
+  String feedbackCountPreference(int count) {
+    return 'Unchecked $count';
+  }
+
+  @override
+  String get feedbackBoxMissed => 'Missed';
+
+  @override
+  String get feedbackBoxMissedMasked => 'Missed · masked';
+
+  @override
+  String get feedbackBoxFp => 'False positive';
+
+  @override
+  String get feedbackBoxPreference => 'Keep visible';
 }

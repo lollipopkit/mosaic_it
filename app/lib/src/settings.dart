@@ -7,9 +7,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../l10n/app_localizations.dart';
+import 'adaptive_prefs.dart';
 import 'app_icon.dart';
 import 'app_icon_picker.dart';
-import 'collect.dart';
+import 'feedback_sheet.dart';
 import 'l10n.dart';
 import 'rust/api.dart';
 import 'store.dart';
@@ -28,10 +29,10 @@ class AppSettings {
   AppSettings({
     required this.fillStyle,
     required this.fillColor,
-    this.collect = false,
     this.autoUpdateModel = true,
     this.threshold = ThresholdPreset.medium,
     this.offClasses = defaultOffClasses,
+    this.adaptivePreselect = true,
     this.exportFormat = ExportFormat.png,
     this.exportMaxSide = 0,
   });
@@ -47,14 +48,14 @@ class AppSettings {
   /// 0xRRGGBB for [FillStyle.solid].
   int fillColor;
 
-  /// Keep exported images and box choices on the device as training data.
-  bool collect;
-
   /// Download newer model releases; they take effect at the next launch.
   bool autoUpdateModel;
 
   /// Scales the model's thresholds: low pre-selects more, high less.
   ThresholdPreset threshold;
+
+  /// Adjust per-class pre-selection thresholds locally from user edits.
+  bool adaptivePreselect;
 
   /// Applies what the detector reads from the settings to [s].
   void applyTo(Session s) => s
@@ -79,12 +80,12 @@ class AppSettings {
           FillStyle.values.asNameMap()[_store.fillStyle.get()] ??
           FillStyle.solid,
       fillColor: _store.fillColor.get(),
-      collect: _store.collect.get(),
       autoUpdateModel: _store.autoUpdateModel.get(),
       threshold:
           ThresholdPreset.values.asNameMap()[_store.threshold.get()] ??
           ThresholdPreset.medium,
       offClasses: _store.offClasses.get().toSet(),
+      adaptivePreselect: _store.adaptivePreselect.get(),
       exportFormat:
           ExportFormat.values.asNameMap()[_store.exportFormat.get()] ??
           ExportFormat.png,
@@ -95,10 +96,10 @@ class AppSettings {
   Future<void> save() => Future.wait([
     _store.fillStyle.set(fillStyle.name),
     _store.fillColor.set(fillColor),
-    _store.collect.set(collect),
     _store.autoUpdateModel.set(autoUpdateModel),
     _store.threshold.set(threshold.name),
     _store.offClasses.set(offClasses.toList()),
+    _store.adaptivePreselect.set(adaptivePreselect),
     _store.exportFormat.set(exportFormat.name),
     _store.exportMaxSide.set(exportMaxSide),
   ]);
@@ -114,7 +115,6 @@ class AppSettings {
       final j = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
       if (j['fillStyle'] case final String v) await _store.fillStyle.set(v);
       if (j['fillColor'] case final int v) await _store.fillColor.set(v);
-      if (j['collect'] case final bool v) await _store.collect.set(v);
     } on FormatException {
       // Unreadable: the store's defaults stand.
     }
@@ -149,6 +149,7 @@ class SettingsPage extends StatefulWidget {
     required this.settings,
     this.classes = const [],
     this.info,
+    this.model,
     this.onChooseModel,
   });
 
@@ -160,6 +161,9 @@ class SettingsPage extends StatefulWidget {
   /// The loaded model: its calibration and inference backend.
   final ModelInfo? info;
 
+  /// Active session, used when attaching a screenshot to feedback.
+  final Session? model;
+
   /// Imports a model chosen by the user (advanced).
   final Future<void> Function()? onChooseModel;
 
@@ -168,16 +172,12 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  /// Collected records and bytes; null until counted.
-  (int, int)? _collected;
-
   /// The launcher icon; null until read, or where it cannot be changed.
   AppIcon? _icon;
 
   @override
   void initState() {
     super.initState();
-    _countCollected();
     if (LauncherIcon.supported) _readIcon();
   }
 
@@ -204,41 +204,18 @@ class _SettingsPageState extends State<SettingsPage> {
     if (mounted) setState(() => _icon = icon);
   }
 
-  Future<void> _countCollected() async {
-    final c = await Collector.stats();
-    if (mounted) setState(() => _collected = c);
-  }
-
   void _set(void Function(AppSettings) f) {
     setState(() => f(widget.settings));
     widget.settings.save();
   }
 
-  Future<void> _deleteCollected(AppLocalizations t) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        content: Text(t.collectDeleteConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(t.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(t.delete),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    await Collector.clear();
-    await _countCollected();
+  Future<void> _resetAdaptive(AppLocalizations t) async {
+    await AdaptivePrefs.instance.reset();
+    if (!mounted) return;
+    setState(() {});
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(t.adaptiveResetDone)));
   }
-
-  static String _size(int bytes) => bytes < 1 << 20
-      ? '${(bytes / 1024).toStringAsFixed(0)} KB'
-      : '${(bytes / (1 << 20)).toStringAsFixed(1)} MB';
 
   String _styleName(AppLocalizations t) => switch (widget.settings.fillStyle) {
     FillStyle.solid => t.fillSolid,
@@ -342,23 +319,34 @@ class _SettingsPageState extends State<SettingsPage> {
               trailing: const Icon(Icons.chevron_right),
               onTap: _pickClasses,
             ),
-          header(t.dataPrivacy),
           SwitchListTile(
-            secondary: const Icon(Icons.dataset_outlined),
-            title: Text(t.collectTitle),
-            subtitle: Text(t.collectSubtitle),
-            value: s.collect,
-            onChanged: (v) => _set((s) => s.collect = v),
+            secondary: const Icon(Icons.auto_fix_high_outlined),
+            title: Text(t.adaptivePreselectTitle),
+            subtitle: AdaptivePrefs.instance.learnedCount > 0
+                ? Text(
+                    t.adaptiveLearnedCount(AdaptivePrefs.instance.learnedCount),
+                  )
+                : null,
+            value: s.adaptivePreselect,
+            onChanged: (v) => _set((s) => s.adaptivePreselect = v),
           ),
-          if (_collected case (final n, final bytes) when n > 0 || bytes > 0)
+          if (AdaptivePrefs.instance.learnedCount > 0)
             ListTile(
-              title: Text(t.collectStats(n, _size(bytes))),
-              subtitle: Text(t.localOnly),
-              trailing: TextButton(
-                onPressed: () => _deleteCollected(t),
-                child: Text(t.collectDelete),
-              ),
+              leading: const Icon(Icons.restart_alt),
+              title: Text(t.adaptiveReset),
+              onTap: () => _resetAdaptive(t),
             ),
+          header(t.dataPrivacy),
+          ListTile(
+            leading: const Icon(Icons.flag_outlined),
+            title: Text(t.feedbackTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => showFeedbackSheet(
+              context,
+              model: widget.model,
+              info: widget.info,
+            ),
+          ),
           header(t.model),
           if (widget.info case final i?)
             ListTile(

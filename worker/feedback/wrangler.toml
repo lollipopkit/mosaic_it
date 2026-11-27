@@ -1,0 +1,17 @@
+name = "unseen-feedback"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+
+[vars]
+MAX_IMAGE_BYTES = "4194304"
+MAX_PAYLOAD_BYTES = "65536"
+
+[[r2_buckets]]
+binding = "FEEDBACK_BUCKET"
+bucket_name = "unseen-feedback"
+
+# Edge rate limiting: 20 submissions per minute per client IP.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 20, period = 60 }

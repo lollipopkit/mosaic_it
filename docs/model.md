@@ -7,9 +7,9 @@ The detector the app downloads. Releases are listed in
 | | |
 |---|---|
 | Task | Boxes around private information in UI screenshots, without OCR |
-| Input | RGB, width 720; the tiled export takes 1280×736 tiles ([design.md](design.md) §4) |
+| Input | RGB; `pt2` models scale phone screenshots to about 2 px per point and run on 896×1280, 1280×896 or 1280×1280 tiles ([design.md](design.md) §4) |
 | Output | Per-stride class scores and raw boxes, decoded by `unseen-core::detect` |
-| Format | ONNX (40 MB) with a sidecar `<file>.json`: classes and thresholds |
+| Format | FP16 ONNX (18 MiB) or FP16 LiteRT `.tflite` (20 MiB) with a sidecar `<file>.json`: classes and thresholds |
 | Classes | [models/classes.json](../models/classes.json); `face` comes from YuNet, not from this model |
 | Licence | AGPL-3.0, as this repository |
 
@@ -17,8 +17,10 @@ The detector the app downloads. Releases are listed in
 
 ```
 https://pub.lolli.tech/models/unseen/manifest.signed
-https://pub.lolli.tech/models/unseen/0.4.0/unseen-det-tile.onnx
-https://pub.lolli.tech/models/unseen/0.4.0/unseen-det-tile.onnx.json
+https://pub.lolli.tech/models/unseen/0.5.0/unseen-det-tile.onnx
+https://pub.lolli.tech/models/unseen/0.5.0/unseen-det-tile.onnx.json
+https://pub.lolli.tech/models/unseen/0.5.0/unseen-det.tflite
+https://pub.lolli.tech/models/unseen/0.5.0/unseen-det.tflite.json
 ```
 
 `unseen models verify <file>` checks a download against the manifest
@@ -41,7 +43,7 @@ code or weights are involved.
 
 ## Limits
 
-- 0.4.0 certifies no class: its sidecar selects every class at score 0.45
+- 0.5.0 certifies no class: its sidecar selects every class at score 0.50
   without a recall guarantee ([design.md](design.md) §6). Check the boxes
   before exporting; the app's export check re-runs the detector on the
   output.

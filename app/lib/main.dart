@@ -32,6 +32,14 @@ Future<void> main() async {
 
 const _appName = 'Unseen';
 
+/// Localization delegates for [UnseenApp], including `material_ui`'s own
+/// [GlobalMaterialLocalizations] alongside the generated app strings.
+const appLocalizationsDelegates = <LocalizationsDelegate<dynamic>>[
+  LibLocalizations.delegate,
+  ...GlobalMaterialLocalizations.delegates,
+  ...AppLocalizations.localizationsDelegates,
+];
+
 class UnseenApp extends StatefulWidget {
   const UnseenApp({super.key});
 
@@ -55,10 +63,7 @@ class _UnseenAppState extends State<UnseenApp> {
         final source = AppThemeSource.current();
         return MaterialApp(
           onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-          localizationsDelegates: const [
-            LibLocalizations.delegate,
-            ...AppLocalizations.localizationsDelegates,
-          ],
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           theme: buildAppTheme(source),
           darkTheme: buildAppTheme(source, brightness: Brightness.dark),

@@ -74,7 +74,7 @@ impl FaceDetector {
             ((img.width() as f32 * scale).round() as u32).max(1),
             ((img.height() as f32 * scale).round() as u32).max(1),
         );
-        let px = crate::model::resize(img, nw, nh);
+        let px = crate::model::resize(img, nw, nh).into_raw();
         let (w, h) = (nw as usize, nh as usize);
         let (pw, ph) = (w.div_ceil(32) * 32, h.div_ceil(32) * 32);
         let mut t = Array4::<f32>::zeros((1, 3, ph, pw));

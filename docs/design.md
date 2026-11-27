@@ -48,8 +48,8 @@ Canonical list: [models/classes.json](../models/classes.json). Ids are append-on
 | Group | Classes | Main cue |
 |---|---|---|
 | Format | `phone`, `email`, `id_number`, `bank_card`, `plate`, `account_id`, `device_id`, `secret` | glyph shape and length of the string |
-| Context | `person_name`, `address`, `finance`, `organization` | neighbouring labels and layout ("收件人：", chat header) |
-| Visual | `avatar`, `qr`, `barcode` | object appearance |
+| Context | `person_name`, `address`, `finance`, `organization`, `health`, `personal_info` | neighbouring labels and layout ("收件人：", chat header) |
+| Visual | `avatar`, `qr`, `barcode`, `person` | object appearance |
 | Face (separate detector) | `face` | YuNet |
 
 `account_id` covers user handles, UIDs, WeChat IDs and tracking numbers.
@@ -57,6 +57,10 @@ Canonical list: [models/classes.json](../models/classes.json). Ids are append-on
 private keys, seed phrases and recovery keys, 2FA setup and backup codes,
 one-time codes. Masked passwords, public keys, hashes and gift-card codes are
 negatives.
+`person` covers pictures of real people or parts of them (body, selfie, video
+call). `health` covers sleep, heart rate, weight, diagnoses and medication.
+`personal_info` covers other details tied to a person: gender, age, birthday,
+relatives, job and dates of personal events.
 Partially masked values (`138****5678`) keep their class.
 
 Planned, not in v1: `signature`, `id_card` (whole document), `text_sensitive`
@@ -69,7 +73,8 @@ QR/barcode boxes come from the detector; rxing decoding only refines them.
 
 `face` boxes come from YuNet's dynamic-shape export
 (`face_detection_yunet_2026may.onnx`, 230 KB, compiled into `unseen-infer`
-with its licence). It runs on the CPU, since its input follows each image's
+with its licence; on Android the `.tflite` that `models/yunet/to_tflite.py`
+converts from it). It runs on the CPU, since its input follows each image's
 size and hardware providers compile per shape. It adds about 5 ms to a
 1206x2622 screenshot. YuNet finds faces of about 10-300 px, so it runs twice:
 at native size (long side capped at 3072) and at long side 640, merged by NMS
@@ -116,15 +121,16 @@ described in [model.md](model.md). The training code and the datasets are
 not part of this repository.
 
 **Export-safe operators.** The exported graph holds only operators that run
-on CoreML and NNAPI without graph partitioning: per-stride sigmoid scores and
+on CoreML and LiteRT's GPU accelerator without graph partitioning: per-stride sigmoid scores and
 raw box outputs. Softplus, cell centres and box decoding are in the Rust core
 (`unseen-core::detect`). `unseen bench` prints ONNX Runtime's node placement.
 An export with dynamic height and width splits into 8 CoreML partitions with
 121 of 478 nodes on the CPU and runs slower than the CPU alone, so
 `OrtBackend` falls back to the CPU whenever a hardware provider leaves nodes
-there. The tiled export fixes the input at 1280×736, so all shape arithmetic
-folds away, and the core runs tall images in tiles overlapping by 384 px
-(each detection is kept by the tile owning its centre). On a 720×1994
+there. The tiled export fixes the input at one square tile size, so all shape
+arithmetic folds away, and the core runs larger images in a grid of tiles
+overlapping by 384 px horizontally and 192 px vertically (each detection is kept by the tile
+owning its centre). On a 720×1994
 screenshot (M-series):
 
 | Export / provider | Placement | p50 |
@@ -133,11 +139,31 @@ screenshot (M-series):
 | tiled / CPU | all CPU | 249 ms |
 | tiled / CoreML | 281 of 281 nodes, 1 partition | 32 ms |
 
-Apple and mobile builds use the tiled export; CPU-only builds the dynamic
-one. Both decode to identical detections.
+A `Resolution::Pt2` model (format 3) exports one dynamic graph instead.
+The core scales phone screenshots (long side ≥ 1.9× the short side, short
+side 787–1320 px) so the short side is 786 px, about 2 px per point; other
+images keep their pixels (`unseen-core::scale`). Each image then runs on
+the shape of the sidecar's `shapes` whose tiles process the fewest pixels,
+and detections map back to original pixels, where redaction works. On a
+hardware provider `OrtBackend` builds one session per shape on its first
+run, with the input's free dimensions overridden so the shape arithmetic
+folds as in the tiled export, and caches each in its own directory. A
+1290×2796 screenshot runs as two 896×1280 tiles instead of six 1280×1280
+ones (hybrid FP16, CoreML on M5 Pro: 54 ms).
 
-**Input.** RGB, resized to width 720 (`unseen-core::model`), normalised with
-the ImageNet mean and deviation and zero-padded to a multiple of 32. Each model file has a sidecar
+Apple and mobile builds use the `--fp16` app export; CPU-only builds the
+dynamic one. Both decode to identical detections. On Apple Silicon, FP32 is
+rejected by the Neural Engine (CoreML runs it on GPU under `.all`, or CPU if
+ANE-only), whereas FP16 enables full Neural Engine execution on A18 Pro
+(`MLComputeUnits::All`) and ~2× faster GPU execution on M5 Pro (where CoreML's
+`.all` cost model picks GPU, which outperforms ANE on the hybrid attention
+graph). Android runs the
+`.tflite` release on LiteRT and ships no ONNX Runtime (§9).
+
+**Input.** RGB at the original resolution, never resized (`unseen-core::model`;
+sidecars declare `"resolution": "native"`), normalised with the ImageNet mean
+and deviation and zero-padded to the tile size or, for the dynamic export, to a
+multiple of 32. Each model file has a sidecar
 `<model>.onnx.json` with its classes and calibrated thresholds (§6).
 
 ## 5. Training data
@@ -265,7 +291,8 @@ trait Embedder { fn embed(&self, crops: &[Image]) -> Result<Vec<Vec<f32>>>; }
 
 | Backend | Feature | Platforms |
 |---|---|---|
-| ort 2.0 (ORT 1.28) | `ort-coreml`, `ort-nnapi`, `ort-qnn`, `ort-xnnpack`, `ort-cuda`, `ort-directml` | all; EP chosen at runtime with `is_available()`, falling back to CPU. The app uses CoreML on Apple and NNAPI on Android (the only EP in ORT's prebuilt Android binaries); XNNPACK and QNN need ONNX Runtime built from source |
+| ort 2.0 (ORT 1.28) | `ort`, `coreml`, `qnn`, `xnnpack`, `cuda`, `directml` | all; EP chosen at runtime with `is_available()`, falling back to CPU whenever the EP fails to load or splits the graph. CoreML uses `MLProgram` with `with_static_input_shapes(true)` and a versioned cache (`coreml-mlprogram-v1-<blake3>`). Not in the Android app |
+| LiteRT 2.3 (CompiledModel C API) | `litert` | Android, for the `.tflite` release (variant `litert`): one signature per `pt2` input shape sharing the weights, on the OpenCL/GL GPU accelerator when it takes every op, else on XNNPACK with one thread per core. YuNet runs on its CPU too, as a single-signature `.tflite` resized to each input. `libLiteRt.so` and `libLiteRtClGlAccelerator.so` come from the `com.google.ai.edge.litert` AARs and are loaded at run time; the model runs on a worker thread of its own, since the GPU context belongs to the thread that compiled it. Pixel 8a, 1290×2796 screenshot: v17 575 ms on the GPU, 2199 ms on LiteRT CPU (ORT CPU 4449 ms); hybrid 769 ms, 4664 ms (9054 ms); against ORT CPU 0 of 23 selected boxes flip, min IoU 0.9956 |
 | tract | `tract` | all; pure-Rust CPU fallback, no native libs |
 | remote | `remote` | any; HTTP to a self-hosted `unseen-server` |
 
@@ -296,7 +323,7 @@ name. GPL-3.0 may be combined with this AGPL-3.0 app (GPLv3 §13).
 
 - Recall for Chinese names and addresses outside forms (chat bodies). Measured
   per class from M1.
-- CoreML / NNAPI graph partitioning. Mitigated by the export-safe operator rule.
+- CoreML / LiteRT GPU graph partitioning. Mitigated by the export-safe operator rule.
 - Synthetic-to-real gap. Mitigated by the real-screenshot loop and by never
   using synthetic numbers as release gates.
 

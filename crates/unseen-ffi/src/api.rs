@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
@@ -7,10 +7,9 @@ use flutter_rust_bridge::frb;
 use image::Rgb;
 use unseen_core::{
     Candidates, DetectOptions, Detection, Detector, FindOptions, KeyframeOptions, Keyframes, Manifest, ModelMeta,
-    PUBLIC_KEY, RedactStyle, Selection, Threshold, Timeline, Tracker, blake3_file, export_check, find_similar,
-    is_camera_photo, load_image, redact, redaction_patches,
+    PUBLIC_KEY, RedactStyle, Resolution, Selection, Threshold, Timeline, Tracker, blake3_file, export_check,
+    find_similar, is_camera_photo, load_image, redact, redaction_patches,
 };
-use unseen_infer::{OrtBackend, OrtOptions, face_detector};
 use unseen_media::{Timestamp, VideoReader, VideoWriter};
 
 use crate::frb_generated::StreamSink;
@@ -50,6 +49,9 @@ pub struct ModelInfo {
     /// The calibration data was human-verified; only then is the recall
     /// guarantee real.
     pub verified: bool,
+    /// Unscaled `select` threshold per class, including built-in detectors
+    /// such as `face`.
+    pub select_thresholds: HashMap<String, f32>,
 }
 
 /// The user's threshold preset; medium is the model's own thresholds.
@@ -194,19 +196,58 @@ fn open(path: &str) -> Result<image::RgbImage> {
     Ok(load_image(Path::new(path))?)
 }
 
+/// The backend of `model` and the face detector: LiteRT on Android (GPU,
+/// else XNNPACK), which runs `.tflite` models only; elsewhere ONNX Runtime
+/// on the platform's hardware provider.
+#[cfg(target_os = "android")]
+fn backends(
+    model: &Path,
+    _resolution: Resolution,
+    cache_dir: Option<PathBuf>,
+) -> anyhow::Result<(Box<dyn unseen_core::Backend>, unseen_core::FaceDetector)> {
+    use unseen_infer::{LiteRtBackend, LiteRtOptions, litert_face_detector};
+    anyhow::ensure!(
+        model.extension().is_some_and(|e| e == "tflite"),
+        "Android runs .tflite models"
+    );
+    let opts = LiteRtOptions {
+        cache_dir,
+        ..Default::default()
+    };
+    Ok((
+        Box::new(LiteRtBackend::load(model, &opts)?),
+        litert_face_detector(&opts)?,
+    ))
+}
+
+#[cfg(not(target_os = "android"))]
+fn backends(
+    model: &Path,
+    resolution: Resolution,
+    cache_dir: Option<PathBuf>,
+) -> anyhow::Result<(Box<dyn unseen_core::Backend>, unseen_core::FaceDetector)> {
+    use unseen_infer::{OrtBackend, OrtOptions, face_detector};
+    let opts = OrtOptions {
+        per_shape: resolution == Resolution::Pt2,
+        cache_dir,
+        ..Default::default()
+    };
+    Ok((Box::new(OrtBackend::load_with(model, opts)?), face_detector()?))
+}
+
+/// The release variant this platform runs ([`model_update`]).
+const VARIANT: &str = if cfg!(target_os = "android") { "litert" } else { "tiled" };
+
 impl Session {
     /// `cache_dir` keeps compiled hardware models between loads. Faces come
     /// from the built-in face detector, whatever the model.
     pub fn load(model_path: String, cache_dir: Option<String>) -> Result<Session> {
         let path = Path::new(&model_path);
         let meta = ModelMeta::load(path)?;
-        let opts = OrtOptions {
-            cache_dir: cache_dir.map(PathBuf::from),
-            ..Default::default()
-        };
-        let backend = OrtBackend::load_with(path, opts).with_context(|| format!("loading {model_path}"))?;
+        let (backend, faces) = backends(path, meta.resolution, cache_dir.map(PathBuf::from))
+            .with_context(|| format!("loading {model_path}"))?;
         Ok(Session {
-            det: Mutex::new(Detector::new(meta, Box::new(backend)).with_faces(face_detector()?)),
+            det: Mutex::new(Detector::new(meta, backend).with_faces(faces)),
             off: Mutex::default(),
             threshold: Mutex::new(ThresholdPreset::Medium),
             recent: Mutex::default(),
@@ -236,6 +277,7 @@ impl Session {
             backend: det.backend_name(),
             domain: cal.map(|c| c.domain.clone()),
             verified: cal.is_some_and(|c| c.verified),
+            select_thresholds: det.base_select_thresholds(),
         }
     }
 
@@ -300,10 +342,10 @@ impl Session {
         })
     }
 
-    /// Redacts `rects`, runs the export self-check and writes `out_path`
-    /// (format from its extension, no metadata) if the check passes or
-    /// `force` is set. `max_side` scales the written image down so its longer
-    /// side is at most that many pixels; the check runs at full size.
+    /// Redacts `rects`, runs the export self-check (skipped when `force` is
+    /// set) and writes `out_path` (format from its extension, no metadata).
+    /// `max_side` scales the written image down so its longer side is at most
+    /// that many pixels; the check runs at full size.
     pub fn redact_and_export(
         &self,
         image_path: String,
@@ -318,6 +360,14 @@ impl Session {
         let style: RedactStyle = fill.into();
         let mut out = src.clone();
         redact(&mut out, &boxes, PAD, style);
+        if force {
+            write_image(&out, Path::new(&out_path), max_side).with_context(|| format!("writing {out_path}"))?;
+            return Ok(ExportOutcome {
+                written: true,
+                surviving: vec![],
+                correlated: vec![],
+            });
+        }
         let prev = self
             .recent
             .lock()
@@ -326,7 +376,7 @@ impl Session {
             .find(|(p, _)| *p == image_path)
             .map(|(_, c)| c.clone());
         let check = export_check(&mut self.lock(), &src, &out, prev.as_ref(), &boxes, PAD, style)?;
-        let written = check.passed() || force;
+        let written = check.passed();
         if written {
             write_image(&out, Path::new(&out_path), max_side).with_context(|| format!("writing {out_path}"))?;
         }
@@ -373,20 +423,6 @@ fn write_image(img: &image::RgbImage, path: &Path, max_side: Option<u32>) -> Res
     Ok(())
 }
 
-/// Every class a box can have, in id order: models/classes.json, the list
-/// training labels use. Annotation mode offers these without a model.
-#[frb(sync)]
-pub fn label_classes() -> Vec<String> {
-    let v: serde_json::Value =
-        serde_json::from_str(include_str!("../../../models/classes.json")).expect("models/classes.json is valid JSON");
-    v["classes"]
-        .as_array()
-        .expect("classes array")
-        .iter()
-        .map(|c| c["name"].as_str().expect("class name").to_string())
-        .collect()
-}
-
 /// A published release newer than the installed model.
 pub struct ModelUpdate {
     pub version: String,
@@ -400,11 +436,12 @@ pub struct ModelUpdate {
 
 /// The newest release this app can run in a downloaded `manifest`, if it is
 /// newer than the model at `installed`. Fails unless the manifest carries the
-/// publisher's signature; an installed model that is not a listed tiled
-/// release is the user's own and gets no update.
+/// publisher's signature; an installed model that is not a listed release of
+/// this platform's variant (`litert` on Android, else `tiled`) is the user's
+/// own and gets no update.
 pub fn model_update(manifest: Vec<u8>, installed: Option<String>) -> Result<Option<ModelUpdate>> {
     let m = Manifest::signed(&manifest, PUBLIC_KEY)?;
-    Ok(m.update("tiled", installed.as_deref().map(Path::new))?
+    Ok(m.update(VARIANT, installed.as_deref().map(Path::new))?
         .map(|e| ModelUpdate {
             version: e.version.clone(),
             file: e.file.clone(),
@@ -415,63 +452,9 @@ pub fn model_update(manifest: Vec<u8>, installed: Option<String>) -> Result<Opti
         }))
 }
 
-/// An image's size and domain without detection (annotation mode), read from
-/// its header by the decoder `detect` uses.
-pub fn open_image(image_path: String) -> Result<Detected> {
-    let path = Path::new(&image_path);
-    let (width, height) = image::ImageReader::open(path)?
-        .with_guessed_format()?
-        .into_dimensions()
-        .with_context(|| format!("reading {image_path}"))?;
-    Ok(Detected {
-        width,
-        height,
-        regions: vec![],
-        hidden: vec![],
-        camera_photo: is_camera_photo(path),
-    })
-}
-
-/// Text line boxes on an image, in pixels, from the platform's on-device text
-/// recognition (Apple Vision). Only positions leave this function; the text is
-/// dropped. Annotation mode turns a tapped line into a box.
-pub fn text_lines(image_path: String) -> Result<Vec<PixelRect>> {
-    let (width, height) = image::ImageReader::open(&image_path)?
-        .with_guessed_format()?
-        .into_dimensions()
-        .with_context(|| format!("reading {image_path}"))?;
-    #[cfg(target_vendor = "apple")]
-    {
-        crate::vision::text_lines(&image_path, width as f32, height as f32)
-    }
-    #[cfg(not(target_vendor = "apple"))]
-    {
-        let _ = (width, height);
-        anyhow::bail!("text recognition is not available on this platform")
-    }
-}
-
 /// Hex BLAKE3 of a file's content.
 pub fn file_blake3(path: String) -> Result<String> {
     Ok(blake3_file(Path::new(&path))?)
-}
-
-/// Keeps `path` (a file or directory) out of iCloud and device backups. A
-/// no-op off Apple platforms; Android excludes paths in its backup rules.
-pub fn exclude_from_backup(path: String) -> Result<()> {
-    #[cfg(target_vendor = "apple")]
-    {
-        use objc2_foundation::{NSNumber, NSString, NSURL, NSURLIsExcludedFromBackupKey};
-        let url = NSURL::fileURLWithPath(&NSString::from_str(&path));
-        // SAFETY: the key takes an NSNumber holding a BOOL.
-        unsafe {
-            url.setResourceValue_forKey_error(Some(&NSNumber::numberWithBool(true)), NSURLIsExcludedFromBackupKey)
-        }
-        .map_err(|e| anyhow::anyhow!("{path}: {}", e.localizedDescription()))?;
-    }
-    #[cfg(not(target_vendor = "apple"))]
-    let _ = path;
-    Ok(())
 }
 
 /// Regions that look like `rect` of `image_path`, searched in `target_path`
@@ -584,13 +567,18 @@ impl VideoProject {
         let size = reader.size();
         let mut keys = Keyframes::new(KeyframeOptions::default());
         let mut tracker = Tracker::new();
+        let mut prev: Option<(image::RgbImage, Candidates)> = None;
         let mut times = Vec::new();
         for (i, frame) in reader.enumerate() {
             let frame = frame?;
             if keys.push(i, &frame.image) {
                 let mut det = session.lock();
-                let dets = det
-                    .detect(&frame.image, &DetectOptions::default())?
+                let (dets, cands) = det.detect_next(
+                    prev.as_ref().map(|(img, c)| (img, c)),
+                    &frame.image,
+                    &DetectOptions::default(),
+                )?;
+                let dets = dets
                     .into_iter()
                     .map(|d| {
                         let s = det.selection(&d);
@@ -602,6 +590,7 @@ impl VideoProject {
                 let f = std::fs::File::create(self.keyframe_file(i))?;
                 image::codecs::jpeg::JpegEncoder::new_with_quality(std::io::BufWriter::new(f), 90)
                     .encode_image(&frame.image)?;
+                prev = Some((frame.image, cands));
             }
             times.push(frame.time);
             // A closed stream means nobody is listening; keep going.
@@ -754,13 +743,6 @@ impl VideoProject {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn label_classes_are_the_dataset_list_in_id_order() {
-        let c = super::label_classes();
-        assert_eq!(c.first().map(String::as_str), Some("person_name"));
-        assert!(c.contains(&"finance".to_string()));
-    }
-
     #[test]
     fn write_image_scales_down_and_encodes_by_extension() {
         let dir = std::env::temp_dir().join(format!("unseen-write-{}", std::process::id()));

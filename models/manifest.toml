@@ -5,8 +5,8 @@
 #
 # `models/publish.sh` uploads an entry's files to its `url` and this file,
 # signed, to https://pub.lolli.tech/models/unseen/manifest.signed, where the app
-# looks for a newer release. `format` (default 1) is raised when a release
-# needs a newer app.
+# looks for a newer release. `format` (default 1) stays inside each build's
+# `MIN_FORMAT..=FORMAT` window when compatibility breaks.
 #
 # 0.1.0 to 0.3.2 were trained on synthetic screenshots only and were not
 # published (10 classes; 0.3.2 is 0.3.1's weights with a new calibration).
@@ -14,6 +14,12 @@
 # 0.4.0: 15 classes (adds finance, organization, device_id and secret),
 # trained on synthetic and labelled real screenshots (docs/model.md). The
 # sidecar selects every class at 0.45 with no review band and certifies none.
+#
+# 0.5.0: 18 classes (adds person, health, personal_info), format = 3 (pt2
+# multi-shape 896x1280 / 1280x896 / 1280x1280, strides 8/16/32), FP16 ONNX
+# (tiled, 18.1 MiB) and FP16 LiteRT (.tflite, 19.6 MiB). Trained on synthetic,
+# all labelled real screenshots, and WebPII. The sidecar selects every class
+# at 0.50 with no review band and certifies none.
 
 [[model]]
 name = "unseen-det"
@@ -114,3 +120,23 @@ file = "unseen-det-tile.onnx"
 blake3 = "f002b8b865cc5f9ff0bdd57b8965566e92cec1c1d93875300b7ae66436b910f9"
 sidecar_blake3 = "f73aca8e7a69d3e493ea667431a8f7cdc70c895690ceaac3bb78322a69fbda0c"
 url = "https://pub.lolli.tech/models/unseen/0.4.0"
+
+[[model]]
+name = "unseen-det"
+version = "0.5.0"
+variant = "tiled"
+file = "unseen-det-tile.onnx"
+blake3 = "0150b2fbe459ca786b738c54ab785e98ec35d1b485d860038b8b59349d8650cb"
+sidecar_blake3 = "d664cfa86d1526d8c06816e0163df7126fa58714c206926d6901ba6ce49eb8b2"
+url = "https://pub.lolli.tech/models/unseen/0.5.0"
+format = 3
+
+[[model]]
+name = "unseen-det"
+version = "0.5.0"
+variant = "litert"
+file = "unseen-det.tflite"
+blake3 = "93a8af52efd95c59a2a6f4f7d3170c9d32a8b24240aaba39311da23692fc786c"
+sidecar_blake3 = "d664cfa86d1526d8c06816e0163df7126fa58714c206926d6901ba6ce49eb8b2"
+url = "https://pub.lolli.tech/models/unseen/0.5.0"
+format = 3

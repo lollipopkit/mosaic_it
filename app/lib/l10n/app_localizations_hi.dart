@@ -49,17 +49,6 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get reviewButton => 'समीक्षा करें';
-
-  @override
-  String get openingLabels => 'लेबल खोले जा रहे हैं…';
-
-  @override
-  String noImagesIn(String name) {
-    return '$name में कोई छवि नहीं है';
-  }
-
-  @override
   String get saving => 'सहेजा जा रहा है…';
 
   @override
@@ -110,10 +99,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get exportAnyway => 'फिर भी निर्यात करें';
 
   @override
-  String get reviewPseudoLabels =>
-      'प्रीसो-लेबल की समीक्षा करें (coco.json वाला फ़ोल्डर)';
-
-  @override
   String get regionsTooltip => 'क्षेत्र';
 
   @override
@@ -147,13 +132,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get fillNoise => 'नॉइज़';
 
   @override
-  String get verifyNext => 'सत्यापित करें और अगला';
-
-  @override
   String get export => 'निर्यात करें';
 
   @override
-  String get pickOneModel => 'ठीक एक .onnx मॉडल चुनें';
+  String pickOneModel(String formats) {
+    return 'ठीक एक $formats मॉडल चुनें';
+  }
 
   @override
   String pickSidecar(String name) {
@@ -262,11 +246,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get classManual => 'मैनुअल';
 
   @override
-  String noLabelsIn(String name) {
-    return '$name में coco.json नहीं मिला';
-  }
-
-  @override
   String savedModelFailed(String error) {
     return 'सहेजा गया मॉडल लोड नहीं किया जा सका; कृपया फिर से एक मॉडल चुनें। ($error)';
   }
@@ -284,36 +263,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get classFinance => 'राशि';
 
   @override
-  String get collectTitle => 'प्रशिक्षण डेटा एकत्र करें';
-
-  @override
-  String get collectSubtitle =>
-      'हर निर्यात की गई छवि, पहचाने गए क्षेत्र और आपके चुनाव इस डिवाइस पर रखें ताकि भविष्य के मॉडल प्रशिक्षित हो सकें। कुछ भी अपलोड नहीं होता।';
-
-  @override
-  String collectStats(int count, String size) {
-    return '$count छवियाँ · $size';
-  }
-
-  @override
-  String get collectDelete => 'एकत्र किया गया डेटा हटाएँ';
-
-  @override
-  String get collectDeleteConfirm =>
-      'इस डिवाइस से सभी एकत्र की गई छवियाँ और चुनाव हटाएँ?';
-
-  @override
   String get delete => 'हटाएँ';
-
-  @override
-  String collectFailed(String error) {
-    return 'प्रशिक्षण डेटा सहेजा नहीं जा सका: $error';
-  }
-
-  @override
-  String labelsSaved(int count) {
-    return '$count छवियों के लेबल सहेजे गए';
-  }
 
   @override
   String get undo => 'पूर्ववत करें';
@@ -361,74 +311,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get pickClass => 'एक वर्ग चुनें';
 
   @override
-  String annotateOf(int index, int total) {
-    return 'एनोटेट $index / $total';
-  }
-
-  @override
-  String get suggestions => 'सुझाव';
-
-  @override
-  String get skip => 'छोड़ें';
-
-  @override
-  String get nothingPrivate => 'कोई निजी जानकारी नहीं';
-
-  @override
-  String get next => 'अगला';
-
-  @override
-  String get annotateHint =>
-      'बॉक्स लगाने के लिए किसी टेक्स्ट पंक्ति पर टैप करें, या खींचकर बनाएँ';
-
-  @override
-  String get annotationData => 'एनोटेशन डेटा';
-
-  @override
-  String get statLabeled => 'लेबल किए गए';
-
-  @override
-  String get statEmpty => 'कोई निजी जानकारी नहीं';
-
-  @override
-  String get statSkipped => 'छोड़े गए';
-
-  @override
-  String get boxesPerClass => 'प्रति वर्ग बॉक्स';
-
-  @override
-  String get imagesHeader => 'छवियाँ';
-
-  @override
-  String boxCount(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count बॉक्स',
-      many: '$count बॉक्स',
-      few: '$count बॉक्स',
-      two: '2 बॉक्स',
-      one: '1 बॉक्स',
-      zero: '0 बॉक्स',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportAll => 'सभी निर्यात करें';
-
-  @override
-  String get deleteAll => 'सभी हटाएँ';
-
-  @override
-  String get annotateDeleteConfirm =>
-      'क्या इस डिवाइस से सभी एनोटेशन और उनकी छवियाँ हटाई जाएँ?';
-
-  @override
-  String get noAnnotations =>
-      'अभी तक कोई एनोटेशन नहीं। छवियाँ चुनें और एनोटेट चुनें।';
-
-  @override
   String get filterScreenshots => 'स्क्रीनशॉट';
 
   @override
@@ -467,13 +349,7 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get annotate => 'एनोटेट';
-
-  @override
   String get badgeRedacted => 'छिपाया गया';
-
-  @override
-  String get badgeAnnotated => 'एनोटेट किया गया';
 
   @override
   String get photosDenied =>
@@ -537,10 +413,6 @@ class AppLocalizationsHi extends AppLocalizations {
   String get dataPrivacy => 'डेटा और गोपनीयता';
 
   @override
-  String get localOnly =>
-      'केवल इस डिवाइस पर रखा जाता है, कभी iCloud या बैकअप में नहीं।';
-
-  @override
   String get model => 'मॉडल';
 
   @override
@@ -573,6 +445,15 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get classSecret => 'गोपनीय क्रेडेंशियल';
+
+  @override
+  String get classPerson => 'व्यक्ति';
+
+  @override
+  String get classHealth => 'स्वास्थ्य';
+
+  @override
+  String get classPersonalInfo => 'व्यक्तिगत जानकारी';
 
   @override
   String selectedOf(int selected, int total) {
@@ -701,4 +582,107 @@ class AppLocalizationsHi extends AppLocalizations {
   String percent(int value) {
     return '$value%';
   }
+
+  @override
+  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+
+  @override
+  String adaptiveLearnedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count classes adjusted',
+      one: '1 class adjusted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get adaptiveReset => 'Reset local preferences';
+
+  @override
+  String get adaptiveResetDone => 'Local preferences reset';
+
+  @override
+  String get feedbackTitle => 'Report detection issue';
+
+  @override
+  String get feedbackShort => 'Feedback';
+
+  @override
+  String get feedbackMenu => 'Report issue';
+
+  @override
+  String get feedbackAction => 'Report';
+
+  @override
+  String get feedbackSubmit => 'Submit';
+
+  @override
+  String get feedbackDone => 'Done';
+
+  @override
+  String get feedbackSentTitle => 'Feedback sent';
+
+  @override
+  String get feedbackAttachScreenshot => 'Attach screenshot';
+
+  @override
+  String get feedbackModeMasked => 'Errors only';
+
+  @override
+  String get feedbackModeFull => 'Full image';
+
+  @override
+  String get feedbackModeText => 'No image';
+
+  @override
+  String get feedbackTagMissed => 'Missed';
+
+  @override
+  String get feedbackTagFalsePositive => 'False positive';
+
+  @override
+  String get feedbackTagBoxDrift => 'Box drift';
+
+  @override
+  String get feedbackTagWrongClass => 'Wrong class';
+
+  @override
+  String get feedbackTagOther => 'Other';
+
+  @override
+  String get feedbackNoteHint => 'Optional note…';
+
+  @override
+  String feedbackCountMasked(int count) {
+    return 'Masked $count';
+  }
+
+  @override
+  String feedbackCountMissed(int count) {
+    return 'Missed $count';
+  }
+
+  @override
+  String feedbackCountFp(int count) {
+    return 'False positive $count';
+  }
+
+  @override
+  String feedbackCountPreference(int count) {
+    return 'Unchecked $count';
+  }
+
+  @override
+  String get feedbackBoxMissed => 'Missed';
+
+  @override
+  String get feedbackBoxMissedMasked => 'Missed · masked';
+
+  @override
+  String get feedbackBoxFp => 'False positive';
+
+  @override
+  String get feedbackBoxPreference => 'Keep visible';
 }

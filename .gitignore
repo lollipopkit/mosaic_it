@@ -6,3 +6,5 @@
 .claude/worktrees/
 *.log
 models/manifest.toml.signed
+.wrangler/
+node_modules/

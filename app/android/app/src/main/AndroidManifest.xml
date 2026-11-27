@@ -14,6 +14,8 @@
         android:icon="@mipmap/ic_launcher_wine"
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/data_extraction_rules">
+        <!-- Vendor OpenCL for LiteRT's GPU accelerator (Android 12+ hides it otherwise). -->
+        <uses-native-library android:name="libOpenCL.so" android:required="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
