@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 
 use ndarray::ArrayView4;
 use ort::{
+    environment::Environment,
     ep::{ExecutionProvider, ExecutionProviderDispatch},
     logging::LogLevel,
     session::Session,
@@ -209,6 +210,20 @@ impl OrtBackend {
     }
 }
 
+/// Process-wide ONNX Runtime environment, kept alive so sessions can be created
+/// repeatedly without triggering `ort`'s single-environment restriction.
+static ORT_ENV: Mutex<Option<Environment>> = Mutex::new(None);
+
+fn ort_env() -> Result<Environment> {
+    let mut guard = ORT_ENV.lock().unwrap_or_else(|e| e.into_inner());
+    if let Some(env) = guard.as_ref() {
+        return Ok(env.clone());
+    }
+    let env = ort::init().with_telemetry(false).build().map_err(err)?;
+    *guard = Some(env.clone());
+    Ok(env)
+}
+
 /// Builds a session, optionally on `ep` and with free dimensions fixed to
 /// `dims`, returning ONNX Runtime's node placement messages when `record`
 /// is set.
@@ -218,7 +233,8 @@ fn commit(
     record: bool,
     dims: &[(String, i64)],
 ) -> Result<(Session, Vec<String>)> {
-    let mut builder = Session::builder().map_err(err)?;
+    let env = ort_env()?;
+    let mut builder = Session::builder(&env).map_err(err)?;
     for (name, n) in dims {
         builder = builder.with_dimension_override(name, *n).map_err(err)?;
     }
@@ -315,7 +331,7 @@ trait Provider {
 
 impl<T: ExecutionProvider + Clone + Into<ExecutionProviderDispatch>> Provider for T {
     fn is_available(&self) -> ort::Result<bool> {
-        ExecutionProvider::is_available(self)
+        T::is_available()
     }
     fn build(&self) -> ExecutionProviderDispatch {
         self.clone().into()
