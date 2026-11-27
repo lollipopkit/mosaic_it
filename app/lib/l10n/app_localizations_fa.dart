@@ -372,53 +372,53 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String selectedOf(int selected, int total) {
-    return '$selected / $total selected';
+    return '$selected / $total انتخاب‌شده';
   }
 
   @override
-  String get fillStyle => 'Fill style';
+  String get fillStyle => 'سبک پرکردن';
 
   @override
-  String get colour => 'Colour';
+  String get colour => 'رنگ';
 
   @override
   String exportSummary(num images, num regions) {
     String _temp0 = intl.Intl.pluralLogic(
       images,
       locale: localeName,
-      other: '$images images',
-      one: '1 image',
+      other: '$images تصویر',
+      one: '۱ تصویر',
     );
     String _temp1 = intl.Intl.pluralLogic(
       regions,
       locale: localeName,
-      other: '$regions regions',
-      one: '1 region',
+      other: '$regions ناحیه',
+      one: '۱ ناحیه',
     );
     return '$_temp0 · $_temp1';
   }
 
   @override
-  String get share => 'Share';
+  String get share => 'اشتراک‌گذاری';
 
   @override
-  String get saveToPhotos => 'Save to Photos';
+  String get saveToPhotos => 'ذخیره در عکس‌ها';
 
   @override
-  String get saveAs => 'Save…';
+  String get saveAs => 'ذخیره…';
 
   @override
-  String get exportFormat => 'Format';
+  String get exportFormat => 'قالب';
 
   @override
-  String get exportSize => 'Size';
+  String get exportSize => 'اندازه';
 
   @override
-  String get sizeOriginal => 'Original';
+  String get sizeOriginal => 'اصلی';
 
   @override
   String sizePixels(int px) {
-    return '$px px';
+    return '$px پیکسل';
   }
 
   @override
@@ -426,209 +426,209 @@ class AppLocalizationsFa extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Saved $count images to Photos',
-      one: 'Saved 1 image to Photos',
+      other: '$count تصویر در عکس‌ها ذخیره شد',
+      one: '۱ تصویر در عکس‌ها ذخیره شد',
     );
     return '$_temp0';
   }
 
   @override
-  String get selectAll => 'All';
+  String get selectAll => 'همه';
 
   @override
-  String get selectNone => 'None';
+  String get selectNone => 'هیچ‌کدام';
 
   @override
-  String get suggested => 'suggested';
+  String get suggested => 'پیشنهادی';
 
   @override
   String scoreValue(String score) {
-    return 'Score $score';
+    return 'امتیاز $score';
   }
 
   @override
   String exportCheckBodyOf(int index) {
-    return 'After redaction, the check still found these areas in the output of image $index.';
+    return 'پس از پنهان‌سازی، بررسی هنوز این نواحی را در خروجی تصویر $index یافت.';
   }
 
   @override
-  String get reasonNotSelected => 'not selected';
+  String get reasonNotSelected => 'انتخاب نشده';
 
   @override
-  String get reasonBoxTooSmall => 'box too small';
+  String get reasonBoxTooSmall => 'جعبه بیش از حد کوچک است';
 
   @override
-  String get reasonFillShowsThrough => 'fill shows through';
+  String get reasonFillShowsThrough => 'محتوا از زیر پوشش دیده می‌شود';
 
   @override
-  String get openSource => 'Open source';
+  String get openSource => 'متن‌باز';
 
   @override
-  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+  String get adaptivePreselectTitle => 'پیش‌انتخاب تطبیقی محلی';
 
   @override
   String adaptiveLearnedCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count classes adjusted',
-      one: '1 class adjusted',
+      other: '$count کلاس تنظیم شد',
+      one: '۱ کلاس تنظیم شد',
     );
     return '$_temp0';
   }
 
   @override
-  String get adaptiveReset => 'Reset local preferences';
+  String get adaptiveReset => 'بازنشانی ترجیحات محلی';
 
   @override
-  String get adaptiveResetDone => 'Local preferences reset';
+  String get adaptiveResetDone => 'ترجیحات محلی بازنشانی شد';
 
   @override
-  String get feedbackTitle => 'Report detection issue';
+  String get feedbackTitle => 'گزارش مشکل تشخیص';
 
   @override
-  String get feedbackShort => 'Feedback';
+  String get feedbackShort => 'بازخورد';
 
   @override
-  String get feedbackMenu => 'Report issue';
+  String get feedbackMenu => 'گزارش مشکل';
 
   @override
-  String get feedbackAction => 'Report';
+  String get feedbackAction => 'گزارش';
 
   @override
-  String get feedbackAttachScreenshot => 'Attach screenshot';
+  String get feedbackAttachScreenshot => 'پیوست کردن اسکرین‌شات';
 
   @override
-  String get feedbackModeMasked => 'Errors only';
+  String get feedbackModeMasked => 'فقط خطاها';
 
   @override
-  String get feedbackModeFull => 'Full image';
+  String get feedbackModeFull => 'تصویر کامل';
 
   @override
-  String get feedbackModeText => 'No image';
+  String get feedbackModeText => 'بدون تصویر';
 
   @override
-  String get feedbackTagMissed => 'Missed';
+  String get feedbackTagMissed => 'جاافتاده';
 
   @override
-  String get feedbackTagFalsePositive => 'False positive';
+  String get feedbackTagFalsePositive => 'تشخیص اشتباه';
 
   @override
-  String get feedbackTagBoxDrift => 'Box drift';
+  String get feedbackTagBoxDrift => 'جابه‌جایی جعبه';
 
   @override
-  String get feedbackTagWrongClass => 'Wrong class';
+  String get feedbackTagWrongClass => 'کلاس نادرست';
 
   @override
-  String get feedbackTagOther => 'Other';
+  String get feedbackTagOther => 'سایر';
 
   @override
-  String get feedbackNoteHint => 'Optional note…';
+  String get feedbackNoteHint => 'یادداشت اختیاری…';
 
   @override
   String feedbackCountMasked(int count) {
-    return 'Masked $count';
+    return 'پنهان‌شده $count';
   }
 
   @override
   String feedbackCountMissed(int count) {
-    return 'Missed $count';
+    return 'جاافتاده $count';
   }
 
   @override
   String feedbackCountFp(int count) {
-    return 'False positive $count';
+    return 'تشخیص اشتباه $count';
   }
 
   @override
   String feedbackCountPreference(int count) {
-    return 'Unchecked $count';
+    return 'لغو انتخاب $count';
   }
 
   @override
-  String get feedbackBoxMissed => 'Missed';
+  String get feedbackBoxMissed => 'جاافتاده';
 
   @override
-  String get feedbackBoxMissedMasked => 'Missed · masked';
+  String get feedbackBoxMissedMasked => 'جاافتاده · پنهان‌شده';
 
   @override
-  String get feedbackBoxFp => 'False positive';
+  String get feedbackBoxFp => 'تشخیص اشتباه';
 
   @override
-  String get feedbackBoxPreference => 'Keep visible';
+  String get feedbackBoxPreference => 'نمایان بماند';
 
   @override
-  String get introOfflineTitle => 'No network access';
+  String get introOfflineTitle => 'بدون دسترسی به شبکه';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+      'MosaicIt هیچ کد شبکه‌ای ندارد و هیچ مجوز شبکه‌ای درخواست نمی‌کند. تشخیص‌دهنده در داخل برنامه تعبیه شده است و تصاویر هرگز دستگاه شما را ترک نمی‌کنند.';
 
   @override
-  String get introNoNetPermTitle => 'Zero network permissions';
+  String get introNoNetPermTitle => 'صفر مجوز شبکه';
 
   @override
-  String get introBundledModelTitle => 'Bundled on-device model';
+  String get introBundledModelTitle => 'مدل داخلی روی دستگاه';
 
   @override
   String introBundledModelBody(String version) {
-    return 'unseen-det $version · on-device';
+    return 'unseen-det $version · روی دستگاه';
   }
 
   @override
-  String get resetBundledModel => 'Use bundled model';
+  String get resetBundledModel => 'استفاده از مدل داخلی';
 
   @override
-  String get reviewIntro => 'Show intro again';
+  String get reviewIntro => 'نمایش دوباره معرفی';
 
   @override
-  String get feedbackOpenWeb => 'Open web form';
+  String get feedbackOpenWeb => 'باز کردن فرم وب';
 
   @override
-  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+  String get introNoNetPermBodyIos => 'بدون درخواست شبکه · فقط روی دستگاه';
 
   @override
-  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+  String get introNoNetPermBodyAndroid => 'هیچ مجوز INTERNET اعلام نشده است';
 
   @override
-  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+  String get introNoNetPermBodyDesktop => 'بدون مجوز شبکه در محیط ایزوله';
 
   @override
-  String get customModel => 'Custom model';
+  String get customModel => 'مدل سفارشی';
 
   @override
   String modelClassCount(int count) {
-    return '$count classes';
+    return '$count کلاس';
   }
 
   @override
-  String get copyImage => 'Copy image';
+  String get copyImage => 'کپی کردن تصویر';
 
   @override
-  String get copiedToClipboard => 'Copied to clipboard';
+  String get copiedToClipboard => 'در حافظه موقت کپی شد';
 
   @override
-  String get copyFailed => 'Could not copy image';
+  String get copyFailed => 'کپی کردن تصویر ناموفق بود';
 
   @override
-  String get peekOriginal => 'Hold to compare original';
+  String get peekOriginal => 'برای مقایسه با نسخه اصلی نگه دارید';
 
   @override
-  String get selectMedia => 'Select photos or video';
+  String get selectMedia => 'انتخاب عکس‌ها';
 
   @override
-  String get saveFailed => 'Could not save to Photos';
+  String get saveFailed => 'ذخیره در عکس‌ها ناموفق بود';
 
   @override
-  String get retry => 'Retry';
+  String get retry => 'تلاش مجدد';
 
   @override
-  String get iosWirelessPromptTitle => 'Wireless data prompt';
+  String get iosWirelessPromptTitle => 'پیام داده بی‌سیم';
 
   @override
   String get iosWirelessPromptBody =>
-      'Opening the system photo picker may trigger an iOS wireless data prompt for iCloud thumbnails. MosaicIt does not use the network — tap “Don’t Allow”.';
+      'باز کردن انتخابگر عکس سیستم ممکن است پیام داده بی‌سیم iOS را برای بندانگشتی‌های iCloud نمایش دهد. MosaicIt از شبکه استفاده نمی‌کند — روی «اجازه نده» ضربه بزنید.';
 
   @override
-  String get continueAction => 'Continue';
+  String get continueAction => 'ادامه';
 }

@@ -364,46 +364,46 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String selectedOf(int selected, int total) {
-    return '$selected / $total selected';
+    return '$selected / $total seleccionadas';
   }
 
   @override
-  String get fillStyle => 'Fill style';
+  String get fillStyle => 'Estilo de relleno';
 
   @override
-  String get colour => 'Colour';
+  String get colour => 'Color';
 
   @override
   String exportSummary(num images, num regions) {
     String _temp0 = intl.Intl.pluralLogic(
       images,
       locale: localeName,
-      other: '$images images',
-      one: '1 image',
+      other: '$images imágenes',
+      one: '1 imagen',
     );
     String _temp1 = intl.Intl.pluralLogic(
       regions,
       locale: localeName,
-      other: '$regions regions',
-      one: '1 region',
+      other: '$regions regiones',
+      one: '1 región',
     );
     return '$_temp0 · $_temp1';
   }
 
   @override
-  String get share => 'Share';
+  String get share => 'Compartir';
 
   @override
-  String get saveToPhotos => 'Save to Photos';
+  String get saveToPhotos => 'Guardar en Fotos';
 
   @override
-  String get saveAs => 'Save…';
+  String get saveAs => 'Guardar…';
 
   @override
-  String get exportFormat => 'Format';
+  String get exportFormat => 'Formato';
 
   @override
-  String get exportSize => 'Size';
+  String get exportSize => 'Tamaño';
 
   @override
   String get sizeOriginal => 'Original';
@@ -418,143 +418,143 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Saved $count images to Photos',
-      one: 'Saved 1 image to Photos',
+      other: '$count imágenes guardadas en Fotos',
+      one: '1 imagen guardada en Fotos',
     );
     return '$_temp0';
   }
 
   @override
-  String get selectAll => 'All';
+  String get selectAll => 'Todas';
 
   @override
-  String get selectNone => 'None';
+  String get selectNone => 'Ninguna';
 
   @override
-  String get suggested => 'suggested';
+  String get suggested => 'sugerida';
 
   @override
   String scoreValue(String score) {
-    return 'Score $score';
+    return 'Puntuación $score';
   }
 
   @override
   String exportCheckBodyOf(int index) {
-    return 'After redaction, the check still found these areas in the output of image $index.';
+    return 'Tras el ocultamiento, la comprobación aún encontró estas áreas en la salida de la imagen $index.';
   }
 
   @override
-  String get reasonNotSelected => 'not selected';
+  String get reasonNotSelected => 'no seleccionada';
 
   @override
-  String get reasonBoxTooSmall => 'box too small';
+  String get reasonBoxTooSmall => 'recuadro demasiado pequeño';
 
   @override
-  String get reasonFillShowsThrough => 'fill shows through';
+  String get reasonFillShowsThrough => 'el relleno deja ver el fondo';
 
   @override
-  String get openSource => 'Open source';
+  String get openSource => 'Código abierto';
 
   @override
-  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+  String get adaptivePreselectTitle => 'Preselección adaptativa local';
 
   @override
   String adaptiveLearnedCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count classes adjusted',
-      one: '1 class adjusted',
+      other: '$count clases ajustadas',
+      one: '1 clase ajustada',
     );
     return '$_temp0';
   }
 
   @override
-  String get adaptiveReset => 'Reset local preferences';
+  String get adaptiveReset => 'Restablecer preferencias locales';
 
   @override
-  String get adaptiveResetDone => 'Local preferences reset';
+  String get adaptiveResetDone => 'Preferencias locales restablecidas';
 
   @override
-  String get feedbackTitle => 'Report detection issue';
+  String get feedbackTitle => 'Informar de un problema de detección';
 
   @override
-  String get feedbackShort => 'Feedback';
+  String get feedbackShort => 'Comentarios';
 
   @override
-  String get feedbackMenu => 'Report issue';
+  String get feedbackMenu => 'Informar de un problema';
 
   @override
-  String get feedbackAction => 'Report';
+  String get feedbackAction => 'Informar';
 
   @override
-  String get feedbackAttachScreenshot => 'Attach screenshot';
+  String get feedbackAttachScreenshot => 'Adjuntar captura';
 
   @override
-  String get feedbackModeMasked => 'Errors only';
+  String get feedbackModeMasked => 'Solo errores';
 
   @override
-  String get feedbackModeFull => 'Full image';
+  String get feedbackModeFull => 'Imagen completa';
 
   @override
-  String get feedbackModeText => 'No image';
+  String get feedbackModeText => 'Sin imagen';
 
   @override
-  String get feedbackTagMissed => 'Missed';
+  String get feedbackTagMissed => 'No detectado';
 
   @override
-  String get feedbackTagFalsePositive => 'False positive';
+  String get feedbackTagFalsePositive => 'Falso positivo';
 
   @override
-  String get feedbackTagBoxDrift => 'Box drift';
+  String get feedbackTagBoxDrift => 'Recuadro desplazado';
 
   @override
-  String get feedbackTagWrongClass => 'Wrong class';
+  String get feedbackTagWrongClass => 'Clase incorrecta';
 
   @override
-  String get feedbackTagOther => 'Other';
+  String get feedbackTagOther => 'Otro';
 
   @override
-  String get feedbackNoteHint => 'Optional note…';
+  String get feedbackNoteHint => 'Nota opcional…';
 
   @override
   String feedbackCountMasked(int count) {
-    return 'Masked $count';
+    return 'Ocultas $count';
   }
 
   @override
   String feedbackCountMissed(int count) {
-    return 'Missed $count';
+    return 'No detectadas $count';
   }
 
   @override
   String feedbackCountFp(int count) {
-    return 'False positive $count';
+    return 'Falsos positivos $count';
   }
 
   @override
   String feedbackCountPreference(int count) {
-    return 'Unchecked $count';
+    return 'Desmarcadas $count';
   }
 
   @override
-  String get feedbackBoxMissed => 'Missed';
+  String get feedbackBoxMissed => 'No detectado';
 
   @override
-  String get feedbackBoxMissedMasked => 'Missed · masked';
+  String get feedbackBoxMissedMasked => 'No detectado · oculto';
 
   @override
-  String get feedbackBoxFp => 'False positive';
+  String get feedbackBoxFp => 'Falso positivo';
 
   @override
-  String get feedbackBoxPreference => 'Keep visible';
+  String get feedbackBoxPreference => 'Mantener visible';
 
   @override
   String get introOfflineTitle => 'Sin acceso a la red';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt no contiene código de red ni solicita permisos de red. El detector viene integrado y las imágenes y vídeos nunca salen del dispositivo.';
+      'MosaicIt no contiene código de red ni solicita permisos de red. El detector viene integrado y las imágenes nunca salen del dispositivo.';
 
   @override
   String get introNoNetPermTitle => 'Sin permisos de red';
@@ -608,7 +608,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get peekOriginal => 'Mantén pulsado para ver el original';
 
   @override
-  String get selectMedia => 'Seleccionar fotos o vídeo';
+  String get selectMedia => 'Seleccionar fotos';
 
   @override
   String get saveFailed => 'No se pudo guardar en Fotos';

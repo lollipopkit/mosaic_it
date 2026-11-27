@@ -23,11 +23,10 @@ import 'model_store.dart';
 import 'platform_bridge.dart';
 import 'rust/api.dart';
 import 'settings.dart';
-import 'video_page.dart';
 
 /// Main workspace: opens directly into the redaction editor, lets the user pick
-/// photos or videos via the OS picker (zero photo-library read permission), and
-/// accepts files shared or dropped from the OS.
+/// photos via the OS picker (zero photo-library read permission), and accepts
+/// image files shared or dropped from the OS.
 class EditorPage extends StatefulWidget {
   const EditorPage({
     super.key,
@@ -62,7 +61,7 @@ class _EditorPageState extends State<EditorPage> {
     'mpeg',
     'ts',
   };
-  static const _desktopMediaExts = [
+  static const _desktopImageExts = [
     'png',
     'jpg',
     'jpeg',
@@ -73,17 +72,6 @@ class _EditorPageState extends State<EditorPage> {
     'tif',
     'tiff',
     'gif',
-    'mp4',
-    'mov',
-    'm4v',
-    'mkv',
-    'webm',
-    'avi',
-    '3gp',
-    '3g2',
-    'mpg',
-    'mpeg',
-    'ts',
   ];
 
   Session? _model;
@@ -371,14 +359,15 @@ class _EditorPageState extends State<EditorPage> {
     try {
       if (_mobile) {
         if (!await confirmFirstPickerIfRestricted(context) || !mounted) return;
+        // TODO: re-enable allowVideo once native video model I/O is supported.
         paths = await PlatformBridge.pickMedia(
           multiple: true,
-          allowVideo: true,
+          allowVideo: false,
         );
       } else {
         final picked = await openFiles(
           acceptedTypeGroups: [
-            XTypeGroup(label: _l.imagesFileType, extensions: _desktopMediaExts),
+            XTypeGroup(label: _l.imagesFileType, extensions: _desktopImageExts),
           ],
         );
         paths = [for (final x in picked) x.path];
@@ -393,8 +382,8 @@ class _EditorPageState extends State<EditorPage> {
     _enqueueIncoming(paths);
   }
 
-  /// Opens [paths] in the editor (or [VideoPage] for video-only picks).
-  /// Returns true if a [VideoPage] was pushed.
+  /// Opens image [paths] in the editor. Video files are ignored until native
+  /// video model I/O is supported.
   Future<bool> _openPaths(List<String> paths) async {
     final s = _model, info = _info;
     if (s == null || info == null || !mounted) return false;
@@ -406,29 +395,12 @@ class _EditorPageState extends State<EditorPage> {
     Navigator.of(context).popUntil((r) => r.isFirst);
     if (!mounted) return false;
 
-    final videos = [
-      for (final f in files)
-        if (_isVideoPath(f.path)) f,
-    ];
+    // TODO: route video files to VideoPage once native video model I/O lands.
     final images = [
       for (final f in files)
         if (!_isVideoPath(f.path)) f,
     ];
-    if (images.isEmpty) {
-      if (videos.isEmpty) return false;
-      unawaited(
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => VideoPage(
-              session: s,
-              video: videos.first,
-              fill: _settings.fill,
-            ),
-          ),
-        ),
-      );
-      return true;
-    }
+    if (images.isEmpty) return false;
 
     final shots = <Shot>[];
     Object? firstError;

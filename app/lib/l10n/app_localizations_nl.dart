@@ -100,7 +100,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get cameraPhoto =>
-      'Dit is een camerfoto; de detector is gemaakt voor screenshots, dus de kaders hier zijn onbetrouwbaar.';
+      'Dit is een camerafoto; de detector is gemaakt voor screenshots, dus de kaders hier zijn onbetrouwbaar.';
 
   @override
   String get modeDraw => 'Tekenen';
@@ -362,49 +362,49 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String selectedOf(int selected, int total) {
-    return '$selected / $total selected';
+    return '$selected / $total geselecteerd';
   }
 
   @override
-  String get fillStyle => 'Fill style';
+  String get fillStyle => 'Vulstijl';
 
   @override
-  String get colour => 'Colour';
+  String get colour => 'Kleur';
 
   @override
   String exportSummary(num images, num regions) {
     String _temp0 = intl.Intl.pluralLogic(
       images,
       locale: localeName,
-      other: '$images images',
-      one: '1 image',
+      other: '$images afbeeldingen',
+      one: '1 afbeelding',
     );
     String _temp1 = intl.Intl.pluralLogic(
       regions,
       locale: localeName,
-      other: '$regions regions',
-      one: '1 region',
+      other: '$regions regio’s',
+      one: '1 regio',
     );
     return '$_temp0 · $_temp1';
   }
 
   @override
-  String get share => 'Share';
+  String get share => 'Delen';
 
   @override
-  String get saveToPhotos => 'Save to Photos';
+  String get saveToPhotos => 'Opslaan in Foto’s';
 
   @override
-  String get saveAs => 'Save…';
+  String get saveAs => 'Opslaan…';
 
   @override
-  String get exportFormat => 'Format';
+  String get exportFormat => 'Indeling';
 
   @override
-  String get exportSize => 'Size';
+  String get exportSize => 'Grootte';
 
   @override
-  String get sizeOriginal => 'Original';
+  String get sizeOriginal => 'Origineel';
 
   @override
   String sizePixels(int px) {
@@ -416,20 +416,20 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Saved $count images to Photos',
-      one: 'Saved 1 image to Photos',
+      other: '$count afbeeldingen opgeslagen in Foto’s',
+      one: '1 afbeelding opgeslagen in Foto’s',
     );
     return '$_temp0';
   }
 
   @override
-  String get selectAll => 'All';
+  String get selectAll => 'Alles';
 
   @override
-  String get selectNone => 'None';
+  String get selectNone => 'Geen';
 
   @override
-  String get suggested => 'suggested';
+  String get suggested => 'voorgesteld';
 
   @override
   String scoreValue(String score) {
@@ -438,187 +438,189 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String exportCheckBodyOf(int index) {
-    return 'After redaction, the check still found these areas in the output of image $index.';
+    return 'Na het redigeren vond de controle nog steeds deze gebieden in de uitvoer van afbeelding $index.';
   }
 
   @override
-  String get reasonNotSelected => 'not selected';
+  String get reasonNotSelected => 'niet geselecteerd';
 
   @override
-  String get reasonBoxTooSmall => 'box too small';
+  String get reasonBoxTooSmall => 'kader te klein';
 
   @override
-  String get reasonFillShowsThrough => 'fill shows through';
+  String get reasonFillShowsThrough => 'vulling schijnt door';
 
   @override
-  String get openSource => 'Open source';
+  String get openSource => 'Opensource';
 
   @override
-  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+  String get adaptivePreselectTitle => 'Lokale adaptieve voorselectie';
 
   @override
   String adaptiveLearnedCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count classes adjusted',
-      one: '1 class adjusted',
+      other: '$count klassen aangepast',
+      one: '1 klasse aangepast',
     );
     return '$_temp0';
   }
 
   @override
-  String get adaptiveReset => 'Reset local preferences';
+  String get adaptiveReset => 'Lokale voorkeuren herstellen';
 
   @override
-  String get adaptiveResetDone => 'Local preferences reset';
+  String get adaptiveResetDone => 'Lokale voorkeuren hersteld';
 
   @override
-  String get feedbackTitle => 'Report detection issue';
+  String get feedbackTitle => 'Detectieprobleem melden';
 
   @override
   String get feedbackShort => 'Feedback';
 
   @override
-  String get feedbackMenu => 'Report issue';
+  String get feedbackMenu => 'Probleem melden';
 
   @override
-  String get feedbackAction => 'Report';
+  String get feedbackAction => 'Melden';
 
   @override
-  String get feedbackAttachScreenshot => 'Attach screenshot';
+  String get feedbackAttachScreenshot => 'Schermafbeelding bijvoegen';
 
   @override
-  String get feedbackModeMasked => 'Errors only';
+  String get feedbackModeMasked => 'Alleen fouten';
 
   @override
-  String get feedbackModeFull => 'Full image';
+  String get feedbackModeFull => 'Volledige afbeelding';
 
   @override
-  String get feedbackModeText => 'No image';
+  String get feedbackModeText => 'Geen afbeelding';
 
   @override
-  String get feedbackTagMissed => 'Missed';
+  String get feedbackTagMissed => 'Gemist';
 
   @override
-  String get feedbackTagFalsePositive => 'False positive';
+  String get feedbackTagFalsePositive => 'Fout-positief';
 
   @override
-  String get feedbackTagBoxDrift => 'Box drift';
+  String get feedbackTagBoxDrift => 'Kader verschoven';
 
   @override
-  String get feedbackTagWrongClass => 'Wrong class';
+  String get feedbackTagWrongClass => 'Verkeerde klasse';
 
   @override
-  String get feedbackTagOther => 'Other';
+  String get feedbackTagOther => 'Overig';
 
   @override
-  String get feedbackNoteHint => 'Optional note…';
+  String get feedbackNoteHint => 'Optionele opmerking…';
 
   @override
   String feedbackCountMasked(int count) {
-    return 'Masked $count';
+    return 'Gemaskeerd $count';
   }
 
   @override
   String feedbackCountMissed(int count) {
-    return 'Missed $count';
+    return 'Gemist $count';
   }
 
   @override
   String feedbackCountFp(int count) {
-    return 'False positive $count';
+    return 'Fout-positief $count';
   }
 
   @override
   String feedbackCountPreference(int count) {
-    return 'Unchecked $count';
+    return 'Uitgevinkt $count';
   }
 
   @override
-  String get feedbackBoxMissed => 'Missed';
+  String get feedbackBoxMissed => 'Gemist';
 
   @override
-  String get feedbackBoxMissedMasked => 'Missed · masked';
+  String get feedbackBoxMissedMasked => 'Gemist · gemaskeerd';
 
   @override
-  String get feedbackBoxFp => 'False positive';
+  String get feedbackBoxFp => 'Fout-positief';
 
   @override
-  String get feedbackBoxPreference => 'Keep visible';
+  String get feedbackBoxPreference => 'Zichtbaar houden';
 
   @override
-  String get introOfflineTitle => 'No network access';
+  String get introOfflineTitle => 'Geen netwerktoegang';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+      'MosaicIt bevat geen netwerkcode en vraagt geen netwerkmachtiging aan. De detector is in de app ingebouwd en afbeeldingen verlaten nooit uw apparaat.';
 
   @override
-  String get introNoNetPermTitle => 'Zero network permissions';
+  String get introNoNetPermTitle => 'Geen netwerkmachtigingen';
 
   @override
-  String get introBundledModelTitle => 'Bundled on-device model';
+  String get introBundledModelTitle => 'Ingebouwd model op het apparaat';
 
   @override
   String introBundledModelBody(String version) {
-    return 'unseen-det $version · on-device';
+    return 'unseen-det $version · op het apparaat';
   }
 
   @override
-  String get resetBundledModel => 'Use bundled model';
+  String get resetBundledModel => 'Ingebouwd model gebruiken';
 
   @override
-  String get reviewIntro => 'Show intro again';
+  String get reviewIntro => 'Introductie opnieuw tonen';
 
   @override
-  String get feedbackOpenWeb => 'Open web form';
+  String get feedbackOpenWeb => 'Webformulier openen';
 
   @override
-  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+  String get introNoNetPermBodyIos =>
+      'Geen netwerkverzoeken · alleen op het apparaat';
 
   @override
-  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+  String get introNoNetPermBodyAndroid =>
+      'Geen INTERNET-machtiging gedeclareerd';
 
   @override
-  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+  String get introNoNetPermBodyDesktop => 'Geen netwerkrechten in de sandbox';
 
   @override
-  String get customModel => 'Custom model';
+  String get customModel => 'Aangepast model';
 
   @override
   String modelClassCount(int count) {
-    return '$count classes';
+    return '$count klassen';
   }
 
   @override
-  String get copyImage => 'Copy image';
+  String get copyImage => 'Afbeelding kopiëren';
 
   @override
-  String get copiedToClipboard => 'Copied to clipboard';
+  String get copiedToClipboard => 'Gekopieerd naar klembord';
 
   @override
-  String get copyFailed => 'Could not copy image';
+  String get copyFailed => 'Kan afbeelding niet kopiëren';
 
   @override
-  String get peekOriginal => 'Hold to compare original';
+  String get peekOriginal => 'Houd ingedrukt om origineel te vergelijken';
 
   @override
-  String get selectMedia => 'Select photos or video';
+  String get selectMedia => 'Foto’s selecteren';
 
   @override
-  String get saveFailed => 'Could not save to Photos';
+  String get saveFailed => 'Kan niet opslaan in Foto’s';
 
   @override
-  String get retry => 'Retry';
+  String get retry => 'Opnieuw proberen';
 
   @override
-  String get iosWirelessPromptTitle => 'Wireless data prompt';
+  String get iosWirelessPromptTitle => 'Melding voor draadloze gegevens';
 
   @override
   String get iosWirelessPromptBody =>
-      'Opening the system photo picker may trigger an iOS wireless data prompt for iCloud thumbnails. MosaicIt does not use the network — tap “Don’t Allow”.';
+      'Het openen van de systeemfotokiezer kan op iOS een melding voor draadloze gegevens tonen voor iCloud-miniaturen. MosaicIt gebruikt geen netwerk — tik op ‘Sta niet toe’.';
 
   @override
-  String get continueAction => 'Continue';
+  String get continueAction => 'Doorgaan';
 }

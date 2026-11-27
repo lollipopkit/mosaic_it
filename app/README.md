@@ -1,6 +1,6 @@
 # MosaicIt app
 
-Flutter frontend (macOS, iOS, Android) over `crates/unseen-ffi` via flutter_rust_bridge 2.13.0.
+Flutter frontend (macOS, iOS, Android, Linux, Windows) over `crates/unseen-ffi` via flutter_rust_bridge 2.13.0.
 
 ```sh
 flutter run -d macos
@@ -16,15 +16,19 @@ iOS simulators are arm64 only (ONNX Runtime has no x86_64 simulator build).
 Android runs `.tflite` models on LiteRT (GPU, else CPU) and ships no ONNX
 Runtime; the APK is arm64-v8a only.
 
-On phones images come from Photos (`image_picker`; iOS photos arrive as JPEG
-since the decoder has no HEIC) and exports go to the share sheet
-(`share_plus`); desktops use file dialogs.
+On phones images come from the native zero-permission system picker
+(`PHPickerViewController` on iOS, Photo Picker / `ACTION_OPEN_DOCUMENT` on Android;
+non-PNG/JPEG/WebP images such as HEIC are transcoded on device to upright JPEG)
+and exports go to the native clipboard, system share sheet (`share_plus`), or
+write-only Photos/Gallery saves; desktops use native file dialogs (plus window
+drag-and-drop on macOS). Video picking is currently disabled in the UI pending
+native video model I/O.
 
 The app runs completely offline with no network permissions (no Android
 `INTERNET` permission in release builds and no macOS `network.client`
 entitlement). Platform builds bundle the pinned detector release from
 [models/manifest.toml](../models/manifest.toml) via `tool/bundle-model.sh`
-(`unseen-det-tile.onnx` on Apple platforms, `unseen-det.tflite` on Android).
+(`unseen-det-tile.onnx` on Apple/Linux/Windows, `unseen-det.tflite` on Android).
 A local model (`*.onnx` or `*.tflite` with its `.json` sidecar) can also be
 imported by hand in Settings ([docs/model.md](../docs/model.md)). On narrow
 screens the region list is in a drawer.

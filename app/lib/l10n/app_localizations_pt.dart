@@ -363,46 +363,46 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String selectedOf(int selected, int total) {
-    return '$selected / $total selected';
+    return '$selected / $total selecionadas';
   }
 
   @override
-  String get fillStyle => 'Fill style';
+  String get fillStyle => 'Estilo de preenchimento';
 
   @override
-  String get colour => 'Colour';
+  String get colour => 'Cor';
 
   @override
   String exportSummary(num images, num regions) {
     String _temp0 = intl.Intl.pluralLogic(
       images,
       locale: localeName,
-      other: '$images images',
-      one: '1 image',
+      other: '$images imagens',
+      one: '1 imagem',
     );
     String _temp1 = intl.Intl.pluralLogic(
       regions,
       locale: localeName,
-      other: '$regions regions',
-      one: '1 region',
+      other: '$regions regiões',
+      one: '1 região',
     );
     return '$_temp0 · $_temp1';
   }
 
   @override
-  String get share => 'Share';
+  String get share => 'Compartilhar';
 
   @override
-  String get saveToPhotos => 'Save to Photos';
+  String get saveToPhotos => 'Salvar em Fotos';
 
   @override
-  String get saveAs => 'Save…';
+  String get saveAs => 'Salvar…';
 
   @override
-  String get exportFormat => 'Format';
+  String get exportFormat => 'Formato';
 
   @override
-  String get exportSize => 'Size';
+  String get exportSize => 'Tamanho';
 
   @override
   String get sizeOriginal => 'Original';
@@ -417,143 +417,143 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Saved $count images to Photos',
-      one: 'Saved 1 image to Photos',
+      other: '$count imagens salvas em Fotos',
+      one: '1 imagem salva em Fotos',
     );
     return '$_temp0';
   }
 
   @override
-  String get selectAll => 'All';
+  String get selectAll => 'Tudo';
 
   @override
-  String get selectNone => 'None';
+  String get selectNone => 'Nada';
 
   @override
-  String get suggested => 'suggested';
+  String get suggested => 'sugerida';
 
   @override
   String scoreValue(String score) {
-    return 'Score $score';
+    return 'Pontuação $score';
   }
 
   @override
   String exportCheckBodyOf(int index) {
-    return 'After redaction, the check still found these areas in the output of image $index.';
+    return 'Após a ocultação, a verificação ainda encontrou estas áreas na saída da imagem $index.';
   }
 
   @override
-  String get reasonNotSelected => 'not selected';
+  String get reasonNotSelected => 'não selecionada';
 
   @override
-  String get reasonBoxTooSmall => 'box too small';
+  String get reasonBoxTooSmall => 'caixa muito pequena';
 
   @override
-  String get reasonFillShowsThrough => 'fill shows through';
+  String get reasonFillShowsThrough => 'preenchimento deixa transparecer';
 
   @override
-  String get openSource => 'Open source';
+  String get openSource => 'Código aberto';
 
   @override
-  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+  String get adaptivePreselectTitle => 'Pré-seleção adaptativa local';
 
   @override
   String adaptiveLearnedCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count classes adjusted',
-      one: '1 class adjusted',
+      other: '$count classes ajustadas',
+      one: '1 classe ajustada',
     );
     return '$_temp0';
   }
 
   @override
-  String get adaptiveReset => 'Reset local preferences';
+  String get adaptiveReset => 'Redefinir preferências locais';
 
   @override
-  String get adaptiveResetDone => 'Local preferences reset';
+  String get adaptiveResetDone => 'Preferências locais redefinidas';
 
   @override
-  String get feedbackTitle => 'Report detection issue';
+  String get feedbackTitle => 'Relatar problema de detecção';
 
   @override
   String get feedbackShort => 'Feedback';
 
   @override
-  String get feedbackMenu => 'Report issue';
+  String get feedbackMenu => 'Relatar problema';
 
   @override
-  String get feedbackAction => 'Report';
+  String get feedbackAction => 'Relatar';
 
   @override
-  String get feedbackAttachScreenshot => 'Attach screenshot';
+  String get feedbackAttachScreenshot => 'Anexar captura de tela';
 
   @override
-  String get feedbackModeMasked => 'Errors only';
+  String get feedbackModeMasked => 'Somente erros';
 
   @override
-  String get feedbackModeFull => 'Full image';
+  String get feedbackModeFull => 'Imagem completa';
 
   @override
-  String get feedbackModeText => 'No image';
+  String get feedbackModeText => 'Sem imagem';
 
   @override
-  String get feedbackTagMissed => 'Missed';
+  String get feedbackTagMissed => 'Não detectado';
 
   @override
-  String get feedbackTagFalsePositive => 'False positive';
+  String get feedbackTagFalsePositive => 'Falso positivo';
 
   @override
-  String get feedbackTagBoxDrift => 'Box drift';
+  String get feedbackTagBoxDrift => 'Caixa deslocada';
 
   @override
-  String get feedbackTagWrongClass => 'Wrong class';
+  String get feedbackTagWrongClass => 'Classe incorreta';
 
   @override
-  String get feedbackTagOther => 'Other';
+  String get feedbackTagOther => 'Outro';
 
   @override
-  String get feedbackNoteHint => 'Optional note…';
+  String get feedbackNoteHint => 'Observação opcional…';
 
   @override
   String feedbackCountMasked(int count) {
-    return 'Masked $count';
+    return 'Ocultadas $count';
   }
 
   @override
   String feedbackCountMissed(int count) {
-    return 'Missed $count';
+    return 'Não detectadas $count';
   }
 
   @override
   String feedbackCountFp(int count) {
-    return 'False positive $count';
+    return 'Falso positivo $count';
   }
 
   @override
   String feedbackCountPreference(int count) {
-    return 'Unchecked $count';
+    return 'Desmarcadas $count';
   }
 
   @override
-  String get feedbackBoxMissed => 'Missed';
+  String get feedbackBoxMissed => 'Não detectado';
 
   @override
-  String get feedbackBoxMissedMasked => 'Missed · masked';
+  String get feedbackBoxMissedMasked => 'Não detectado · ocultado';
 
   @override
-  String get feedbackBoxFp => 'False positive';
+  String get feedbackBoxFp => 'Falso positivo';
 
   @override
-  String get feedbackBoxPreference => 'Keep visible';
+  String get feedbackBoxPreference => 'Manter visível';
 
   @override
   String get introOfflineTitle => 'Sem acesso à rede';
 
   @override
   String get introOfflineBody =>
-      'O MosaicIt não possui código de rede nem solicita permissão de rede. O detector está integrado ao app e imagens e vídeos nunca saem do dispositivo.';
+      'O MosaicIt não possui código de rede nem solicita permissão de rede. O detector está integrado ao app e as imagens nunca saem do dispositivo.';
 
   @override
   String get introNoNetPermTitle => 'Sem permissões de rede';
@@ -606,7 +606,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get peekOriginal => 'Segure para ver o original';
 
   @override
-  String get selectMedia => 'Selecionar fotos ou vídeo';
+  String get selectMedia => 'Selecionar fotos';
 
   @override
   String get saveFailed => 'Não foi possível salvar em Fotos';
@@ -620,442 +620,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get iosWirelessPromptBody =>
       'Ao abrir o seletor de fotos do sistema, o iOS pode exibir um aviso de dados para miniaturas do iCloud. O MosaicIt não usa rede — toque em “Não Permitir”.';
-
-  @override
-  String get continueAction => 'Continuar';
-}
-
-/// The translations for Portuguese, as used in Portugal (`pt_PT`).
-class AppLocalizationsPtPt extends AppLocalizationsPt {
-  AppLocalizationsPtPt() : super('pt_PT');
-
-  @override
-  String get appTitle => 'MosaicIt';
-
-  @override
-  String get loadingModel => 'A carregar o modelo…';
-
-  @override
-  String get modelFileType => 'Modelo';
-
-  @override
-  String get useModel => 'Usar modelo';
-
-  @override
-  String get imagesFileType => 'Imagens';
-
-  @override
-  String get detecting => 'A detetar…';
-
-  @override
-  String detectingProgress(int current, int total) {
-    return 'A detetar $current/$total…';
-  }
-
-  @override
-  String get chooseModelFirst => 'Escolha primeiro um modelo';
-
-  @override
-  String get findingSimilar => 'A procurar semelhantes…';
-
-  @override
-  String similarSelected(int found, int added) {
-    return '$found regiões semelhantes selecionadas ($added novas)';
-  }
-
-  @override
-  String similarSelectedAcross(int found, int added, int images) {
-    return '$found regiões semelhantes selecionadas ($added novas) em $images imagens';
-  }
-
-  @override
-  String get saving => 'A guardar…';
-
-  @override
-  String get exportHere => 'Exportar aqui';
-
-  @override
-  String exportStoppedAt(String name) {
-    return 'Exportação interrompida em $name';
-  }
-
-  @override
-  String exportedTo(String path) {
-    return 'Exportado para $path';
-  }
-
-  @override
-  String exportedToNoAudio(String path) {
-    return 'Exportado para $path (sem áudio)';
-  }
-
-  @override
-  String exportedImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count imagens exportadas',
-      one: '1 imagem exportada',
-      zero: '0 imagens exportadas',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String checkingImage(String name) {
-    return 'A verificar $name…';
-  }
-
-  @override
-  String get checkingAndExporting => 'A verificar e a exportar…';
-
-  @override
-  String get cancel => 'Cancelar';
-
-  @override
-  String get exportAnyway => 'Exportar mesmo assim';
-
-  @override
-  String get regionsTooltip => 'Regiões';
-
-  @override
-  String get cameraPhoto =>
-      'Esta é uma fotografia de câmara; o detetor foi feito para capturas de ecrã, pelo que as suas caixas aqui são pouco fiáveis.';
-
-  @override
-  String get modeDraw => 'Desenhar';
-
-  @override
-  String get fillSolid => 'Cor sólida';
-
-  @override
-  String get fillBlocks => 'Mosaico cinzento';
-
-  @override
-  String get fillNoise => 'Ruído';
-
-  @override
-  String get export => 'Exportar';
-
-  @override
-  String pickOneModel(String formats) {
-    return 'Escolha exatamente um modelo $formats';
-  }
-
-  @override
-  String pickSidecar(String name) {
-    return 'Escolha também $name.json';
-  }
-
-  @override
-  String get analysing => 'A analisar';
-
-  @override
-  String get followingRegion => 'A seguir a região';
-
-  @override
-  String get exporting => 'A exportar';
-
-  @override
-  String busyFrames(String label, int count) {
-    return '$label… $count fotogramas';
-  }
-
-  @override
-  String redactingSpan(String start, String end) {
-    return 'A redigir $start – $end';
-  }
-
-  @override
-  String exportCheckFailedAt(String time) {
-    return 'Falha na verificação de exportação às $time';
-  }
-
-  @override
-  String videoRegionsVisible(int count, String classes) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other:
-          '$count regiões com aspeto privado ainda são visíveis ali ($classes).',
-      one: '1 região com aspeto privado ainda é visível ali ($classes).',
-      zero: '0 regiões com aspeto privado visíveis ali ($classes).',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get showFrame => 'Mostrar fotograma';
-
-  @override
-  String get drawMissedRegion => 'Desenhe uma região que o detetor perdeu';
-
-  @override
-  String tracksSummary(int on, int total, int keyframes) {
-    return '$on de $total trajetórias redigidas · $keyframes fotogramas-chave';
-  }
-
-  @override
-  String get keepAudio => 'Manter áudio';
-
-  @override
-  String get keepAudioHint => 'Vozes e sons de notificação não são verificados';
-
-  @override
-  String get goToFirstAppearance => 'Ir para a primeira aparição';
-
-  @override
-  String get classPersonName => 'Nome';
-
-  @override
-  String get classAddress => 'Endereço';
-
-  @override
-  String get classPhone => 'Telefone';
-
-  @override
-  String get classEmail => 'Email';
-
-  @override
-  String get classIdNumber => 'N.º de identificação';
-
-  @override
-  String get classBankCard => 'Cartão bancário';
-
-  @override
-  String get classPlate => 'Matrícula';
-
-  @override
-  String get classAccountId => 'Conta';
-
-  @override
-  String get classAvatar => 'Avatar';
-
-  @override
-  String get classFace => 'Rosto';
-
-  @override
-  String get classQr => 'Código QR';
-
-  @override
-  String get classBarcode => 'Código de barras';
-
-  @override
-  String get classManual => 'Manual';
-
-  @override
-  String savedModelFailed(String error) {
-    return 'Não foi possível carregar o modelo guardado; escolha um modelo novamente. ($error)';
-  }
-
-  @override
-  String get fillSurround => 'Cor de fundo';
-
-  @override
-  String get fillTinted => 'Mosaico colorido';
-
-  @override
-  String get settings => 'Definições';
-
-  @override
-  String get classFinance => 'Valor';
-
-  @override
-  String get delete => 'Eliminar';
-
-  @override
-  String get undo => 'Desfazer';
-
-  @override
-  String get redo => 'Refazer';
-
-  @override
-  String get similar => 'Semelhantes';
-
-  @override
-  String get thisImage => 'Esta imagem';
-
-  @override
-  String allImagesCount(int count) {
-    return 'Todas as $count imagens';
-  }
-
-  @override
-  String exportCheckTitle(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count áreas podem ainda ser legíveis',
-      many: 'muitas áreas podem ainda ser legíveis',
-      few: 'poucas áreas podem ainda ser legíveis',
-      two: '2 áreas podem ainda ser legíveis',
-      one: '1 área pode ainda ser legível',
-      zero: '0 áreas podem ainda ser legíveis',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get exportCheckBody =>
-      'Após a ocultação, a verificação ainda encontrou estas áreas na saída.';
-
-  @override
-  String get redactThemAndExport => 'Ocultar e exportar';
-
-  @override
-  String get showThem => 'Mostrar';
-
-  @override
-  String get pickClass => 'Escolher uma classe';
-
-  @override
-  String get appearance => 'Aparência';
-
-  @override
-  String get theme => 'Tema';
-
-  @override
-  String get appIcon => 'Ícone da app';
-
-  @override
-  String get threshold => 'Limiar';
-
-  @override
-  String get thresholdLow => 'Baixo';
-
-  @override
-  String get thresholdMedium => 'Médio';
-
-  @override
-  String get thresholdHigh => 'Alto';
-
-  @override
-  String get redaction => 'Ocultação';
-
-  @override
-  String get style => 'Estilo';
-
-  @override
-  String get selectedByDefault => 'Selecionado por predefinição';
-
-  @override
-  String get dataPrivacy => 'Dados e privacidade';
-
-  @override
-  String get model => 'Modelo';
-
-  @override
-  String get importModel => 'Importar outro modelo';
-
-  @override
-  String get advanced => 'Avançado';
-
-  @override
-  String get about => 'Acerca de';
-
-  @override
-  String get licenses => 'Licenças de código aberto';
-
-  @override
-  String get merge => 'Juntar';
-
-  @override
-  String get split => 'Separar';
-
-  @override
-  String get mergeHint =>
-      'Toque noutra caixa para a tornar parte do mesmo valor';
-
-  @override
-  String get classOrganization => 'Organização';
-
-  @override
-  String get classDeviceId => 'ID do dispositivo';
-
-  @override
-  String get classSecret => 'Credencial';
-
-  @override
-  String get classPerson => 'Pessoa';
-
-  @override
-  String get classHealth => 'Saúde';
-
-  @override
-  String get classPersonalInfo => 'Dados pessoais';
-
-  @override
-  String get introOfflineTitle => 'Sem acesso à rede';
-
-  @override
-  String get introOfflineBody =>
-      'O MosaicIt não possui código de rede nem solicita permissão de rede. O detector está integrado ao app e imagens e vídeos nunca saem do dispositivo.';
-
-  @override
-  String get introNoNetPermTitle => 'Sem permissões de rede';
-
-  @override
-  String get introBundledModelTitle => 'Modelo integrado no dispositivo';
-
-  @override
-  String introBundledModelBody(String version) {
-    return 'unseen-det $version · integrado';
-  }
-
-  @override
-  String get resetBundledModel => 'Usar modelo integrado';
-
-  @override
-  String get reviewIntro => 'Ver introdução novamente';
-
-  @override
-  String get feedbackOpenWeb => 'Abrir formulário web';
-
-  @override
-  String get introNoNetPermBodyIos =>
-      'Sem requisições de rede · apenas no dispositivo';
-
-  @override
-  String get introNoNetPermBodyAndroid => 'Sem permissão INTERNET declarada';
-
-  @override
-  String get introNoNetPermBodyDesktop => 'Sem acesso de rede no sandbox';
-
-  @override
-  String get customModel => 'Modelo personalizado';
-
-  @override
-  String modelClassCount(int count) {
-    return '$count classes';
-  }
-
-  @override
-  String get copyImage => 'Copiar imagem';
-
-  @override
-  String get copiedToClipboard => 'Copiado para a área de transferência';
-
-  @override
-  String get copyFailed => 'Não foi possível copiar a imagem';
-
-  @override
-  String get peekOriginal => 'Segure para ver o original';
-
-  @override
-  String get selectMedia => 'Selecionar fotos ou vídeo';
-
-  @override
-  String get saveFailed => 'Não foi possível guardar em Fotografias';
-
-  @override
-  String get retry => 'Tentar novamente';
-
-  @override
-  String get iosWirelessPromptTitle => 'Aviso de dados sem fios';
-
-  @override
-  String get iosWirelessPromptBody =>
-      'Ao abrir o seletor de fotografias do sistema, o iOS pode mostrar um aviso de dados para miniaturas do iCloud. O MosaicIt não usa rede — toque em «Não permitir».';
 
   @override
   String get continueAction => 'Continuar';

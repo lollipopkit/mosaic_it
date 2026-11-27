@@ -75,11 +75,7 @@ class AppLocalizationsTr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count görsel dışa aktarıldı',
-      many: 'çok görsel dışa aktarıldı',
-      few: 'birkaç görsel dışa aktarıldı',
-      two: '2 görsel dışa aktarıldı',
       one: '1 görsel dışa aktarıldı',
-      zero: '0 görsel dışa aktarıldı',
     );
     return '$_temp0';
   }
@@ -160,11 +156,7 @@ class AppLocalizationsTr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Orada $count özel görünümlü bölge hâlâ görünür ($classes).',
-      many: 'Orada çok özel görünümlü bölge hâlâ görünür ($classes).',
-      few: 'Orada birkaç özel görünümlü bölge hâlâ görünür ($classes).',
-      two: 'Orada 2 özel görünümlü bölge hâlâ görünür ($classes).',
       one: 'Orada 1 özel görünümlü bölge hâlâ görünür ($classes).',
-      zero: 'Orada görünür özel bölge yok.',
     );
     return '$_temp0';
   }
@@ -271,11 +263,7 @@ class AppLocalizationsTr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count alan hâlâ okunabilir olabilir',
-      many: '$count alan hâlâ okunabilir olabilir',
-      few: '$count alan hâlâ okunabilir olabilir',
-      two: '2 alan hâlâ okunabilir olabilir',
       one: '1 alan hâlâ okunabilir olabilir',
-      zero: '0 alan hâlâ okunabilir olabilir',
     );
     return '$_temp0';
   }
@@ -371,49 +359,49 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String selectedOf(int selected, int total) {
-    return '$selected / $total selected';
+    return '$selected / $total seçili';
   }
 
   @override
-  String get fillStyle => 'Fill style';
+  String get fillStyle => 'Dolgu stili';
 
   @override
-  String get colour => 'Colour';
+  String get colour => 'Renk';
 
   @override
   String exportSummary(num images, num regions) {
     String _temp0 = intl.Intl.pluralLogic(
       images,
       locale: localeName,
-      other: '$images images',
-      one: '1 image',
+      other: '$images görsel',
+      one: '1 görsel',
     );
     String _temp1 = intl.Intl.pluralLogic(
       regions,
       locale: localeName,
-      other: '$regions regions',
-      one: '1 region',
+      other: '$regions bölge',
+      one: '1 bölge',
     );
     return '$_temp0 · $_temp1';
   }
 
   @override
-  String get share => 'Share';
+  String get share => 'Paylaş';
 
   @override
-  String get saveToPhotos => 'Save to Photos';
+  String get saveToPhotos => 'Fotoğraflar’a kaydet';
 
   @override
-  String get saveAs => 'Save…';
+  String get saveAs => 'Kaydet…';
 
   @override
-  String get exportFormat => 'Format';
+  String get exportFormat => 'Biçim';
 
   @override
-  String get exportSize => 'Size';
+  String get exportSize => 'Boyut';
 
   @override
-  String get sizeOriginal => 'Original';
+  String get sizeOriginal => 'Orijinal';
 
   @override
   String sizePixels(int px) {
@@ -425,209 +413,209 @@ class AppLocalizationsTr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Saved $count images to Photos',
-      one: 'Saved 1 image to Photos',
+      other: '$count görsel Fotoğraflar’a kaydedildi',
+      one: '1 görsel Fotoğraflar’a kaydedildi',
     );
     return '$_temp0';
   }
 
   @override
-  String get selectAll => 'All';
+  String get selectAll => 'Tümü';
 
   @override
-  String get selectNone => 'None';
+  String get selectNone => 'Hiçbiri';
 
   @override
-  String get suggested => 'suggested';
+  String get suggested => 'önerilen';
 
   @override
   String scoreValue(String score) {
-    return 'Score $score';
+    return 'Puan $score';
   }
 
   @override
   String exportCheckBodyOf(int index) {
-    return 'After redaction, the check still found these areas in the output of image $index.';
+    return 'Gizlemeden sonra, denetim $index. görselin çıktısında bu alanları hâlâ buldu.';
   }
 
   @override
-  String get reasonNotSelected => 'not selected';
+  String get reasonNotSelected => 'seçilmedi';
 
   @override
-  String get reasonBoxTooSmall => 'box too small';
+  String get reasonBoxTooSmall => 'kutu çok küçük';
 
   @override
-  String get reasonFillShowsThrough => 'fill shows through';
+  String get reasonFillShowsThrough => 'dolgu altından görünüyor';
 
   @override
-  String get openSource => 'Open source';
+  String get openSource => 'Açık kaynak';
 
   @override
-  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+  String get adaptivePreselectTitle => 'Yerel uyarlanabilir ön seçim';
 
   @override
   String adaptiveLearnedCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count classes adjusted',
-      one: '1 class adjusted',
+      other: '$count sınıf ayarlandı',
+      one: '1 sınıf ayarlandı',
     );
     return '$_temp0';
   }
 
   @override
-  String get adaptiveReset => 'Reset local preferences';
+  String get adaptiveReset => 'Yerel tercihleri sıfırla';
 
   @override
-  String get adaptiveResetDone => 'Local preferences reset';
+  String get adaptiveResetDone => 'Yerel tercihler sıfırlandı';
 
   @override
-  String get feedbackTitle => 'Report detection issue';
+  String get feedbackTitle => 'Algılama sorunu bildir';
 
   @override
-  String get feedbackShort => 'Feedback';
+  String get feedbackShort => 'Geri bildirim';
 
   @override
-  String get feedbackMenu => 'Report issue';
+  String get feedbackMenu => 'Sorun bildir';
 
   @override
-  String get feedbackAction => 'Report';
+  String get feedbackAction => 'Bildir';
 
   @override
-  String get feedbackAttachScreenshot => 'Attach screenshot';
+  String get feedbackAttachScreenshot => 'Ekran görüntüsü ekle';
 
   @override
-  String get feedbackModeMasked => 'Errors only';
+  String get feedbackModeMasked => 'Yalnızca hatalar';
 
   @override
-  String get feedbackModeFull => 'Full image';
+  String get feedbackModeFull => 'Tam görsel';
 
   @override
-  String get feedbackModeText => 'No image';
+  String get feedbackModeText => 'Görsel yok';
 
   @override
-  String get feedbackTagMissed => 'Missed';
+  String get feedbackTagMissed => 'Kaçırıldı';
 
   @override
-  String get feedbackTagFalsePositive => 'False positive';
+  String get feedbackTagFalsePositive => 'Yanlış pozitif';
 
   @override
-  String get feedbackTagBoxDrift => 'Box drift';
+  String get feedbackTagBoxDrift => 'Kutu kayması';
 
   @override
-  String get feedbackTagWrongClass => 'Wrong class';
+  String get feedbackTagWrongClass => 'Yanlış sınıf';
 
   @override
-  String get feedbackTagOther => 'Other';
+  String get feedbackTagOther => 'Diğer';
 
   @override
-  String get feedbackNoteHint => 'Optional note…';
+  String get feedbackNoteHint => 'İsteğe bağlı not…';
 
   @override
   String feedbackCountMasked(int count) {
-    return 'Masked $count';
+    return 'Gizlenen $count';
   }
 
   @override
   String feedbackCountMissed(int count) {
-    return 'Missed $count';
+    return 'Kaçırılan $count';
   }
 
   @override
   String feedbackCountFp(int count) {
-    return 'False positive $count';
+    return 'Yanlış pozitif $count';
   }
 
   @override
   String feedbackCountPreference(int count) {
-    return 'Unchecked $count';
+    return 'İşareti kaldırılan $count';
   }
 
   @override
-  String get feedbackBoxMissed => 'Missed';
+  String get feedbackBoxMissed => 'Kaçırıldı';
 
   @override
-  String get feedbackBoxMissedMasked => 'Missed · masked';
+  String get feedbackBoxMissedMasked => 'Kaçırıldı · gizlendi';
 
   @override
-  String get feedbackBoxFp => 'False positive';
+  String get feedbackBoxFp => 'Yanlış pozitif';
 
   @override
-  String get feedbackBoxPreference => 'Keep visible';
+  String get feedbackBoxPreference => 'Görünür bırak';
 
   @override
-  String get introOfflineTitle => 'No network access';
+  String get introOfflineTitle => 'Ağ erişimi yok';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+      'MosaicIt hiçbir ağ kodu içermez ve ağ izni istemez. Algılayıcı uygulamanın içine gömülüdür; görseller cihazınızdan asla çıkmaz.';
 
   @override
-  String get introNoNetPermTitle => 'Zero network permissions';
+  String get introNoNetPermTitle => 'Sıfır ağ izni';
 
   @override
-  String get introBundledModelTitle => 'Bundled on-device model';
+  String get introBundledModelTitle => 'Cihaz içi yerleşik model';
 
   @override
   String introBundledModelBody(String version) {
-    return 'unseen-det $version · on-device';
+    return 'unseen-det $version · cihaz içi';
   }
 
   @override
-  String get resetBundledModel => 'Use bundled model';
+  String get resetBundledModel => 'Yerleşik modeli kullan';
 
   @override
-  String get reviewIntro => 'Show intro again';
+  String get reviewIntro => 'Tanıtımı tekrar göster';
 
   @override
-  String get feedbackOpenWeb => 'Open web form';
+  String get feedbackOpenWeb => 'Web formunu aç';
 
   @override
-  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+  String get introNoNetPermBodyIos => 'Ağ isteği yok · yalnızca cihaz içinde';
 
   @override
-  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+  String get introNoNetPermBodyAndroid => 'INTERNET izni tanımlı değil';
 
   @override
-  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+  String get introNoNetPermBodyDesktop => 'Korumalı alanda ağ yetkisi yok';
 
   @override
-  String get customModel => 'Custom model';
+  String get customModel => 'Özel model';
 
   @override
   String modelClassCount(int count) {
-    return '$count classes';
+    return '$count sınıf';
   }
 
   @override
-  String get copyImage => 'Copy image';
+  String get copyImage => 'Görseli kopyala';
 
   @override
-  String get copiedToClipboard => 'Copied to clipboard';
+  String get copiedToClipboard => 'Panoya kopyalandı';
 
   @override
-  String get copyFailed => 'Could not copy image';
+  String get copyFailed => 'Görsel kopyalanamadı';
 
   @override
-  String get peekOriginal => 'Hold to compare original';
+  String get peekOriginal => 'Orijinalle karşılaştırmak için basılı tutun';
 
   @override
-  String get selectMedia => 'Select photos or video';
+  String get selectMedia => 'Fotoğraf seç';
 
   @override
-  String get saveFailed => 'Could not save to Photos';
+  String get saveFailed => 'Fotoğraflar’a kaydedilemedi';
 
   @override
-  String get retry => 'Retry';
+  String get retry => 'Yeniden dene';
 
   @override
-  String get iosWirelessPromptTitle => 'Wireless data prompt';
+  String get iosWirelessPromptTitle => 'Kablosuz veri istemi';
 
   @override
   String get iosWirelessPromptBody =>
-      'Opening the system photo picker may trigger an iOS wireless data prompt for iCloud thumbnails. MosaicIt does not use the network — tap “Don’t Allow”.';
+      'Sistem fotoğraf seçicisini açmak, iCloud küçük resimleri için bir iOS kablosuz veri istemini tetikleyebilir. MosaicIt ağ kullanmaz — “İzin Verme”ye dokunun.';
 
   @override
-  String get continueAction => 'Continue';
+  String get continueAction => 'Devam et';
 }

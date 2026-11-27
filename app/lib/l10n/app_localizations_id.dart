@@ -76,7 +76,6 @@ class AppLocalizationsId extends AppLocalizations {
       locale: localeName,
       other: '$count gambar diekspor',
       one: '1 gambar diekspor',
-      zero: '0 gambar diekspor',
     );
     return '$_temp0';
   }
@@ -143,7 +142,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String redactingSpan(String start, String end) {
-    return 'Mensori $start – $end';
+    return 'Menyensor $start – $end';
   }
 
   @override
@@ -159,7 +158,6 @@ class AppLocalizationsId extends AppLocalizations {
       other:
           '$count wilayah yang terlihat privat masih terlihat di sana ($classes).',
       one: '1 wilayah yang terlihat privat masih terlihat di sana ($classes).',
-      zero: 'Tidak ada wilayah yang terlihat privat di sana.',
     );
     return '$_temp0';
   }
@@ -266,11 +264,7 @@ class AppLocalizationsId extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count area masih mungkin terbaca',
-      many: 'Banyak area masih mungkin terbaca',
-      few: 'Beberapa area masih mungkin terbaca',
-      two: '2 area masih mungkin terbaca',
       one: '1 area masih mungkin terbaca',
-      zero: '0 area masih terbaca',
     );
     return '$_temp0';
   }
@@ -366,49 +360,49 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String selectedOf(int selected, int total) {
-    return '$selected / $total selected';
+    return '$selected / $total dipilih';
   }
 
   @override
-  String get fillStyle => 'Fill style';
+  String get fillStyle => 'Gaya isian';
 
   @override
-  String get colour => 'Colour';
+  String get colour => 'Warna';
 
   @override
   String exportSummary(num images, num regions) {
     String _temp0 = intl.Intl.pluralLogic(
       images,
       locale: localeName,
-      other: '$images images',
-      one: '1 image',
+      other: '$images gambar',
+      one: '1 gambar',
     );
     String _temp1 = intl.Intl.pluralLogic(
       regions,
       locale: localeName,
-      other: '$regions regions',
-      one: '1 region',
+      other: '$regions wilayah',
+      one: '1 wilayah',
     );
     return '$_temp0 · $_temp1';
   }
 
   @override
-  String get share => 'Share';
+  String get share => 'Bagikan';
 
   @override
-  String get saveToPhotos => 'Save to Photos';
+  String get saveToPhotos => 'Simpan ke Foto';
 
   @override
-  String get saveAs => 'Save…';
+  String get saveAs => 'Simpan…';
 
   @override
   String get exportFormat => 'Format';
 
   @override
-  String get exportSize => 'Size';
+  String get exportSize => 'Ukuran';
 
   @override
-  String get sizeOriginal => 'Original';
+  String get sizeOriginal => 'Asli';
 
   @override
   String sizePixels(int px) {
@@ -420,209 +414,212 @@ class AppLocalizationsId extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Saved $count images to Photos',
-      one: 'Saved 1 image to Photos',
+      other: '$count gambar disimpan ke Foto',
+      one: '1 gambar disimpan ke Foto',
     );
     return '$_temp0';
   }
 
   @override
-  String get selectAll => 'All';
+  String get selectAll => 'Semua';
 
   @override
-  String get selectNone => 'None';
+  String get selectNone => 'Tidak ada';
 
   @override
-  String get suggested => 'suggested';
+  String get suggested => 'disarankan';
 
   @override
   String scoreValue(String score) {
-    return 'Score $score';
+    return 'Skor $score';
   }
 
   @override
   String exportCheckBodyOf(int index) {
-    return 'After redaction, the check still found these areas in the output of image $index.';
+    return 'Setelah penyensoran, pemeriksaan masih menemukan area-area ini di hasil akhir gambar $index.';
   }
 
   @override
-  String get reasonNotSelected => 'not selected';
+  String get reasonNotSelected => 'tidak dipilih';
 
   @override
-  String get reasonBoxTooSmall => 'box too small';
+  String get reasonBoxTooSmall => 'kotak terlalu kecil';
 
   @override
-  String get reasonFillShowsThrough => 'fill shows through';
+  String get reasonFillShowsThrough => 'isian tembus pandang';
 
   @override
-  String get openSource => 'Open source';
+  String get openSource => 'Sumber terbuka';
 
   @override
-  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+  String get adaptivePreselectTitle => 'Prapemilihan adaptif lokal';
 
   @override
   String adaptiveLearnedCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count classes adjusted',
-      one: '1 class adjusted',
+      other: '$count kelas disesuaikan',
+      one: '1 kelas disesuaikan',
     );
     return '$_temp0';
   }
 
   @override
-  String get adaptiveReset => 'Reset local preferences';
+  String get adaptiveReset => 'Atur ulang preferensi lokal';
 
   @override
-  String get adaptiveResetDone => 'Local preferences reset';
+  String get adaptiveResetDone => 'Preferensi lokal diatur ulang';
 
   @override
-  String get feedbackTitle => 'Report detection issue';
+  String get feedbackTitle => 'Laporkan masalah deteksi';
 
   @override
-  String get feedbackShort => 'Feedback';
+  String get feedbackShort => 'Masukan';
 
   @override
-  String get feedbackMenu => 'Report issue';
+  String get feedbackMenu => 'Laporkan masalah';
 
   @override
-  String get feedbackAction => 'Report';
+  String get feedbackAction => 'Laporkan';
 
   @override
-  String get feedbackAttachScreenshot => 'Attach screenshot';
+  String get feedbackAttachScreenshot => 'Lampirkan tangkapan layar';
 
   @override
-  String get feedbackModeMasked => 'Errors only';
+  String get feedbackModeMasked => 'Hanya kesalahan';
 
   @override
-  String get feedbackModeFull => 'Full image';
+  String get feedbackModeFull => 'Gambar penuh';
 
   @override
-  String get feedbackModeText => 'No image';
+  String get feedbackModeText => 'Tanpa gambar';
 
   @override
-  String get feedbackTagMissed => 'Missed';
+  String get feedbackTagMissed => 'Terlewat';
 
   @override
-  String get feedbackTagFalsePositive => 'False positive';
+  String get feedbackTagFalsePositive => 'Positif palsu';
 
   @override
-  String get feedbackTagBoxDrift => 'Box drift';
+  String get feedbackTagBoxDrift => 'Kotak bergeser';
 
   @override
-  String get feedbackTagWrongClass => 'Wrong class';
+  String get feedbackTagWrongClass => 'Kelas salah';
 
   @override
-  String get feedbackTagOther => 'Other';
+  String get feedbackTagOther => 'Lainnya';
 
   @override
-  String get feedbackNoteHint => 'Optional note…';
+  String get feedbackNoteHint => 'Catatan opsional…';
 
   @override
   String feedbackCountMasked(int count) {
-    return 'Masked $count';
+    return 'Disensor $count';
   }
 
   @override
   String feedbackCountMissed(int count) {
-    return 'Missed $count';
+    return 'Terlewat $count';
   }
 
   @override
   String feedbackCountFp(int count) {
-    return 'False positive $count';
+    return 'Positif palsu $count';
   }
 
   @override
   String feedbackCountPreference(int count) {
-    return 'Unchecked $count';
+    return 'Tidak dicentang $count';
   }
 
   @override
-  String get feedbackBoxMissed => 'Missed';
+  String get feedbackBoxMissed => 'Terlewat';
 
   @override
-  String get feedbackBoxMissedMasked => 'Missed · masked';
+  String get feedbackBoxMissedMasked => 'Terlewat · disensor';
 
   @override
-  String get feedbackBoxFp => 'False positive';
+  String get feedbackBoxFp => 'Positif palsu';
 
   @override
-  String get feedbackBoxPreference => 'Keep visible';
+  String get feedbackBoxPreference => 'Biarkan terlihat';
 
   @override
-  String get introOfflineTitle => 'No network access';
+  String get introOfflineTitle => 'Tanpa akses jaringan';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+      'MosaicIt tidak memiliki kode jaringan dan tidak meminta izin jaringan. Detektor terpasang di dalam aplikasi, sehingga gambar tidak pernah meninggalkan perangkat Anda.';
 
   @override
-  String get introNoNetPermTitle => 'Zero network permissions';
+  String get introNoNetPermTitle => 'Tanpa izin jaringan';
 
   @override
-  String get introBundledModelTitle => 'Bundled on-device model';
+  String get introBundledModelTitle => 'Model bawaan di perangkat';
 
   @override
   String introBundledModelBody(String version) {
-    return 'unseen-det $version · on-device';
+    return 'unseen-det $version · di perangkat';
   }
 
   @override
-  String get resetBundledModel => 'Use bundled model';
+  String get resetBundledModel => 'Gunakan model bawaan';
 
   @override
-  String get reviewIntro => 'Show intro again';
+  String get reviewIntro => 'Tampilkan pengenalan lagi';
 
   @override
-  String get feedbackOpenWeb => 'Open web form';
+  String get feedbackOpenWeb => 'Buka formulir web';
 
   @override
-  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+  String get introNoNetPermBodyIos =>
+      'Tanpa permintaan jaringan · hanya di perangkat';
 
   @override
-  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+  String get introNoNetPermBodyAndroid =>
+      'Tidak ada izin INTERNET yang dideklarasikan';
 
   @override
-  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+  String get introNoNetPermBodyDesktop =>
+      'Tidak ada hak akses jaringan di sandbox';
 
   @override
-  String get customModel => 'Custom model';
+  String get customModel => 'Model kustom';
 
   @override
   String modelClassCount(int count) {
-    return '$count classes';
+    return '$count kelas';
   }
 
   @override
-  String get copyImage => 'Copy image';
+  String get copyImage => 'Salin gambar';
 
   @override
-  String get copiedToClipboard => 'Copied to clipboard';
+  String get copiedToClipboard => 'Disalin ke papan klip';
 
   @override
-  String get copyFailed => 'Could not copy image';
+  String get copyFailed => 'Tidak dapat menyalin gambar';
 
   @override
-  String get peekOriginal => 'Hold to compare original';
+  String get peekOriginal => 'Tahan untuk membandingkan dengan asli';
 
   @override
-  String get selectMedia => 'Select photos or video';
+  String get selectMedia => 'Pilih foto';
 
   @override
-  String get saveFailed => 'Could not save to Photos';
+  String get saveFailed => 'Tidak dapat menyimpan ke Foto';
 
   @override
-  String get retry => 'Retry';
+  String get retry => 'Coba lagi';
 
   @override
-  String get iosWirelessPromptTitle => 'Wireless data prompt';
+  String get iosWirelessPromptTitle => 'Permintaan data nirkabel';
 
   @override
   String get iosWirelessPromptBody =>
-      'Opening the system photo picker may trigger an iOS wireless data prompt for iCloud thumbnails. MosaicIt does not use the network — tap “Don’t Allow”.';
+      'Membuka pemilih foto sistem dapat memunculkan permintaan data nirkabel iOS untuk gambar mini iCloud. MosaicIt tidak menggunakan jaringan — ketuk “Jangan Izinkan”.';
 
   @override
-  String get continueAction => 'Continue';
+  String get continueAction => 'Lanjutkan';
 }

@@ -1,15 +1,21 @@
 # Builds and publishes MosaicIt releases on admin-pushed `v*` tags:
-# - Android arm64 APK, signed via 1Password (`MosaicIt CI` vault) inside the
-#   tag-restricted `release` GitHub Environment.
-# - macOS arm64 unsigned DMG (`_NoSign_arm64.dmg`).
-# - iOS arm64 unsigned IPA (`_NoSign.ipa`).
+# - Apps:
+#   - Android arm64 signed APK (`MosaicIt_<tag>_arm64.apk`) via 1Password (`MosaicIt CI` vault)
+#   - macOS arm64 unsigned DMG (`MosaicIt_<tag>_NoSign_arm64.dmg`)
+#   - iOS arm64 unsigned IPA (`MosaicIt_<tag>_NoSign.ipa`)
+#   - Linux amd64 portable app (`MosaicIt_<tag>_linux_amd64.tar.gz`)
+#   - Windows amd64 portable app (`MosaicIt_<tag>_windows_amd64.zip`)
+# - CLI (`unseen`):
+#   - Linux amd64 (`unseen_<tag>_linux_amd64.tar.gz`)
+#   - macOS arm64 (`unseen_<tag>_macos_arm64.tar.gz`, with CoreML)
+#   - Windows amd64 (`unseen_<tag>_windows_amd64.zip`)
 #
 # Security model:
 # - Triggered only by `v*` tags (protected by repository Tag Ruleset: admins only).
 # - `OP_SERVICE_ACCOUNT_TOKEN` lives only in the `release` environment (restricted
 #   to `v*` tags) and is scoped read-only to the dedicated `MosaicIt CI` vault.
-# - Only the `android` job attaches `environment: release`; macOS, iOS, and publish
-#   jobs cannot access the 1Password token.
+# - Only the `android` job attaches `environment: release`; all other build jobs
+#   and `publish` cannot access the 1Password token.
 # - `tool/android-signing.sh` strips `OP_SERVICE_ACCOUNT_TOKEN` before spawning the
 #   build subprocess tree, and `flutter pub get` runs before the token is injected.
 # - Only the `publish` job receives `contents: write`.
@@ -27,6 +33,7 @@ permissions:
 env:
   B3SUM_VERSION: "1.8.8"
   B3SUM_LINUX_X64_SHA256: "cf7a7a515dc55ffde63b65dad87c00dd5ea0a29c9edf2b6a58acbb37e9d161c3"
+  B3SUM_WINDOWS_X64_SHA256: "9919f06ad1de83de7ad268da83dd2879b9ea8e943deaf451e7da30d37d62ebbb"
 
 jobs:
   check:
@@ -69,7 +76,7 @@ jobs:
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
 
   android:
-    name: Build Android (arm64)
+    name: Build Android app (arm64)
     needs: check
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -146,7 +153,7 @@ jobs:
           bt_dir="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
           certs="$("$bt_dir/apksigner" verify --print-certs "$out")"
           echo "$certs"
-          grep -qF "Signer #1 certificate SHA-256 digest: ${EXPECTED_CERT_SHA256}" <<< "$certs" || {
+          grep -qF "certificate SHA-256 digest: ${EXPECTED_CERT_SHA256}" <<< "$certs" || {
             echo "::error::APK was not signed with the expected release certificate"
             exit 1
           }
@@ -179,7 +186,7 @@ jobs:
           retention-days: 7
 
   macos:
-    name: Build macOS unsigned (arm64)
+    name: Build macOS app unsigned (arm64)
     needs: check
     runs-on: macos-latest
     timeout-minutes: 45
@@ -264,7 +271,7 @@ jobs:
           retention-days: 7
 
   ios:
-    name: Build iOS unsigned (arm64)
+    name: Build iOS app unsigned (arm64)
     needs: check
     runs-on: macos-latest
     timeout-minutes: 45
@@ -318,9 +325,220 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+  linux:
+    name: Build Linux app (amd64)
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ needs.check.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Install Linux desktop dependencies and pinned b3sum
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libsecret-1-dev
+
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL \
+            "https://github.com/BLAKE3-team/BLAKE3/releases/download/${B3SUM_VERSION}/b3sum_linux_x64_bin" \
+            -o "$HOME/.local/bin/b3sum"
+          echo "${B3SUM_LINUX_X64_SHA256}  $HOME/.local/bin/b3sum" | sha256sum -c -
+          chmod 0755 "$HOME/.local/bin/b3sum"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Build Linux app and bundle model
+        working-directory: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter build linux --release
+
+          bundle="build/linux/x64/release/bundle"
+          tool/bundle-model.sh tiled "$bundle/models"
+
+          test -x "$bundle/mosaicit"
+          test -f "$bundle/models/unseen-det-tile.onnx"
+          test -f "$bundle/models/unseen-det-tile.onnx.json"
+          test -f "$bundle/lib/libunseen_ffi.so"
+
+          stage="$(mktemp -d)"
+          trap 'rm -rf "$stage"' EXIT
+          mkdir -p "$stage/MosaicIt" build/release
+          cp -a "$bundle/." "$stage/MosaicIt/"
+          tar -C "$stage" -czf "build/release/MosaicIt_${TAG}_linux_amd64.tar.gz" MosaicIt
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-linux
+          path: app/build/release/MosaicIt_${{ needs.check.outputs.tag }}_linux_amd64.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+  windows:
+    name: Build Windows app (amd64)
+    needs: check
+    runs-on: windows-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ needs.check.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Install pinned b3sum
+        shell: bash
+        run: |
+          set -euo pipefail
+          bin_dir="$(cygpath -u "${RUNNER_TEMP}")/bin"
+          mkdir -p "$bin_dir"
+          curl -fsSL \
+            "https://github.com/BLAKE3-team/BLAKE3/releases/download/${B3SUM_VERSION}/b3sum_windows_x64_bin.exe" \
+            -o "${bin_dir}/b3sum.exe"
+          echo "${B3SUM_WINDOWS_X64_SHA256}  ${bin_dir}/b3sum.exe" | sha256sum -c -
+          cygpath -w "$bin_dir" >> "$GITHUB_PATH"
+      - name: Build Windows app and bundle model
+        working-directory: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter build windows --release
+
+          bundle="build/windows/x64/runner/Release"
+          tool/bundle-model.sh tiled "$bundle/models"
+
+          test -f "$bundle/MosaicIt.exe"
+          test -f "$bundle/models/unseen-det-tile.onnx"
+          test -f "$bundle/models/unseen-det-tile.onnx.json"
+          test -f "$bundle/unseen_ffi.dll"
+      - name: Package Windows ZIP
+        working-directory: app
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force -Path build/release | Out-Null
+          $stage = Join-Path $env:RUNNER_TEMP "mosaicit-win-stage"
+          if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
+          New-Item -ItemType Directory -Force -Path "$stage\MosaicIt" | Out-Null
+          Copy-Item -Recurse -Force "build\windows\x64\runner\Release\*" "$stage\MosaicIt\"
+          Compress-Archive -Path "$stage\MosaicIt" -DestinationPath "build\release\MosaicIt_$($env:TAG)_windows_amd64.zip" -Force
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-windows
+          path: app/build/release/MosaicIt_${{ needs.check.outputs.tag }}_windows_amd64.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  cli:
+    name: Build CLI (${{ matrix.target }})
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux_amd64
+            os: ubuntu-latest
+            features: ""
+            ext: ""
+            archive: tar.gz
+          - target: macos_arm64
+            os: macos-latest
+            features: "--features coreml"
+            ext: ""
+            archive: tar.gz
+          - target: windows_amd64
+            os: windows-latest
+            features: ""
+            ext: ".exe"
+            archive: zip
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ needs.check.outputs.tag }}
+      TARGET: ${{ matrix.target }}
+      FEATURES: ${{ matrix.features }}
+      EXT: ${{ matrix.ext }}
+      ARCHIVE: ${{ matrix.archive }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Build unseen CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          # shellcheck disable=SC2086
+          cargo build --release -p unseen-cli ${FEATURES}
+          "./target/release/unseen${EXT}" --help >/dev/null
+      - name: Package CLI (tar.gz)
+        if: matrix.archive == 'tar.gz'
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage="$(mktemp -d)"
+          trap 'rm -rf "$stage"' EXIT
+          mkdir -p "$stage/unseen" build/release
+          cp "target/release/unseen${EXT}" "$stage/unseen/"
+          cp LICENSE "$stage/unseen/"
+          shopt -s nullglob
+          for lib in target/release/libonnxruntime*.so* target/release/libonnxruntime*.dylib; do
+            cp -L "$lib" "$stage/unseen/"
+          done
+          tar -C "$stage" -czf "build/release/unseen_${TAG}_${TARGET}.tar.gz" unseen
+      - name: Package CLI (zip)
+        if: matrix.archive == 'zip'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force -Path build/release | Out-Null
+          $stage = Join-Path $env:RUNNER_TEMP "unseen-cli-stage"
+          if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
+          New-Item -ItemType Directory -Force -Path "$stage\unseen" | Out-Null
+          Copy-Item "target\release\unseen.exe" "$stage\unseen\"
+          Copy-Item "LICENSE" "$stage\unseen\"
+          Get-ChildItem "target\release\onnxruntime*.dll" -ErrorAction SilentlyContinue | Copy-Item -Destination "$stage\unseen\"
+          Compress-Archive -Path "$stage\unseen" -DestinationPath "build\release\unseen_$($env:TAG)_$($env:TARGET).zip" -Force
+      - name: Upload CLI artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-cli-${{ matrix.target }}
+          path: build/release/unseen_${{ needs.check.outputs.tag }}_${{ matrix.target }}.${{ matrix.archive }}
+          if-no-files-found: error
+          retention-days: 7
+
   publish:
     name: Publish GitHub Release
-    needs: [check, android, macos, ios]
+    needs: [check, android, macos, ios, linux, windows, cli]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -354,6 +572,11 @@ jobs:
             "MosaicIt_${TAG}_arm64.apk"
             "MosaicIt_${TAG}_NoSign_arm64.dmg"
             "MosaicIt_${TAG}_NoSign.ipa"
+            "MosaicIt_${TAG}_linux_amd64.tar.gz"
+            "MosaicIt_${TAG}_windows_amd64.zip"
+            "unseen_${TAG}_linux_amd64.tar.gz"
+            "unseen_${TAG}_macos_arm64.tar.gz"
+            "unseen_${TAG}_windows_amd64.zip"
           )
           for f in "${expected[@]}"; do
             test -f "$f" || { echo "::error::Missing asset: $f"; exit 1; }

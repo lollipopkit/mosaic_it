@@ -549,7 +549,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get introOfflineBody =>
-      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images never leave your device.';
 
   @override
   String get introNoNetPermTitle => 'Zero network permissions';
@@ -601,7 +601,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get peekOriginal => 'Hold to compare original';
 
   @override
-  String get selectMedia => 'Select photos or video';
+  String get selectMedia => 'Select photos';
 
   @override
   String get saveFailed => 'Could not save to Photos';

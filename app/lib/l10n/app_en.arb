@@ -545,7 +545,7 @@
   "feedbackBoxFp": "False positive",
   "feedbackBoxPreference": "Keep visible",
   "introOfflineTitle": "No network access",
-  "introOfflineBody": "MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.",
+  "introOfflineBody": "MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images never leave your device.",
   "introNoNetPermTitle": "Zero network permissions",
   "introBundledModelTitle": "Bundled on-device model",
   "introBundledModelBody": "unseen-det {version} · on-device",
@@ -575,9 +575,9 @@
   "copiedToClipboard": "Copied to clipboard",
   "copyFailed": "Could not copy image",
   "peekOriginal": "Hold to compare original",
-  "selectMedia": "Select photos or video",
+  "selectMedia": "Select photos",
   "@selectMedia": {
-    "description": "Button in the editor to open the system media picker for images or a video."
+    "description": "Button in the editor to open the system photo picker for images."
   },
   "saveFailed": "Could not save to Photos",
   "@saveFailed": {

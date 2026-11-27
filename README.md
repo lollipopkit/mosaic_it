@@ -1,32 +1,151 @@
-# MosaicIt (码住)
+English | [简体中文](README_zh.md)
 
-On-device privacy redaction. MosaicIt detects names, addresses, ID numbers, phone
-numbers, faces and other private information in images and videos — without
-OCR — and lets you choose what to hide before export.
+<div align="center">
+  <img src="website/public/app_icon.png" alt="MosaicIt icon" width="72" height="72" />
+  <h1>MosaicIt (码住)</h1>
+  <p>On-device privacy redaction for screenshots and photos — without OCR, network code, or photo-library read permissions.</p>
+  <p>
+    <a href="https://mosaic.lollipopkit.com">Website</a> ·
+    <a href="https://github.com/lollipopkit/mosaic_it/releases">Releases</a> ·
+    <a href="https://mosaic.lollipopkit.com/feedback">Detection Feedback</a> ·
+    <a href="LICENSE">AGPL-3.0</a>
+  </p>
+</div>
 
-Images never leave the device. The app uses the network for one thing:
-downloading the detector model and its signed list of releases
-([docs/release.md](docs/release.md)).
+## Overview
 
-| | |
-|---|---|
-| [app/](app/README.md) | Flutter app: macOS, iOS, Android |
-| [crates/](crates) | Rust core, inference backends, FFI, `unseen` CLI |
-| [models/](models/manifest.toml) | Classes and the list of released weights |
-| [docs/design.md](docs/design.md) | Design |
-| [docs/model.md](docs/model.md) | The detector weights: files, training data sources, limits |
+MosaicIt detects private information directly in screenshots and photos on device — without running OCR — and lets you inspect, adjust, and redact regions before exporting.
 
-The weights are public; the training code and the datasets are not.
+The app ships with bundled `unseen-det 0.5.0` weights and contains no networking code or network permissions. Images never leave your device.
 
-## Build
+## Download
+
+| Platform | Artifact | Notes |
+| --- | --- | --- |
+| Android (`arm64-v8a`) | `MosaicIt_vX.Y.Z_arm64.apk` | Signed release APK, bundled FP16 LiteRT model (`.tflite`), zero `android.permission.*` permissions |
+| macOS (Apple Silicon) | `MosaicIt_vX.Y.Z_NoSign_arm64.dmg` | Unsigned ad-hoc app (`arm64`), bundled FP16 ONNX model (`.onnx`); allow in Gatekeeper on first launch |
+| iOS (`arm64`) | `MosaicIt_vX.Y.Z_NoSign.ipa` | Unsigned IPA, bundled FP16 ONNX model (`.onnx`); sign and sideload yourself |
+| Linux (`amd64`) | `MosaicIt_vX.Y.Z_linux_amd64.tar.gz` | Portable desktop app bundle (`mosaicit`), bundled FP16 ONNX model (`.onnx`) |
+| Windows (`amd64`) | `MosaicIt_vX.Y.Z_windows_amd64.zip` | Portable desktop app bundle (`MosaicIt.exe`), bundled FP16 ONNX model (`.onnx`) |
+| CLI (`unseen`) | `unseen_vX.Y.Z_{linux_amd64,macos_arm64}.tar.gz`, `unseen_vX.Y.Z_windows_amd64.zip` | Prebuilt Rust CLI binaries (macOS build enables CoreML) |
+
+Every GitHub Release includes `BLAKE3SUMS` and `SHA256SUMS` for verification. Download packages only from [GitHub Releases](https://github.com/lollipopkit/mosaic_it/releases) or build from source.
+
+## Features
+
+**OCR-Free On-Device Detection**
+
+- Bundled `unseen-det 0.5.0` (FP16 ONNX on macOS, iOS, Linux, and Windows; FP16 LiteRT on Android) detects **18 PII classes** across UI screenshots without reading or indexing text, paired with YuNet for **face** detection (19 classes total):
+  `person_name`, `address`, `phone`, `email`, `id_number`, `bank_card`, `plate`, `account_id`, `avatar`, `qr`, `barcode`, `finance`, `organization`, `device_id`, `secret`, `person`, `health`, `personal_info`, `face`.
+- Local adaptive threshold preference learns from your keep/uncheck choices on device; custom `.onnx` / `.tflite` models can also be imported in Settings.
+
+**Non-Reversible Redaction Styles**
+
+- Five pixel-overwriting styles: **Solid**, **Surround**, **Blocks**, **Tinted**, and **Noise**.
+- None reads pixels inside the redacted rectangle — immune to de-pixelation or de-blurring attacks. `Solid`, `Blocks`, and `Noise` ignore source pixels entirely; `Surround` and `Tinted` sample only a 4 px ring outside the box.
+
+**Direct-to-Editor Workflow**
+
+- Opens directly into the floating editor with native zero-permission media pickers (`PHPickerViewController` on iOS, system Photo Picker on Android, native file dialogs on macOS, Linux, and Windows).
+- Hold the eye badge in the top bar to peek at the unredacted original; tap boxes to toggle, draw manual boxes, merge multi-line boxes, or run **Find similar** across a batch of screenshots.
+- Native one-tap clipboard copy, system Share sheet, write-only Save to Photos, plus incoming OS Share, Open With, and macOS window drag-and-drop.
+- **Export self-check** re-runs the detector and checks pixel correlation on the redacted output before saving or sharing.
+
+**Standalone Rust CLI (`unseen`)**
+
+- Shares `unseen-core` with the Flutter app for scripted detection, batch redaction, benchmarking, calibration, and BLAKE3 model verification.
+
+> Video redaction is currently disabled in the app UI until native video model I/O is supported.
+
+## Privacy & Security Boundaries
+
+Privacy guarantees are enforced at the build, OS permission, and CI level:
+
+| Boundary | Enforcement |
+| --- | --- |
+| Zero networking in the app | No HTTP client, analytics SDK, or crash reporter; `ci.yml` verifies `pubspec.yaml` and Dart sources contain zero network dependencies or socket APIs. |
+| Zero Android release permissions | `release/AndroidManifest.xml` strips transitive permissions; both `ci.yml` and `release.yml` (`aapt2 dump permissions`) verify the release APK declares zero `android.permission.*`. |
+| Zero photo-library read access | iOS uses out-of-process `PHPickerViewController` (no `NSPhotoLibraryUsageDescription`) and write-only `.addOnly` saves; Android uses the system Photo Picker. |
+| macOS sandbox without network | `Release.entitlements` enables `app-sandbox` and user-selected file read/write only — no `com.apple.security.network.*` entitlement (checked in CI). |
+| Optional web feedback | Reporting missed/false-positive detections opens [`mosaic.lollipopkit.com/feedback`](https://mosaic.lollipopkit.com/feedback) in your system browser via a URL `#fragment` that never hits HTTP GET logs and is stripped immediately via `history.replaceState`. |
+
+## Project Structure
+
+```text
+.
+├── app/                      # Flutter app (iOS, macOS, Android, Linux, Windows) + native-assets FFI hook
+│   ├── lib/                  # Dart UI, editor, video page, feedback handoff, FFI bindings
+│   ├── tool/                 # Model bundler, Android 1Password signing helper, icon & l10n tools
+│   └── packages/fl_lib/      # Shared BoxApp UI library (submodule)
+├── crates/
+│   ├── unseen-core/          # Detection decoding, EXIF handling, tracking, pixel redaction, BLAKE3 manifest
+│   ├── unseen-infer/         # ONNX Runtime (CoreML/CUDA/CPU) and LiteRT (GPU/CPU) backends
+│   ├── unseen-media/         # Native video decode/encode (Apple AVFoundation, Android MediaCodec)
+│   ├── unseen-ffi/           # flutter_rust_bridge FFI surface
+│   └── unseen-cli/           # `unseen` command-line tool
+├── models/                   # Canonical class list (classes.json) & BLAKE3-pinned manifest.toml
+├── website/                  # Official website (Svelte 5 + Vite, deployed to mosaic.lollipopkit.com)
+├── worker/feedback/          # Cloudflare Worker serving /feedback and /v1/feedback (R2 + rate limit)
+└── docs/                     # Design spec, detector model notes, model release guide
+```
+
+## Build from Source
 
 ```sh
 git clone --recurse-submodules https://github.com/lollipopkit/mosaic_it
-cargo build --release -p unseen-cli        # CLI: target/release/unseen
-cd app && flutter run -d macos             # app
+cd mosaic_it
 ```
 
-## License
+### Rust CLI & Workspace Tests
 
-[AGPL-3.0](LICENSE), code and weights. Contributions require signing the
-[CLA](CLA.md) ([中文](CLA_zh.md)); see [CONTRIBUTING.md](CONTRIBUTING.md).
+```sh
+cargo test --workspace
+cargo build --release -p unseen-cli                # target/release/unseen
+cargo build --release -p unseen-cli --features coreml   # macOS CoreML / ANE
+```
+
+### Flutter App
+
+Platform builds on macOS, iOS, Android, and Linux automatically stage and BLAKE3-verify the pinned `0.5.0` weights via `app/tool/bundle-model.sh` (using `UNSEEN_MODEL_DIR` if set, otherwise caching from `models/manifest.toml`). On Windows, run `tool/bundle-model.sh tiled build/windows/x64/runner/Release/models` in Git Bash after building.
+
+```sh
+cd app
+flutter pub get
+flutter analyze
+flutter test
+
+# Run or build by platform
+flutter run -d macos                               # macOS (Apple Silicon)
+flutter build macos --release
+flutter build ios --release --no-codesign          # iOS (arm64)
+flutter build apk --release --target-platform android-arm64  # Android (arm64-v8a)
+flutter build linux --release                      # Linux (amd64)
+flutter build windows --release                    # Windows (amd64)
+```
+
+For production Android signing via 1Password (`MosaicIt CI/unseen-android-keystore`):
+
+```sh
+cd app && tool/android-signing.sh flutter build apk --release --target-platform android-arm64
+```
+
+### Website & Feedback Worker
+
+```sh
+cd website && npm ci && npm run check && npm run build
+cd worker/feedback && npm test
+```
+
+## Documentation
+
+- [docs/design.md](docs/design.md) — architecture, tiling, calibration, and redaction design
+- [docs/model.md](docs/model.md) — `unseen-det` weights, training data sources, and known limits
+- [docs/release.md](docs/release.md) — benchmarking, calibrating, hashing, and publishing detector weights
+- [app/README.md](app/README.md) — Flutter app implementation and platform notes
+
+The released detector weights are public under AGPL-3.0; the training code and private labelled datasets are not published.
+
+## Contributing & License
+
+- Licensed under [AGPL-3.0](LICENSE) (code and weights).
+- Contributions require signing the [CLA](CLA.md) ([中文](CLA_zh.md)); see [CONTRIBUTING.md](CONTRIBUTING.md).

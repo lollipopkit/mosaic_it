@@ -335,7 +335,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get split => '拆分';
 
   @override
-  String get mergeHint => '点另一个框,与选中的框合并为同一个值';
+  String get mergeHint => '点另一个框，与选中的框合并为同一个值';
 
   @override
   String get classOrganization => '组织名称';
@@ -357,49 +357,47 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String selectedOf(int selected, int total) {
-    return '$selected / $total selected';
+    return '已选 $selected / $total';
   }
 
   @override
-  String get fillStyle => 'Fill style';
+  String get fillStyle => '填充样式';
 
   @override
-  String get colour => 'Colour';
+  String get colour => '颜色';
 
   @override
   String exportSummary(num images, num regions) {
     String _temp0 = intl.Intl.pluralLogic(
       images,
       locale: localeName,
-      other: '$images images',
-      one: '1 image',
+      other: '$images 张图片',
     );
     String _temp1 = intl.Intl.pluralLogic(
       regions,
       locale: localeName,
-      other: '$regions regions',
-      one: '1 region',
+      other: '$regions 个区域',
     );
     return '$_temp0 · $_temp1';
   }
 
   @override
-  String get share => 'Share';
+  String get share => '分享';
 
   @override
-  String get saveToPhotos => 'Save to Photos';
+  String get saveToPhotos => '保存到相册';
 
   @override
-  String get saveAs => 'Save…';
+  String get saveAs => '另存为…';
 
   @override
-  String get exportFormat => 'Format';
+  String get exportFormat => '格式';
 
   @override
-  String get exportSize => 'Size';
+  String get exportSize => '尺寸';
 
   @override
-  String get sizeOriginal => 'Original';
+  String get sizeOriginal => '原尺寸';
 
   @override
   String sizePixels(int px) {
@@ -411,49 +409,53 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Saved $count images to Photos',
-      one: 'Saved 1 image to Photos',
+      other: '已保存 $count 张图片到相册',
     );
     return '$_temp0';
   }
 
   @override
-  String get selectAll => 'All';
+  String get selectAll => '全选';
 
   @override
-  String get selectNone => 'None';
+  String get selectNone => '全不选';
 
   @override
-  String get suggested => 'suggested';
+  String get suggested => '建议';
 
   @override
   String scoreValue(String score) {
-    return 'Score $score';
+    return '置信度 $score';
   }
 
   @override
   String exportCheckBodyOf(int index) {
-    return 'After redaction, the check still found these areas in the output of image $index.';
+    return '打码后的检查在导出的第 $index 张图片里又找到了这些区域。';
   }
 
   @override
-  String get reasonNotSelected => 'not selected';
+  String get reasonNotSelected => '未选中';
 
   @override
-  String get reasonBoxTooSmall => 'box too small';
+  String get reasonBoxTooSmall => '框太小';
 
   @override
-  String get reasonFillShowsThrough => 'fill shows through';
+  String get reasonFillShowsThrough => '填充未完全遮挡';
 
   @override
-  String get openSource => 'Open source';
+  String get openSource => '开源';
 
   @override
   String get adaptivePreselectTitle => '本机自适应预选';
 
   @override
   String adaptiveLearnedCount(int count) {
-    return '已调整 $count 个类别';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已调整 $count 个类别',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -593,7 +595,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get peekOriginal => '按住查看原图';
 
   @override
-  String get selectMedia => '选择照片或视频';
+  String get selectMedia => '选择图片';
 
   @override
   String get saveFailed => '保存到相册失败';
@@ -965,11 +967,106 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get classPersonalInfo => '個人資訊';
 
   @override
+  String selectedOf(int selected, int total) {
+    return '已選 $selected / $total';
+  }
+
+  @override
+  String get fillStyle => '填滿樣式';
+
+  @override
+  String get colour => '顏色';
+
+  @override
+  String exportSummary(num images, num regions) {
+    String _temp0 = intl.Intl.pluralLogic(
+      images,
+      locale: localeName,
+      other: '$images 張圖片',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      regions,
+      locale: localeName,
+      other: '$regions 個區域',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get share => '分享';
+
+  @override
+  String get saveToPhotos => '儲存到相簿';
+
+  @override
+  String get saveAs => '另存新檔…';
+
+  @override
+  String get exportFormat => '格式';
+
+  @override
+  String get exportSize => '尺寸';
+
+  @override
+  String get sizeOriginal => '原始尺寸';
+
+  @override
+  String sizePixels(int px) {
+    return '$px px';
+  }
+
+  @override
+  String savedToPhotos(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已儲存 $count 張圖片到相簿',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get selectAll => '全選';
+
+  @override
+  String get selectNone => '全不選';
+
+  @override
+  String get suggested => '建議';
+
+  @override
+  String scoreValue(String score) {
+    return '信心度 $score';
+  }
+
+  @override
+  String exportCheckBodyOf(int index) {
+    return '遮蔽後，檢查仍在第 $index 張圖片的輸出結果中發現這些區域。';
+  }
+
+  @override
+  String get reasonNotSelected => '未選取';
+
+  @override
+  String get reasonBoxTooSmall => '選取框太小';
+
+  @override
+  String get reasonFillShowsThrough => '填滿未完全遮蔽';
+
+  @override
+  String get openSource => '開放原始碼';
+
+  @override
   String get adaptivePreselectTitle => '本機自適應預選';
 
   @override
   String adaptiveLearnedCount(int count) {
-    return '已調整 $count 個類別';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已調整 $count 個類別',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1109,7 +1206,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get peekOriginal => '按住檢視原圖';
 
   @override
-  String get selectMedia => '選擇照片或影片';
+  String get selectMedia => '選擇圖片';
 
   @override
   String get saveFailed => '儲存到相簿失敗';

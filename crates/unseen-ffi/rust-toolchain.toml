@@ -8,6 +8,7 @@ targets = [
   "aarch64-apple-ios",
   "aarch64-apple-ios-sim",
   "aarch64-linux-android",
-  # Host of `flutter test` in CI.
+  # Desktop Linux & Windows releases and CI test host.
   "x86_64-unknown-linux-gnu",
+  "x86_64-pc-windows-msvc",
 ]
