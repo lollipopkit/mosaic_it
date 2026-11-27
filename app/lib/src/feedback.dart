@@ -5,10 +5,11 @@ import 'dart:typed_data';
 
 import 'package:material_ui/material_ui.dart';
 
+import '../data/res/build_data.dart';
 import 'boxes.dart';
 
-/// App version included in feedback payloads (kept in sync with pubspec.yaml).
-const feedbackAppVersion = '1.0.0+1';
+/// App version included in feedback payloads (generated via `app/tool/bump-version.sh`).
+const feedbackAppVersion = '1.0.${BuildData.build}+${BuildData.build}';
 
 /// Web feedback page opened in the system browser (the app itself never makes
 /// network requests). Annotations and optional redacted JPEG bytes are passed
