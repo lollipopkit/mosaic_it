@@ -37,8 +37,8 @@ class SettingStore extends SqliteStore with ThemeSettings {
   /// Gallery cells show the whole image instead of a square crop.
   late final gridAspect = propertyDefault('gridAspect', false);
 
-  /// Replace a released model with newer releases as they are published.
-  late final autoUpdateModel = propertyDefault('autoUpdateModel', true);
+  /// Whether the first-launch offline intro has been completed.
+  late final introSeen = propertyDefault('introSeen', false);
 
   /// `ThresholdPreset` name: scales the model's thresholds.
   late final threshold = propertyDefault('threshold', 'medium');

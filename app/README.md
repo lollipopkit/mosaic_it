@@ -20,9 +20,14 @@ On phones images come from Photos (`image_picker`; iOS photos arrive as JPEG
 since the decoder has no HEIC) and exports go to the share sheet
 (`share_plus`); desktops use file dialogs.
 
-The model is downloaded on first launch ([docs/release.md](../docs/release.md)).
-A model can also be imported by hand: the `*.onnx` (`*.tflite` on Android)
-together with its `.json` sidecar ([docs/model.md](../docs/model.md)). On narrow screens the region list is in a drawer.
+The app runs completely offline with no network permissions (no Android
+`INTERNET` permission in release builds and no macOS `network.client`
+entitlement). Platform builds bundle the pinned detector release from
+[models/manifest.toml](../models/manifest.toml) via `tool/bundle-model.sh`
+(`unseen-det-tile.onnx` on Apple platforms, `unseen-det.tflite` on Android).
+A local model (`*.onnx` or `*.tflite` with its `.json` sidecar) can also be
+imported by hand in Settings ([docs/model.md](../docs/model.md)). On narrow
+screens the region list is in a drawer.
 
 - Open several images at once; a strip at the bottom switches between them,
   "Find similar" searches all of them, and Export checks and writes each.
@@ -38,10 +43,6 @@ together with its `.json` sidecar ([docs/model.md](../docs/model.md)). On narrow
   Export writes H.264 MP4, without audio unless "Keep audio" is on (sound
   is copied as is, unchecked); the self-check runs on every
   keyframe and can jump to the frame it failed on.
-- Desktop only: review pseudo-labels (`coco.json`, images next to it). Amber boxes are teacher disagreements; selected
-  boxes are kept. The class picker sets the tapped box and new boxes. "Verify &
-  next" marks the image `verified`, saves the file (edited or drawn boxes get
-  `source: "human"`) and jumps to the next image with open reviews.
 
 After changing `crates/unseen-ffi/src/api.rs`:
 

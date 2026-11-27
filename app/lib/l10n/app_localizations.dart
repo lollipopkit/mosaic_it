@@ -728,24 +728,6 @@ abstract class AppLocalizations {
   /// **'Aspect ratio grid'**
   String get aspectRatioGrid;
 
-  /// Gallery notice: the detector model, downloaded on first launch, could not be fetched (offline or server error).
-  ///
-  /// In en, this message translates to:
-  /// **'The model could not be downloaded'**
-  String get modelDownloadFailed;
-
-  /// Button: try the failed download again.
-  ///
-  /// In en, this message translates to:
-  /// **'Retry'**
-  String get retry;
-
-  /// Settings switch: download newer detector models when they are published.
-  ///
-  /// In en, this message translates to:
-  /// **'Update the model automatically'**
-  String get autoUpdateModel;
-
   /// Settings row: how confident the detector must be to pre-select a region (a lower threshold pre-selects more regions).
   ///
   /// In en, this message translates to:
@@ -1052,18 +1034,6 @@ abstract class AppLocalizations {
   /// **'Open source'**
   String get openSource;
 
-  /// No description provided for @downloadingDetector.
-  ///
-  /// In en, this message translates to:
-  /// **'Downloading the detector'**
-  String get downloadingDetector;
-
-  /// No description provided for @percent.
-  ///
-  /// In en, this message translates to:
-  /// **'{value}%'**
-  String percent(int value);
-
   /// Settings toggle: adjust per-class pre-selection thresholds locally on this device from user edits.
   ///
   /// In en, this message translates to:
@@ -1111,24 +1081,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report'**
   String get feedbackAction;
-
-  /// No description provided for @feedbackSubmit.
-  ///
-  /// In en, this message translates to:
-  /// **'Submit'**
-  String get feedbackSubmit;
-
-  /// No description provided for @feedbackDone.
-  ///
-  /// In en, this message translates to:
-  /// **'Done'**
-  String get feedbackDone;
-
-  /// No description provided for @feedbackSentTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Feedback sent'**
-  String get feedbackSentTitle;
 
   /// No description provided for @feedbackAttachScreenshot.
   ///
@@ -1237,6 +1189,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep visible'**
   String get feedbackBoxPreference;
+
+  /// No description provided for @introOfflineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No network access'**
+  String get introOfflineTitle;
+
+  /// No description provided for @introOfflineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.'**
+  String get introOfflineBody;
+
+  /// No description provided for @introNoNetPermTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero network permissions'**
+  String get introNoNetPermTitle;
+
+  /// No description provided for @introNoNetPermBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No Android INTERNET permission · no macOS network entitlement'**
+  String get introNoNetPermBody;
+
+  /// No description provided for @introBundledModelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundled on-device model'**
+  String get introBundledModelTitle;
+
+  /// No description provided for @introBundledModelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'unseen-det {version} · on-device'**
+  String introBundledModelBody(String version);
+
+  /// No description provided for @introBundledReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundled detector ready'**
+  String get introBundledReady;
+
+  /// No description provided for @introPhotosGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo access granted'**
+  String get introPhotosGranted;
+
+  /// No description provided for @resetBundledModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Use bundled model'**
+  String get resetBundledModel;
+
+  /// No description provided for @reviewIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Show intro again'**
+  String get reviewIntro;
+
+  /// No description provided for @feedbackOpenWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Open web form'**
+  String get feedbackOpenWeb;
 }
 
 class _AppLocalizationsDelegate

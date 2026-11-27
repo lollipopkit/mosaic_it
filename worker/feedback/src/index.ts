@@ -1,3 +1,5 @@
+import { FEEDBACK_WEB_HTML } from './web.ts';
+
 export interface R2PutOptions {
   httpMetadata?: { contentType?: string };
   customMetadata?: Record<string, string>;
@@ -19,7 +21,7 @@ export interface Env {
 }
 
 const VALID_MODES = new Set(['masked', 'full', 'text']);
-const VALID_PLATFORMS = new Set(['ios', 'android', 'macos', 'linux', 'windows']);
+const VALID_PLATFORMS = new Set(['ios', 'android', 'macos', 'linux', 'windows', 'web']);
 const VALID_TAGS = new Set(['missed', 'false_positive', 'box_drift', 'wrong_class', 'other']);
 const VALID_DIFF_KINDS = new Set(['fn_missed', 'fp_confirmed']);
 const MAX_BOXES = 200;
@@ -59,6 +61,15 @@ const SECURITY_HEADERS: Record<string, string> = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'no-store',
   'X-Content-Type-Options': 'nosniff',
+};
+
+const HTML_HEADERS: Record<string, string> = {
+  'Content-Type': 'text/html; charset=utf-8',
+  'Cache-Control': 'public, max-age=300',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'no-referrer',
+  'Content-Security-Policy':
+    "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src blob: data:; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'",
 };
 
 function jsonResponse(body: Record<string, unknown>, status: number): Response {
@@ -306,8 +317,17 @@ async function readBoundedBody(request: Request, maxBytes: number): Promise<Uint
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (request.method === 'GET' && url.pathname === '/health') {
-      return jsonResponse({ ok: true }, 200);
+    const isGetOrHead = request.method === 'GET' || request.method === 'HEAD';
+    if (isGetOrHead && (url.pathname === '/' || url.pathname === '/index.html')) {
+      return new Response(request.method === 'HEAD' ? null : FEEDBACK_WEB_HTML, {
+        status: 200,
+        headers: HTML_HEADERS,
+      });
+    }
+    if (isGetOrHead && url.pathname === '/health') {
+      return request.method === 'HEAD'
+        ? new Response(null, { status: 200, headers: SECURITY_HEADERS })
+        : jsonResponse({ ok: true }, 200);
     }
     if (request.method !== 'POST' || url.pathname !== '/v1/feedback') {
       return jsonResponse({ error: 'not found' }, 404);

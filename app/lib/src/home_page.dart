@@ -1,9 +1,8 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:file_selector/file_selector.dart';
-import 'package:fl_lib/fl_lib.dart' show EmptyPane, StringUrlX;
+import 'package:fl_lib/fl_lib.dart' show EmptyPane;
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -15,6 +14,7 @@ import 'boxes.dart';
 import 'editor_page.dart';
 import 'feedback_sheet.dart';
 import 'gallery_grid.dart';
+import 'intro_page.dart';
 import 'model_store.dart';
 import 'rust/api.dart';
 import 'settings.dart';
@@ -41,12 +41,7 @@ class _HomePageState extends State<HomePage> {
     fillColor: 0x000000,
   );
   String? _busy;
-
-  /// Share of the model download done, while one runs.
-  double? _progress;
-
-  /// The first model could not be downloaded; the gallery offers a retry.
-  bool _modelMissing = false;
+  bool _hasCustomModel = false;
 
   PermissionState? _permission;
   _Filter _filter = _Filter.screenshots;
@@ -61,7 +56,6 @@ class _HomePageState extends State<HomePage> {
   final _selected = <AssetEntity>[];
 
   static const _pageSize = 120;
-  static const _repo = 'https://github.com/lollipopkit/mosaic_it';
   static final _mobile = Platform.isIOS || Platform.isAndroid;
 
   AppLocalizations get _l => AppLocalizations.of(context);
@@ -98,52 +92,35 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadModel() => _run(_l.loadingModel, () async {
     final settings = await AppSettings.load();
-    setState(() => _settings = settings);
-    var s = await _openModel();
-    if (s == null) {
-      // First launch: the app ships without a model.
-      await _downloadModel();
-      s = await _openModel();
-    } else if (settings.autoUpdateModel) {
-      // Staged for the next launch; this one keeps the model it opened.
-      unawaited(ModelStore.update().then((_) {}, onError: (_) {}));
+    final hasCustom = await ModelStore.hasCustomModel();
+    if (!mounted) return;
+    setState(() {
+      _settings = settings;
+      _hasCustomModel = hasCustom;
+    });
+    Session? s;
+    try {
+      s = await ModelStore.load();
+    } catch (e) {
+      if (hasCustom) {
+        // A broken custom import falls back to the bundled model.
+        await ModelStore.clearCustom();
+        if (mounted) setState(() => _hasCustomModel = false);
+        s = await ModelStore.load();
+      } else {
+        throw StateError(_l.savedModelFailed('$e'));
+      }
     }
-    _setSession(s);
+    if (mounted) _setSession(s);
   });
 
-  Future<Session?> _openModel() async {
-    try {
-      return await ModelStore.load();
-    } catch (e) {
-      // A model saved by an older version may no longer load; a newer
-      // release may.
-      try {
-        if (await ModelStore.update()) return await ModelStore.load();
-      } catch (_) {}
-      throw StateError(_l.savedModelFailed('$e'));
-    }
-  }
-
-  Future<void> _downloadModel() async {
-    setState(() => _modelMissing = false);
-    try {
-      final found = await ModelStore.update(
-        onProgress: (v) {
-          // Whole percents: the download reports every chunk.
-          if ((v * 100).floor() != ((_progress ?? 0) * 100).floor()) {
-            setState(() => _progress = v);
-          }
-        },
-      );
-      // No release this version of the app can run.
-      if (!found) setState(() => _modelMissing = true);
-    } catch (_) {
-      // Offline, or the download did not match the manifest.
-      setState(() => _modelMissing = true);
-    } finally {
-      setState(() => _progress = null);
-    }
-  }
+  Future<void> _resetBundledModel() => _run(_l.loadingModel, () async {
+    await ModelStore.clearCustom();
+    final s = await ModelStore.load();
+    if (!mounted) return;
+    setState(() => _hasCustomModel = false);
+    _setSession(s);
+  });
 
   void _setSession(Session? s) => setState(() {
     if (s != null) _settings.applyTo(s);
@@ -199,8 +176,10 @@ class _HomePageState extends State<HomePage> {
     );
     if (files.isEmpty) return;
     await _run(_l.loadingModel, () async {
-      final f = await ModelStore.import([for (final x in files) x.path]);
-      _setSession(await ModelStore.open(f));
+      final s = await ModelStore.importAndOpen([for (final x in files) x.path]);
+      if (!mounted) return;
+      setState(() => _hasCustomModel = true);
+      _setSession(s);
     });
   }
 
@@ -433,7 +412,9 @@ class _HomePageState extends State<HomePage> {
           classes: _info?.classes ?? const [],
           info: _info,
           model: _session,
+          hasCustomModel: _hasCustomModel,
           onChooseModel: _chooseModel,
+          onResetModel: _resetBundledModel,
         ),
       ),
     );
@@ -486,9 +467,9 @@ class _HomePageState extends State<HomePage> {
         ],
         bottom: _busy == null
             ? null
-            : PreferredSize(
+            : const PreferredSize(
                 preferredSize: Size.fromHeight(3),
-                child: LinearProgressIndicator(minHeight: 3, value: _progress),
+                child: LinearProgressIndicator(minHeight: 3),
               ),
       ),
       body: _body(),
@@ -532,26 +513,14 @@ class _HomePageState extends State<HomePage> {
           SafeArea(
             top: false,
             minimum: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            child: Column(
-              children: [
-                Card.filled(
-                  child: ListTile(
-                    leading: const Icon(Icons.code),
-                    title: Text(_l.openSource),
-                    subtitle: Text(_repo.replaceFirst('https://', '')),
-                    trailing: const Icon(Icons.north_east),
-                    onTap: () => _repo.launchUrl(),
-                  ),
-                ),
-                if (_progress case final v?)
-                  Card.filled(
-                    child: ListTile(
-                      leading: const Icon(Icons.download),
-                      title: Text(_l.downloadingDetector),
-                      subtitle: Text(_l.percent((v * 100).floor())),
-                    ),
-                  ),
-              ],
+            child: Card.filled(
+              child: ListTile(
+                leading: const Icon(Icons.code),
+                title: Text(_l.openSource),
+                subtitle: const Text(mosaicRepoDisplay),
+                trailing: const Icon(Icons.north_east),
+                onTap: () => openExternalUrl(mosaicRepoUrl),
+              ),
             ),
           ),
         ],
@@ -586,21 +555,6 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        if (_modelMissing)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-            child: Card.filled(
-              margin: EdgeInsets.zero,
-              child: ListTile(
-                dense: true,
-                title: Text(_l.modelDownloadFailed),
-                trailing: TextButton(
-                  onPressed: _busy == null ? _loadModel : null,
-                  child: Text(_l.retry),
-                ),
-              ),
-            ),
-          ),
         if (p == PermissionState.limited)
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),

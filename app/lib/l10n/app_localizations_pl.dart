@@ -379,15 +379,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get aspectRatioGrid => 'Siatka z zachowaniem proporcji';
 
   @override
-  String get modelDownloadFailed => 'Nie udało się pobrać modelu';
-
-  @override
-  String get retry => 'Ponów';
-
-  @override
-  String get autoUpdateModel => 'Aktualizuj model automatycznie';
-
-  @override
   String get threshold => 'Próg';
 
   @override
@@ -575,14 +566,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get openSource => 'Open source';
 
   @override
-  String get downloadingDetector => 'Downloading the detector';
-
-  @override
-  String percent(int value) {
-    return '$value%';
-  }
-
-  @override
   String get adaptivePreselectTitle => 'Local adaptive pre-selection';
 
   @override
@@ -613,15 +596,6 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get feedbackAction => 'Report';
-
-  @override
-  String get feedbackSubmit => 'Submit';
-
-  @override
-  String get feedbackDone => 'Done';
-
-  @override
-  String get feedbackSentTitle => 'Feedback sent';
 
   @override
   String get feedbackAttachScreenshot => 'Attach screenshot';
@@ -684,4 +658,41 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get feedbackBoxPreference => 'Keep visible';
+
+  @override
+  String get introOfflineTitle => 'No network access';
+
+  @override
+  String get introOfflineBody =>
+      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+
+  @override
+  String get introNoNetPermTitle => 'Zero network permissions';
+
+  @override
+  String get introNoNetPermBody =>
+      'No Android INTERNET permission · no macOS network entitlement';
+
+  @override
+  String get introBundledModelTitle => 'Bundled on-device model';
+
+  @override
+  String introBundledModelBody(String version) {
+    return 'unseen-det $version · on-device';
+  }
+
+  @override
+  String get introBundledReady => 'Bundled detector ready';
+
+  @override
+  String get introPhotosGranted => 'Photo access granted';
+
+  @override
+  String get resetBundledModel => 'Use bundled model';
+
+  @override
+  String get reviewIntro => 'Show intro again';
+
+  @override
+  String get feedbackOpenWeb => 'Open web form';
 }

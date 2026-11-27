@@ -399,18 +399,6 @@
   "@aspectRatioGrid": {
     "description": "Gallery menu, checkable: show each photo whole in its grid cell instead of cropped to a square."
   },
-  "modelDownloadFailed": "The model could not be downloaded",
-  "@modelDownloadFailed": {
-    "description": "Gallery notice: the detector model, downloaded on first launch, could not be fetched (offline or server error)."
-  },
-  "retry": "Retry",
-  "@retry": {
-    "description": "Button: try the failed download again."
-  },
-  "autoUpdateModel": "Update the model automatically",
-  "@autoUpdateModel": {
-    "description": "Settings switch: download newer detector models when they are published."
-  },
   "threshold": "Threshold",
   "@threshold": {
     "description": "Settings row: how confident the detector must be to pre-select a region (a lower threshold pre-selects more regions)."
@@ -600,15 +588,6 @@
   "allowPhotoAccess": "Allow photo access",
   "photosOffTitle": "Photo access is off",
   "openSource": "Open source",
-  "downloadingDetector": "Downloading the detector",
-  "percent": "{value}%",
-  "@percent": {
-    "placeholders": {
-      "value": {
-        "type": "int"
-      }
-    }
-  },
   "adaptivePreselectTitle": "Local adaptive pre-selection",
   "@adaptivePreselectTitle": {
     "description": "Settings toggle: adjust per-class pre-selection thresholds locally on this device from user edits."
@@ -627,9 +606,6 @@
   "feedbackShort": "Feedback",
   "feedbackMenu": "Report issue",
   "feedbackAction": "Report",
-  "feedbackSubmit": "Submit",
-  "feedbackDone": "Done",
-  "feedbackSentTitle": "Feedback sent",
   "feedbackAttachScreenshot": "Attach screenshot",
   "feedbackModeMasked": "Errors only",
   "feedbackModeFull": "Full image",
@@ -675,5 +651,23 @@
   "feedbackBoxMissed": "Missed",
   "feedbackBoxMissedMasked": "Missed · masked",
   "feedbackBoxFp": "False positive",
-  "feedbackBoxPreference": "Keep visible"
+  "feedbackBoxPreference": "Keep visible",
+  "introOfflineTitle": "No network access",
+  "introOfflineBody": "MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.",
+  "introNoNetPermTitle": "Zero network permissions",
+  "introNoNetPermBody": "No Android INTERNET permission · no macOS network entitlement",
+  "introBundledModelTitle": "Bundled on-device model",
+  "introBundledModelBody": "unseen-det {version} · on-device",
+  "@introBundledModelBody": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "introBundledReady": "Bundled detector ready",
+  "introPhotosGranted": "Photo access granted",
+  "resetBundledModel": "Use bundled model",
+  "reviewIntro": "Show intro again",
+  "feedbackOpenWeb": "Open web form"
 }

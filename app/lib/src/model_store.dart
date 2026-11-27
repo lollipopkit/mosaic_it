@@ -1,7 +1,6 @@
 import 'dart:io';
 
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'rust/api.dart';
@@ -10,15 +9,18 @@ import 'rust/api.dart';
 /// Android, ONNX elsewhere.
 final modelExtensions = [Platform.isAndroid ? '.tflite' : '.onnx'];
 
+/// Version label of the detector bundled inside the app package.
+const bundledModelVersion = '0.5.0';
+
 bool _isModel(String path) => modelExtensions.any(path.endsWith);
 
-/// Keeps one detector model (a [modelExtensions] file plus its `.json` sidecar) in the
-/// app's support directory: a release downloaded from [_manifest], or files
-/// the user picked (copied in, as the sandbox only grants access to those).
+/// Keeps the active detector model (a [modelExtensions] file plus its `.json`
+/// sidecar) completely offline: either the bundled model shipped inside the
+/// app package, or a local model manually imported by the user.
 class ModelStore {
-  /// The signed list of releases (models/manifest.toml, models/publish.sh).
-  static const _manifest =
-      'https://pub.lolli.tech/models/unseen/manifest.signed';
+  static const _androidChannel = MethodChannel(
+    'com.lollipopkit.unseen/bundled_model',
+  );
 
   static Future<Directory> _dir() async {
     final d = Directory(
@@ -27,35 +29,62 @@ class ModelStore {
     return d.create(recursive: true);
   }
 
-  /// A downloaded release waits in `staged/<version>/` until the next
-  /// [load]: the files of a model in use are never replaced.
-  static Future<Directory> _staged() async =>
-      Directory('${(await _dir()).path}/staged').create();
+  static File? _modelIn(Directory d) {
+    if (!d.existsSync()) return null;
+    for (final f in d.listSync().whereType<File>()) {
+      if (_isModel(f.path) && File('${f.path}.json').existsSync()) return f;
+    }
+    return null;
+  }
 
-  static File? _modelIn(Directory d) =>
-      d.listSync().whereType<File>().where((f) => _isModel(f.path)).firstOrNull;
+  /// A custom model imported manually by the user (overrides [bundled]).
+  static Future<File?> custom() async => _modelIn(await _dir());
 
-  /// The staged release: its model is written last, so finding one means the
-  /// release is complete.
-  static Future<File?> _stagedModel() async => (await _staged())
-      .listSync()
-      .whereType<Directory>()
-      .map(_modelIn)
-      .nonNulls
-      .firstOrNull;
+  /// Whether a user-imported custom model is currently active.
+  static Future<bool> hasCustomModel() async => await custom() != null;
 
-  /// Raised by [import]: a download that started before it must not replace
-  /// what the user picked.
-  static int _imports = 0;
+  /// Removes any user-imported custom model so [load] falls back to [bundled].
+  static Future<void> clearCustom() async {
+    final d = await _dir();
+    for (final f in d.listSync().whereType<File>()) {
+      await f.delete();
+    }
+  }
 
-  /// The stored model, if any.
-  static Future<File?> current() async => _modelIn(await _dir());
+  /// Resolves the model bundled inside the app package (zero networking).
+  ///
+  /// - iOS / macOS: opened directly from the read-only app bundle.
+  /// - Android: streamed once from APK `assets/models/` into app support.
+  static Future<File?> bundled() async {
+    if (Platform.isAndroid) {
+      final dest = '${(await _dir()).path}/bundled';
+      final path = await _androidChannel.invokeMethod<String>('extract', {
+        'dir': dest,
+      });
+      if (path == null) return null;
+      final f = File(path);
+      return f.existsSync() && File('${f.path}.json').existsSync() ? f : null;
+    }
+    final exeDir = File(Platform.resolvedExecutable).parent;
+    final candidates = <Directory>[
+      if (Platform.isMacOS) Directory('${exeDir.parent.path}/Resources/models'),
+      if (Platform.isIOS) Directory('${exeDir.path}/models'),
+      Directory('${exeDir.path}/data/flutter_assets/models'),
+      Directory('${exeDir.path}/models'),
+    ];
+    for (final dir in candidates) {
+      if (_modelIn(dir) case final found?) return found;
+    }
+    return null;
+  }
 
-  /// Copies a model and its sidecar, picked together by the user, replacing
-  /// the stored model. The sidecar is `<model>.json`, or the only
-  /// `.json` picked. Picking files rather than a folder works on every
-  /// platform (iOS has no folder picker) and under the macOS sandbox.
-  static Future<File> import(List<String> paths) async {
+  /// The active stored model (custom override first, otherwise bundled).
+  static Future<File?> current() async => await custom() ?? await bundled();
+
+  /// Copies a model and its sidecar, picked together by the user, validates
+  /// that the runtime can open it, and only then replaces any previous custom
+  /// model so a corrupt import never breaks the active installation.
+  static Future<Session> importAndOpen(List<String> paths) async {
     final (model, sidecar) = pickModelFiles(paths);
     // Pickers may rename what they copy (Android's file_selector gives a
     // file without a registered MIME type another extension), so the format
@@ -70,109 +99,36 @@ class ModelStore {
     final dot = file.indexOf('.');
     final name = '${dot > 0 ? file.substring(0, dot) : file}$ext';
     final d = await _dir();
-    _imports++;
-    for (final f in d.listSync()) {
-      await f.delete(recursive: true);
-    }
-    final dst = await File(model).copy('${d.path}/$name');
-    await File(sidecar).copy('${dst.path}.json');
-    return dst;
-  }
-
-  /// The stored model, after a staged release took its place; null when
-  /// there is none yet ([update] downloads one).
-  static Future<Session?> load() async {
-    await _applyStaged();
-    final f = await current();
-    return f == null ? null : open(f);
-  }
-
-  /// Downloads the newest release into the staging directory when the stored
-  /// model is an older release or there is none; [load] then uses it. False
-  /// when nothing newer that this app can run is published. A model the user
-  /// imported is not such a release and is left alone.
-  static Future<bool> update({ValueChanged<double>? onProgress}) async {
-    final staged = await _staged(), imports = _imports;
-    final dio = Dio(
-      BaseOptions(
-        connectTimeout: const Duration(seconds: 30),
-        // Between chunks: a stalled download fails, a slow one goes on.
-        receiveTimeout: const Duration(seconds: 30),
-      ),
-    );
+    final stage = await Directory(
+      '${d.path}/.import-${DateTime.now().microsecondsSinceEpoch}',
+    ).create(recursive: true);
     try {
-      final manifest = await dio.get<List<int>>(
-        _manifest,
-        options: Options(responseType: ResponseType.bytes),
-      );
-      final u = await modelUpdate(
-        manifest: manifest.data!,
-        installed: (await _stagedModel() ?? await current())?.path,
-      );
-      if (u == null) return false;
-      final dir = await Directory('${staged.path}/${u.version}').create();
-      final model = File('${dir.path}/${u.file}');
-      final sidecar = File('${model.path}.json');
-      final part = File('${model.path}.part');
-      await _download(dio, u.sidecarUrl, sidecar, u.sidecarBlake3);
-      await _download(dio, u.modelUrl, part, u.blake3, onProgress);
-      if (imports != _imports) {
-        await dir.delete(recursive: true);
-        return false;
+      final stagedModel = await File(model).copy('${stage.path}/$name');
+      final stagedSidecar = await File(sidecar)
+          .copy('${stagedModel.path}.json');
+      // Validate before touching the active custom model directory.
+      await open(stagedModel);
+      for (final f in d.listSync().whereType<File>()) {
+        await f.delete();
       }
-      // Renamed last: only then is the staged release complete.
-      await part.rename(model.path);
-      for (final other in staged.listSync()) {
-        if (other.path != dir.path) await other.delete(recursive: true);
-      }
-      return true;
+      final dst = await stagedModel.rename('${d.path}/$name');
+      await stagedSidecar.rename('${dst.path}.json');
+      return await open(dst);
     } finally {
-      dio.close();
+      if (stage.existsSync()) {
+        await stage.delete(recursive: true);
+      }
     }
   }
 
-  /// Saves [url] as [to] if its content has the expected BLAKE3.
-  static Future<void> _download(
-    Dio dio,
-    String url,
-    File to,
-    String blake3, [
-    ValueChanged<double>? onProgress,
-  ]) async {
-    await dio.download(
-      url,
-      to.path,
-      onReceiveProgress: (got, total) {
-        if (total > 0) onProgress?.call(got / total);
-      },
-    );
-    if (await fileBlake3(path: to.path) != blake3) {
-      await to.delete();
-      throw HttpException(
-        'content does not match the manifest',
-        uri: Uri.parse(url),
-      );
+  /// Loads the active model (custom override, falling back to bundled).
+  static Future<Session?> load() async {
+    final customFile = await custom();
+    if (customFile != null) {
+      return open(customFile);
     }
-  }
-
-  /// Makes the staged release the stored model. Every step can be repeated,
-  /// so an interrupted move finishes at the next launch.
-  static Future<void> _applyStaged() async {
-    final model = await _stagedModel();
-    if (model == null) return;
-    final d = await _dir();
-    String name(File f) => f.path.split(Platform.pathSeparator).last;
-    final sidecar = File('${model.path}.json');
-    final keep = {name(model), name(sidecar)};
-    for (final f in d.listSync().whereType<File>()) {
-      if (!keep.contains(name(f))) await f.delete();
-    }
-    // Already moved if an earlier run was interrupted here.
-    if (sidecar.existsSync()) {
-      await sidecar.rename('${d.path}/${name(sidecar)}');
-    }
-    await model.rename('${d.path}/${name(model)}');
-    await (await _staged()).delete(recursive: true);
+    final bundledFile = await bundled();
+    return bundledFile == null ? null : open(bundledFile);
   }
 
   /// Loads [model], keeping compiled hardware models in the app's cache

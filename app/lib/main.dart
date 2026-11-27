@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'l10n/app_localizations.dart';
 import 'src/home_page.dart';
+import 'src/intro_page.dart';
 import 'src/rust/frb_generated.dart';
 import 'src/store.dart';
 
@@ -68,10 +69,29 @@ class _UnseenAppState extends State<UnseenApp> {
           theme: buildAppTheme(source),
           darkTheme: buildAppTheme(source, brightness: Brightness.dark),
           themeMode: ThemeMode.values[store.themeMode.get().clamp(0, 2)],
-          home: const _L10n(child: HomePage()),
+          home: const _L10n(child: _RootPage()),
         );
       },
     );
+  }
+}
+
+class _RootPage extends StatefulWidget {
+  const _RootPage();
+
+  @override
+  State<_RootPage> createState() => _RootPageState();
+}
+
+class _RootPageState extends State<_RootPage> {
+  late bool _introSeen = SettingStore.instance.introSeen.get();
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_introSeen) {
+      return MosaicIntroPage(onDone: () => setState(() => _introSeen = true));
+    }
+    return const HomePage();
   }
 }
 

@@ -1,27 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:unseen/src/boxes.dart';
 import 'package:unseen/src/feedback.dart';
-
-class _StubAdapter implements HttpClientAdapter {
-  _StubAdapter(this.handler);
-
-  final Future<ResponseBody> Function(RequestOptions options) handler;
-
-  @override
-  void close({bool force = false}) {}
-
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<List<int>>? requestStream,
-    Future<void>? cancelFuture,
-  ) => handler(options);
-}
 
 void main() {
   late Directory tempDir;
@@ -205,66 +189,43 @@ void main() {
     );
   });
 
-  test(
-    'FeedbackClient posts multipart/JSON and wraps non-JSON errors cleanly',
-    () async {
-      late String capturedContentType;
-      late dynamic capturedData;
-      final dio = Dio()
-        ..httpClientAdapter = _StubAdapter((opts) async {
-          capturedContentType = opts.contentType ?? '';
-          capturedData = opts.data;
-          if (opts.path.endsWith('/html-error')) {
-            return ResponseBody.fromString(
-              '<html>502 Bad Gateway</html>',
-              502,
-              headers: {
-                Headers.contentTypeHeader: ['text/html'],
-              },
-            );
-          }
-          return ResponseBody.fromString(
-            jsonEncode({
-              'id': 'FB-20261126-abcdef123456',
-              'received_at': '2026-11-26T04:00:00Z',
-            }),
-            201,
-            headers: {
-              Headers.contentTypeHeader: [Headers.jsonContentType],
-            },
-          );
-        });
+  test('buildFeedbackWebUri encodes deflate-raw payload and optional JPEG into URL fragment', () {
+    final draft = FeedbackDraft(shot: sampleShot())..note = 'Missed address';
+    final payload = draft.buildPayload(
+      modelId: 'ui_screenshot@0150b2fb',
+      platform: 'ios',
+      uploadedSize: const Size(640, 1280),
+    );
+    final jpeg = Uint8List.fromList([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3, 4]);
 
-      final client = FeedbackClient(
-        dio: dio,
-        endpoint: 'https://example.test/v1/feedback',
-      );
+    final uri = buildFeedbackWebUri(
+      payload: payload,
+      imageBytes: jpeg,
+      baseUrl: 'https://example.test/',
+    );
+    expect(uri.scheme, 'https');
+    expect(uri.host, 'example.test');
+    expect(uri.query, isEmpty);
+    expect(uri.fragment, contains('v=1&d='));
+    expect(uri.fragment, contains('&i='));
+    expect(uri.fragment, isNot(contains('=' * 2)));
 
-      final draft = FeedbackDraft(shot: sampleShot());
-      final r1 = await client.submit(
-        payload: draft.buildPayload(modelId: 'test', platform: 'ios'),
-        imageFile: png,
-      );
-      expect(r1.id, 'FB-20261126-abcdef123456');
-      expect(capturedData, isA<FormData>());
+    final decoded = decodeFeedbackWebPayload(uri);
+    expect(decoded, equals(payload));
 
-      final textDraft = FeedbackDraft(note: 'Test');
-      final r2 = await client.submit(
-        payload: textDraft.buildPayload(modelId: 'none', platform: 'ios'),
-      );
-      expect(r2.id, 'FB-20261126-abcdef123456');
-      expect(capturedContentType, contains('application/json'));
+    final params = Uri.splitQueryString(uri.fragment);
+    final decodedImg = base64Url.decode(base64Url.normalize(params['i']!));
+    expect(decodedImg, equals(jpeg));
 
-      final badClient = FeedbackClient(
-        dio: dio,
-        endpoint: 'https://example.test/html-error',
-      );
-      await expectLater(
-        badClient.submit(
-          payload: textDraft.buildPayload(modelId: 'none', platform: 'ios'),
-        ),
-        throwsA(isA<FeedbackException>()),
-      );
-    },
-  );
+    // Deferred image mode omits i= and sets m=1 while preserving full payload.
+    final deferred = buildFeedbackWebUri(
+      payload: payload,
+      imageDeferred: true,
+      baseUrl: 'https://example.test/',
+    );
+    final dParams = Uri.splitQueryString(deferred.fragment);
+    expect(dParams.containsKey('i'), isFalse);
+    expect(dParams['m'], '1');
+    expect(decodeFeedbackWebPayload(deferred), equals(payload));
+  });
 }

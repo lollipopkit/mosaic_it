@@ -357,15 +357,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aspectRatioGrid => '按原始比例显示';
 
   @override
-  String get modelDownloadFailed => '模型下载失败';
-
-  @override
-  String get retry => '重试';
-
-  @override
-  String get autoUpdateModel => '自动更新模型';
-
-  @override
   String get threshold => '阈值';
 
   @override
@@ -552,14 +543,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get openSource => 'Open source';
 
   @override
-  String get downloadingDetector => 'Downloading the detector';
-
-  @override
-  String percent(int value) {
-    return '$value%';
-  }
-
-  @override
   String get adaptivePreselectTitle => '本机自适应预选';
 
   @override
@@ -584,15 +567,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get feedbackAction => '反馈错例';
-
-  @override
-  String get feedbackSubmit => '提交反馈';
-
-  @override
-  String get feedbackDone => '完成';
-
-  @override
-  String get feedbackSentTitle => '已提交反馈';
 
   @override
   String get feedbackAttachScreenshot => '选择截图';
@@ -655,6 +629,42 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get feedbackBoxPreference => '不想遮';
+
+  @override
+  String get introOfflineTitle => '无联网功能';
+
+  @override
+  String get introOfflineBody =>
+      'MosaicIt 不包含任何网络请求代码，也未申请系统网络权限。检测模型已内置于安装包中，所有识别与打码均在本机完成。';
+
+  @override
+  String get introNoNetPermTitle => '零网络权限';
+
+  @override
+  String get introNoNetPermBody => 'Android 无 INTERNET 权限 · macOS 无网络访问沙盒';
+
+  @override
+  String get introBundledModelTitle => '检测模型已内置';
+
+  @override
+  String introBundledModelBody(String version) {
+    return 'unseen-det $version · 本机内置';
+  }
+
+  @override
+  String get introBundledReady => '内置模型已就绪';
+
+  @override
+  String get introPhotosGranted => '已允许访问相册';
+
+  @override
+  String get resetBundledModel => '恢复内置模型';
+
+  @override
+  String get reviewIntro => '重新查看介绍';
+
+  @override
+  String get feedbackOpenWeb => '前往网页提交';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1013,15 +1023,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get aspectRatioGrid => '以原始比例顯示';
 
   @override
-  String get modelDownloadFailed => '模型下載失敗';
-
-  @override
-  String get retry => '重試';
-
-  @override
-  String get autoUpdateModel => '自動更新模型';
-
-  @override
   String get threshold => '閾值';
 
   @override
@@ -1114,15 +1115,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get feedbackAction => '回報錯例';
 
   @override
-  String get feedbackSubmit => '提交回饋';
-
-  @override
-  String get feedbackDone => '完成';
-
-  @override
-  String get feedbackSentTitle => '已提交回饋';
-
-  @override
   String get feedbackAttachScreenshot => '選擇截圖';
 
   @override
@@ -1183,4 +1175,40 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get feedbackBoxPreference => '不想遮';
+
+  @override
+  String get introOfflineTitle => '無聯網功能';
+
+  @override
+  String get introOfflineBody =>
+      'MosaicIt 不包含任何網路請求程式碼，也未申請系統網路權限。偵測模型已內建於安裝包中，所有辨識與打碼皆於本機完成。';
+
+  @override
+  String get introNoNetPermTitle => '零網路權限';
+
+  @override
+  String get introNoNetPermBody => 'Android 無 INTERNET 權限 · macOS 無網路存取沙盒';
+
+  @override
+  String get introBundledModelTitle => '偵測模型已內建';
+
+  @override
+  String introBundledModelBody(String version) {
+    return 'unseen-det $version · 本機內建';
+  }
+
+  @override
+  String get introBundledReady => '內建模型已就緒';
+
+  @override
+  String get introPhotosGranted => '已允許存取相簿';
+
+  @override
+  String get resetBundledModel => '恢復內建模型';
+
+  @override
+  String get reviewIntro => '重新檢視介紹';
+
+  @override
+  String get feedbackOpenWeb => '前往網頁提交';
 }

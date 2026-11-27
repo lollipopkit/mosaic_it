@@ -6,8 +6,7 @@
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-    <!-- Only the model and its manifest are downloaded (model_store.dart). -->
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- This app is offline-only and declares no INTERNET permission. -->
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"
@@ -116,6 +115,10 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
         </intent>
     </queries>
 </manifest>
