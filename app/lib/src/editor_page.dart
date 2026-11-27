@@ -896,76 +896,17 @@ class _EditorPageState extends State<EditorPage> {
   @override
   Widget build(BuildContext context) {
     final s = _editSession;
-    if (s == null) return _buildEmpty(context);
-    return _buildEditor(context, s);
-  }
-
-  Widget _buildEmpty(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final inset = MediaQuery.paddingOf(context);
+    final shot = s?.shot;
+    final active = s?.active;
+    final selected = shot == null
+        ? 0
+        : shot.boxes.where((b) => b.selected).length;
     final idle = _busy == null;
     final ready = idle && _model != null;
     final failed = idle && _model == null && _standalone;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_l.appTitle),
-        actions: [
-          IconButton(
-            tooltip: _l.feedbackMenu,
-            icon: const Icon(Icons.flag_outlined),
-            onPressed: idle ? () => _openFeedback() : null,
-          ),
-          IconButton(
-            tooltip: _l.settings,
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: idle ? _openSettings : null,
-          ),
-        ],
-        bottom: idle
-            ? null
-            : const PreferredSize(
-                preferredSize: Size.fromHeight(3),
-                child: LinearProgressIndicator(minHeight: 3),
-              ),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.add_photo_alternate_outlined,
-                size: 52,
-                color: scheme.onSurfaceVariant,
-              ),
-              const SizedBox(height: 20),
-              if (failed)
-                FilledButton.icon(
-                  onPressed: _loadAndDrain,
-                  icon: const Icon(Icons.refresh),
-                  label: Text(_l.retry),
-                )
-              else
-                FilledButton.icon(
-                  onPressed: ready ? _pickMedia : null,
-                  icon: const Icon(Icons.photo_library_outlined),
-                  label: Text(_l.selectMedia),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEditor(BuildContext context, EditSession s) {
-    final scheme = Theme.of(context).colorScheme;
-    final inset = MediaQuery.paddingOf(context);
-    final shot = s.shot;
-    final active = s.active;
-    final selected = shot.boxes.where((b) => b.selected).length;
-    final idle = _busy == null;
-    final batch = s.shots.length > 1;
+    final batch = (s?.shots.length ?? 0) > 1;
     Widget round(Widget button) => Frosted(
       shape: const CircleBorder(),
       child: SizedBox.square(dimension: 44, child: Center(child: button)),
@@ -976,23 +917,40 @@ class _EditorPageState extends State<EditorPage> {
         key: _viewKey,
         children: [
           Positioned.fill(
-            child: BoxEditor(
-              key: ValueKey(shot),
-              session: s,
-              drawing: _drawing && !_merging,
-              fill: _settings.fill,
-              onLongPress: _boxMenu,
-              merging: _merging,
-              mergeFrom: _mergeFrom,
-              onMergePick: _mergePick,
-              peekOriginal: _peeking,
-              fitPadding: EdgeInsets.fromLTRB(
-                12,
-                inset.top + _topBar,
-                12,
-                inset.bottom + _toolBar + (batch ? _strip : 0) + 8,
-              ),
-            ),
+            child: s != null && shot != null
+                ? BoxEditor(
+                    key: ValueKey(shot),
+                    session: s,
+                    drawing: _drawing && !_merging,
+                    fill: _settings.fill,
+                    onLongPress: _boxMenu,
+                    merging: _merging,
+                    mergeFrom: _mergeFrom,
+                    onMergePick: _mergePick,
+                    peekOriginal: _peeking,
+                    fitPadding: EdgeInsets.fromLTRB(
+                      12,
+                      inset.top + _topBar,
+                      12,
+                      inset.bottom + _toolBar + (batch ? _strip : 0) + 8,
+                    ),
+                  )
+                : Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: failed
+                          ? FilledButton.icon(
+                              onPressed: _loadAndDrain,
+                              icon: const Icon(Icons.refresh),
+                              label: Text(_l.retry),
+                            )
+                          : FilledButton.icon(
+                              onPressed: ready ? _pickMedia : null,
+                              icon: const Icon(Icons.photo_library_outlined),
+                              label: Text(_l.selectMedia),
+                            ),
+                    ),
+                  ),
           ),
           Positioned(
             left: 0,
@@ -1010,7 +968,7 @@ class _EditorPageState extends State<EditorPage> {
                           IconButton(
                             padding: EdgeInsets.zero,
                             tooltip: _l.selectMedia,
-                            onPressed: idle ? _pickMedia : null,
+                            onPressed: ready ? _pickMedia : null,
                             icon: const Icon(
                               Icons.add_photo_alternate_outlined,
                               size: 20,
@@ -1029,7 +987,9 @@ class _EditorPageState extends State<EditorPage> {
                                 padding: EdgeInsets.zero,
                                 tooltip: _l.undo,
                                 icon: const Icon(Icons.undo, size: 20),
-                                onPressed: s.canUndo ? s.undo : null,
+                                onPressed: s != null && s.canUndo
+                                    ? s.undo
+                                    : null,
                               ),
                               IconButton(
                                 constraints: const BoxConstraints.tightFor(
@@ -1039,44 +999,60 @@ class _EditorPageState extends State<EditorPage> {
                                 padding: EdgeInsets.zero,
                                 tooltip: _l.redo,
                                 icon: const Icon(Icons.redo, size: 20),
-                                onPressed: s.canRedo ? s.redo : null,
+                                onPressed: s != null && s.canRedo
+                                    ? s.redo
+                                    : null,
                               ),
                             ],
                           ),
                         ),
                         const Spacer(),
                         () {
+                          final enabled = shot != null;
                           final button = Semantics(
                             button: true,
-                            label:
-                                '${_l.peekOriginal}, ${_l.selectedOf(selected, shot.boxes.length)}',
-                            child: Listener(
-                              behavior: HitTestBehavior.opaque,
-                              onPointerDown: (e) {
-                                _peekPointers.add(e.pointer);
-                                if (!_peeking) setState(() => _peeking = true);
-                              },
-                              onPointerUp: (e) {
-                                _peekPointers.remove(e.pointer);
-                                if (_peekPointers.isEmpty && _peeking) {
-                                  setState(() => _peeking = false);
-                                }
-                              },
-                              onPointerCancel: (e) {
-                                _peekPointers.remove(e.pointer);
-                                if (_peekPointers.isEmpty && _peeking) {
-                                  setState(() => _peeking = false);
-                                }
-                              },
-                              child: SizedBox.square(
-                                dimension: 44,
-                                child: Center(
-                                  child: Icon(
-                                    _peeking
-                                        ? Icons.visibility
-                                        : Icons.visibility_outlined,
-                                    size: 20,
-                                    color: _peeking ? scheme.primary : null,
+                            enabled: enabled,
+                            label: shot == null
+                                ? _l.peekOriginal
+                                : '${_l.peekOriginal}, ${_l.selectedOf(selected, shot.boxes.length)}',
+                            child: IgnorePointer(
+                              ignoring: !enabled,
+                              child: Listener(
+                                behavior: HitTestBehavior.opaque,
+                                onPointerDown: (e) {
+                                  _peekPointers.add(e.pointer);
+                                  if (!_peeking) {
+                                    setState(() => _peeking = true);
+                                  }
+                                },
+                                onPointerUp: (e) {
+                                  _peekPointers.remove(e.pointer);
+                                  if (_peekPointers.isEmpty && _peeking) {
+                                    setState(() => _peeking = false);
+                                  }
+                                },
+                                onPointerCancel: (e) {
+                                  _peekPointers.remove(e.pointer);
+                                  if (_peekPointers.isEmpty && _peeking) {
+                                    setState(() => _peeking = false);
+                                  }
+                                },
+                                child: SizedBox.square(
+                                  dimension: 44,
+                                  child: Center(
+                                    child: Icon(
+                                      _peeking
+                                          ? Icons.visibility
+                                          : Icons.visibility_outlined,
+                                      size: 20,
+                                      color: !enabled
+                                          ? scheme.onSurface.withValues(
+                                              alpha: .38,
+                                            )
+                                          : _peeking
+                                          ? scheme.primary
+                                          : null,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1084,6 +1060,7 @@ class _EditorPageState extends State<EditorPage> {
                           );
                           return Badge.count(
                             count: selected,
+                            isLabelVisible: enabled,
                             offset: const Offset(-6, 4),
                             backgroundColor: scheme.primary,
                             textColor: scheme.onPrimary,
@@ -1114,7 +1091,7 @@ class _EditorPageState extends State<EditorPage> {
                             padding: WidgetStatePropertyAll(EdgeInsets.zero),
                           ),
                           tooltip: _l.export,
-                          onPressed: idle ? _openExport : null,
+                          onPressed: idle && s != null ? _openExport : null,
                           icon: Transform.translate(
                             offset: const Offset(0, -1),
                             child: const Icon(Icons.ios_share, size: 19),
@@ -1124,7 +1101,7 @@ class _EditorPageState extends State<EditorPage> {
                     ),
                   ),
                   if (!idle) const LinearProgressIndicator(minHeight: 2),
-                  if (shot.cameraPhoto)
+                  if (shot != null && shot.cameraPhoto)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Frosted(
@@ -1137,7 +1114,7 @@ class _EditorPageState extends State<EditorPage> {
                         ),
                       ),
                     ),
-                  if (_merging)
+                  if (_merging && s != null)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
                       child: MergeHint(onCancel: () => _mergePick(null)),
@@ -1154,7 +1131,7 @@ class _EditorPageState extends State<EditorPage> {
               top: false,
               child: Column(
                 children: [
-                  if (batch)
+                  if (batch && s != null)
                     BatchStrip(
                       shots: s.shots,
                       index: s.index,
@@ -1194,27 +1171,32 @@ class _EditorPageState extends State<EditorPage> {
                                   ToolButton(
                                     icon: Icons.highlight_alt,
                                     label: _l.modeDraw,
-                                    selected: _drawing && !_merging,
-                                    onTap: () => setState(() {
-                                      _drawing = _merging || !_drawing;
-                                      _merging = false;
-                                      _mergeFrom = null;
-                                    }),
+                                    selected:
+                                        s != null && _drawing && !_merging,
+                                    onTap: s == null
+                                        ? null
+                                        : () => setState(() {
+                                            _drawing = _merging || !_drawing;
+                                            _merging = false;
+                                            _mergeFrom = null;
+                                          }),
                                   ),
                                   ToolButton(
                                     icon: Icons.filter_none,
                                     label: _l.similar,
-                                    onTap: active == null || !idle
+                                    onTap: s == null || active == null || !idle
                                         ? null
                                         : () => _findSimilar(active),
                                   ),
                                   ToolButton(
                                     icon: Icons.join_inner,
                                     label: _l.merge,
-                                    selected: _merging,
-                                    onTap: () => _merging
-                                        ? _mergePick(null)
-                                        : _startMerge(active),
+                                    selected: s != null && _merging,
+                                    onTap: s == null
+                                        ? null
+                                        : () => _merging
+                                              ? _mergePick(null)
+                                              : _startMerge(active),
                                   ),
                                   ToolButton(
                                     icon: Icons.flag_outlined,
@@ -1229,6 +1211,7 @@ class _EditorPageState extends State<EditorPage> {
                         const SizedBox(width: 8),
                         Badge.count(
                           count: selected,
+                          isLabelVisible: s != null,
                           // Inside the button's top right, on its circle.
                           offset: const Offset(-10, 6),
                           backgroundColor: scheme.primary,
@@ -1239,7 +1222,9 @@ class _EditorPageState extends State<EditorPage> {
                               dimension: 52,
                               child: IconButton(
                                 tooltip: _l.regionsTooltip,
-                                onPressed: () => showRegionSheet(context, s),
+                                onPressed: s == null
+                                    ? null
+                                    : () => showRegionSheet(context, s),
                                 icon: const Icon(Icons.tune),
                               ),
                             ),

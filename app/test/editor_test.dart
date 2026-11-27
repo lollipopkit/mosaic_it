@@ -341,8 +341,11 @@ void main() {
       );
       await t.pump();
       expect(t.takeException(), isNull);
+      // Unified editor chrome is visible immediately, with the picker button on the canvas.
       expect(find.byIcon(Icons.photo_library_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.add_photo_alternate_outlined), findsOneWidget);
       expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.tune), findsOneWidget);
     },
   );
 }
