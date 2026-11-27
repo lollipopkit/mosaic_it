@@ -1,0 +1,388 @@
+# Builds and publishes MosaicIt releases on admin-pushed `v*` tags:
+# - Android arm64 APK, signed via 1Password (`MosaicIt CI` vault) inside the
+#   tag-restricted `release` GitHub Environment.
+# - macOS arm64 unsigned DMG (`_NoSign_arm64.dmg`).
+# - iOS arm64 unsigned IPA (`_NoSign.ipa`).
+#
+# Security model:
+# - Triggered only by `v*` tags (protected by repository Tag Ruleset: admins only).
+# - `OP_SERVICE_ACCOUNT_TOKEN` lives only in the `release` environment (restricted
+#   to `v*` tags) and is scoped read-only to the dedicated `MosaicIt CI` vault.
+# - Only the `android` job attaches `environment: release`; macOS, iOS, and publish
+#   jobs cannot access the 1Password token.
+# - `tool/android-signing.sh` strips `OP_SERVICE_ACCOUNT_TOKEN` before spawning the
+#   build subprocess tree, and `flutter pub get` runs before the token is injected.
+# - Only the `publish` job receives `contents: write`.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+env:
+  B3SUM_VERSION: "1.8.8"
+  B3SUM_LINUX_X64_SHA256: "cf7a7a515dc55ffde63b65dad87c00dd5ea0a29c9edf2b6a58acbb37e9d161c3"
+
+jobs:
+  check:
+    name: Validate release tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      prerelease: ${{ steps.meta.outputs.prerelease }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify tag matches app/pubspec.yaml
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag ${tag} is not a valid SemVer release tag"
+            exit 1
+          fi
+          pub_name="$(sed -n -E 's/^version:[[:space:]]*([^+]+)\+[0-9]+$/\1/p' app/pubspec.yaml | head -n 1)"
+          if [[ -z "$pub_name" ]]; then
+            echo "::error::Could not read version from app/pubspec.yaml"
+            exit 1
+          fi
+          expected="v${pub_name}"
+          if [[ "$tag" != "$expected" ]]; then
+            echo "::error::Tag ${tag} does not match app/pubspec.yaml version (${expected})"
+            exit 1
+          fi
+          if [[ "$tag" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
+  android:
+    name: Build Android (arm64)
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Only `v*` tags (admin-only ruleset) can deploy to `release` and read
+    # `OP_SERVICE_ACCOUNT_TOKEN` (scoped read-only to vault `MosaicIt CI`).
+    environment: release
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ needs.check.outputs.tag }}
+      EXPECTED_CERT_SHA256: "a2da0498d4901b980ecef0f6ce3b720e775dd1f44236455e1095e5e6389f1164"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: zulu
+          java-version: "21"
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Install Android NDK r28 and pinned b3sum
+        shell: bash
+        run: |
+          set -euo pipefail
+          ndk_version="28.2.13676358"
+          { yes || true; } | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;${ndk_version}" >/dev/null
+          ndk_dir="${ANDROID_HOME}/ndk/${ndk_version}"
+          {
+            echo "ANDROID_NDK=${ndk_dir}"
+            echo "ANDROID_NDK_HOME=${ndk_dir}"
+            echo "ANDROID_NDK_LATEST_HOME=${ndk_dir}"
+            echo "ANDROID_NDK_ROOT=${ndk_dir}"
+          } >> "$GITHUB_ENV"
+
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL \
+            "https://github.com/BLAKE3-team/BLAKE3/releases/download/${B3SUM_VERSION}/b3sum_linux_x64_bin" \
+            -o "$HOME/.local/bin/b3sum"
+          echo "${B3SUM_LINUX_X64_SHA256}  $HOME/.local/bin/b3sum" | sha256sum -c -
+          chmod 0755 "$HOME/.local/bin/b3sum"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Fetch Flutter dependencies
+        working-directory: app
+        shell: bash
+        run: flutter pub get
+      - name: Install 1Password CLI
+        uses: 1password/install-cli-action@1a3160d5e9de1ae0803eaa08a88746f5ae3daa50 # v4.1.0
+        with:
+          version: 2.42.0
+      - name: Build signed Android arm64 APK
+        working-directory: app
+        shell: bash
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          set -euo pipefail
+          tool/android-signing.sh flutter build apk --release --target-platform android-arm64
+      - name: Verify APK signature, bundled model, and zero permissions
+        working-directory: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-release.apk"
+          out="build/app/outputs/flutter-apk/MosaicIt_${TAG}_arm64.apk"
+          mv "$apk" "$out"
+
+          bt_dir="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
+          certs="$("$bt_dir/apksigner" verify --print-certs "$out")"
+          echo "$certs"
+          grep -qF "Signer #1 certificate SHA-256 digest: ${EXPECTED_CERT_SHA256}" <<< "$certs" || {
+            echo "::error::APK was not signed with the expected release certificate"
+            exit 1
+          }
+
+          entries="$(zipinfo -1 "$out")"
+          for required in \
+            assets/models/unseen-det.tflite \
+            assets/models/unseen-det.tflite.json \
+            lib/arm64-v8a/libLiteRt.so \
+            lib/arm64-v8a/libLiteRtClGlAccelerator.so \
+            lib/arm64-v8a/libunseen_ffi.so; do
+            grep -qFx "$required" <<< "$entries" || {
+              echo "::error::Missing expected entry in APK: $required"
+              exit 1
+            }
+          done
+
+          perms="$("$bt_dir/aapt2" dump permissions "$out")"
+          echo "$perms"
+          if grep -qE "uses-permission(-sdk-[0-9]+)?: name='android\.permission\." <<< "$perms"; then
+            echo "::error::Unexpected android.permission.* found in release APK"
+            exit 1
+          fi
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-android
+          path: app/build/app/outputs/flutter-apk/MosaicIt_${{ needs.check.outputs.tag }}_arm64.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  macos:
+    name: Build macOS unsigned (arm64)
+    needs: check
+    runs-on: macos-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ needs.check.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Install b3sum
+        shell: bash
+        run: brew install b3sum
+      - name: Configure ad-hoc unsigned macOS build
+        working-directory: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          project="macos/Runner.xcodeproj/project.pbxproj"
+          sed -i '' \
+            -e 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' \
+            -e 's/ProvisioningStyle = Automatic;/ProvisioningStyle = Manual;/g' \
+            -e 's/DEVELOPMENT_TEAM = [^;]*;/DEVELOPMENT_TEAM = "";/g' \
+            "$project"
+      - name: Build macOS app
+        working-directory: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter build macos --release
+      - name: Verify architecture, bundled model, and package DMG
+        working-directory: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          app_path="build/macos/Build/Products/Release/MosaicIt.app"
+          test -f "$app_path/Contents/Resources/models/unseen-det-tile.onnx"
+          test -f "$app_path/Contents/Resources/models/unseen-det-tile.onnx.json"
+          test -d "$app_path/Contents/Frameworks/unseen_ffi.framework"
+          codesign --verify --deep --strict "$app_path"
+
+          checked=0
+          bad=()
+          while IFS= read -r -d '' binary; do
+            archs="$(lipo -archs "$binary" 2>/dev/null)" || continue
+            checked=$((checked + 1))
+            if [[ " $archs " != *" arm64 "* ]]; then
+              bad+=("${binary#"$app_path/"}: $archs")
+            fi
+          done < <(find "$app_path/Contents/MacOS" "$app_path/Contents/Frameworks" -type f -print0)
+          if (( checked == 0 || ${#bad[@]} > 0 )); then
+            echo "::error::Invalid Mach-O architectures (checked=$checked): ${bad[*]:-none}"
+            exit 1
+          fi
+
+          stage="$(mktemp -d)"
+          trap 'rm -rf "$stage"' EXIT
+          ditto "$app_path" "$stage/MosaicIt.app"
+          ln -s /Applications "$stage/Applications"
+          mkdir -p build/release
+          hdiutil create \
+            -volname "MosaicIt" \
+            -srcfolder "$stage" \
+            -ov \
+            -format UDZO \
+            "build/release/MosaicIt_${TAG}_NoSign_arm64.dmg"
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-macos
+          path: app/build/release/MosaicIt_${{ needs.check.outputs.tag }}_NoSign_arm64.dmg
+          if-no-files-found: error
+          retention-days: 7
+
+  ios:
+    name: Build iOS unsigned (arm64)
+    needs: check
+    runs-on: macos-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ needs.check.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+      - name: Install b3sum
+        shell: bash
+        run: brew install b3sum
+      - name: Build unsigned iOS app and package IPA
+        working-directory: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter build ios --release --no-codesign
+
+          app_path="build/ios/iphoneos/Runner.app"
+          test -f "$app_path/models/unseen-det-tile.onnx"
+          test -f "$app_path/models/unseen-det-tile.onnx.json"
+          test -d "$app_path/Frameworks/unseen_ffi.framework"
+          archs="$(lipo -archs "$app_path/Runner")"
+          [[ " $archs " == *" arm64 "* ]] || {
+            echo "::error::Runner binary is not arm64: $archs"
+            exit 1
+          }
+
+          stage="$(mktemp -d)"
+          trap 'rm -rf "$stage"' EXIT
+          mkdir -p "$stage/Payload" build/release
+          ditto "$app_path" "$stage/Payload/Runner.app"
+          out="$PWD/build/release/MosaicIt_${TAG}_NoSign.ipa"
+          (cd "$stage" && zip -qry "$out" Payload)
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-ios
+          path: app/build/release/MosaicIt_${{ needs.check.outputs.tag }}_NoSign.ipa
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish GitHub Release
+    needs: [check, android, macos, ios]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ needs.check.outputs.tag }}
+    steps:
+      - name: Collect platform artifacts
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          pattern: release-*
+          path: assets
+          merge-multiple: true
+      - name: Install pinned b3sum
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL \
+            "https://github.com/BLAKE3-team/BLAKE3/releases/download/${B3SUM_VERSION}/b3sum_linux_x64_bin" \
+            -o "$HOME/.local/bin/b3sum"
+          echo "${B3SUM_LINUX_X64_SHA256}  $HOME/.local/bin/b3sum" | sha256sum -c -
+          chmod 0755 "$HOME/.local/bin/b3sum"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Verify expected assets and write checksums
+        working-directory: assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=(
+            "MosaicIt_${TAG}_arm64.apk"
+            "MosaicIt_${TAG}_NoSign_arm64.dmg"
+            "MosaicIt_${TAG}_NoSign.ipa"
+          )
+          for f in "${expected[@]}"; do
+            test -f "$f" || { echo "::error::Missing asset: $f"; exit 1; }
+          done
+
+          b3sum -- "${expected[@]}" > BLAKE3SUMS
+          sha256sum -- "${expected[@]}" > SHA256SUMS
+          cat BLAKE3SUMS
+          cat SHA256SUMS
+      - name: Stage draft release
+        id: stage
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3
+        with:
+          tag_name: ${{ env.TAG }}
+          draft: true
+          prerelease: ${{ needs.check.outputs.prerelease == 'true' }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ steps.stage.outputs.id }}
+          MAKE_LATEST: ${{ needs.check.outputs.prerelease != 'true' && 'true' || 'false' }}
+        run: |
+          set -euo pipefail
+          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID:?missing release id}" \
+            -F draft=false \
+            -f make_latest="$MAKE_LATEST" >/dev/null

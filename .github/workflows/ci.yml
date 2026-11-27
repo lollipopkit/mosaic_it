@@ -75,6 +75,7 @@ jobs:
           }
           required_removed = {
               "android.permission.INTERNET",
+              "android.permission.ACCESS_NETWORK_STATE",
               "android.permission.CAMERA",
               "android.permission.RECORD_AUDIO",
               "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -83,6 +84,7 @@ jobs:
               "android.permission.READ_MEDIA_VIDEO",
               "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
               "android.permission.USE_BIOMETRIC",
+              "android.permission.USE_FINGERPRINT",
           }
           missing_removed = sorted(required_removed - removed_perms)
           if missing_removed:
