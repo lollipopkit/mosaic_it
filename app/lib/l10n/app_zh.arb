@@ -142,5 +142,8 @@
   "peekOriginal": "按住查看原图",
   "selectMedia": "选择照片或视频",
   "saveFailed": "保存到相册失败",
-  "retry": "重试"
+  "retry": "重试",
+  "iosWirelessPromptTitle": "无线数据弹窗提示",
+  "iosWirelessPromptBody": "打开系统相册时，iOS 可能会因预览 iCloud 缩略图弹出「允许使用无线数据」提示。码住本身不联网，弹窗出现时直接选「不允许」即可。",
+  "continueAction": "继续"
 }

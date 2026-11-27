@@ -614,4 +614,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get retry => 'Réessayer';
+
+  @override
+  String get iosWirelessPromptTitle => 'Invite de données sans fil';
+
+  @override
+  String get iosWirelessPromptBody =>
+      'L’ouverture du sélecteur de photos système peut déclencher une alerte iOS pour les vignettes iCloud. MosaicIt n’utilise pas le réseau — touchez « Ne pas autoriser ».';
+
+  @override
+  String get continueAction => 'Continuer';
 }

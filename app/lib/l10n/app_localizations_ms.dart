@@ -617,4 +617,14 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get retry => 'Retry';
+
+  @override
+  String get iosWirelessPromptTitle => 'Wireless data prompt';
+
+  @override
+  String get iosWirelessPromptBody =>
+      'Opening the system photo picker may trigger an iOS wireless data prompt for iCloud thumbnails. MosaicIt does not use the network — tap “Don’t Allow”.';
+
+  @override
+  String get continueAction => 'Continue';
 }

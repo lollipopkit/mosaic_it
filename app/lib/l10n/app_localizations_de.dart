@@ -626,4 +626,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get retry => 'Erneut versuchen';
+
+  @override
+  String get iosWirelessPromptTitle => 'Hinweis zu WLAN- & Mobilfunkdaten';
+
+  @override
+  String get iosWirelessPromptBody =>
+      'Beim Öffnen der System-Fotoauswahl zeigt iOS ggf. eine Datenabfrage für iCloud-Vorschaubilder. MosaicIt nutzt kein Netzwerk – tippe auf „Nicht erlauben“.';
+
+  @override
+  String get continueAction => 'Weiter';
 }

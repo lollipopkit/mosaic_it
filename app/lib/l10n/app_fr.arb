@@ -116,5 +116,8 @@
   "peekOriginal": "Maintenir pour voir l’original",
   "selectMedia": "Choisir des photos ou une vidéo",
   "saveFailed": "Impossible d’enregistrer dans Photos",
-  "retry": "Réessayer"
+  "retry": "Réessayer",
+  "iosWirelessPromptTitle": "Invite de données sans fil",
+  "iosWirelessPromptBody": "L’ouverture du sélecteur de photos système peut déclencher une alerte iOS pour les vignettes iCloud. MosaicIt n’utilise pas le réseau — touchez « Ne pas autoriser ».",
+  "continueAction": "Continuer"
 }

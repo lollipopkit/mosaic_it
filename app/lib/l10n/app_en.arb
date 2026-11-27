@@ -586,5 +586,17 @@
   "retry": "Retry",
   "@retry": {
     "description": "Button to retry loading the bundled detector model."
+  },
+  "iosWirelessPromptTitle": "Wireless data prompt",
+  "@iosWirelessPromptTitle": {
+    "description": "Dialog title on China-mainland iOS devices before the first photo picker open."
+  },
+  "iosWirelessPromptBody": "Opening the system photo picker may trigger an iOS wireless data prompt for iCloud thumbnails. MosaicIt does not use the network — tap “Don’t Allow”.",
+  "@iosWirelessPromptBody": {
+    "description": "Dialog body explaining why China-mainland iOS may show a wireless data prompt when opening the system photo picker and advising the user to tap Don't Allow."
+  },
+  "continueAction": "Continue",
+  "@continueAction": {
+    "description": "Primary button to proceed after reading a one-time notice."
   }
 }

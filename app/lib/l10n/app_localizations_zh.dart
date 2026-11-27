@@ -600,6 +600,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get retry => '重试';
+
+  @override
+  String get iosWirelessPromptTitle => '无线数据弹窗提示';
+
+  @override
+  String get iosWirelessPromptBody =>
+      '打开系统相册时，iOS 可能会因预览 iCloud 缩略图弹出「允许使用无线数据」提示。码住本身不联网，弹窗出现时直接选「不允许」即可。';
+
+  @override
+  String get continueAction => '继续';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1106,4 +1116,14 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get retry => '重試';
+
+  @override
+  String get iosWirelessPromptTitle => '無線資料彈窗提示';
+
+  @override
+  String get iosWirelessPromptBody =>
+      '開啟系統相簿時，iOS 可能會因預覽 iCloud 縮圖彈出「允許使用無線資料」提示。碼住本身不連網，彈窗出現時直接選「不允許」即可。';
+
+  @override
+  String get continueAction => '繼續';
 }

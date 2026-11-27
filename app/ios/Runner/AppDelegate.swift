@@ -1,3 +1,4 @@
+import CoreTelephony
 import Flutter
 import Photos
 import PhotosUI
@@ -269,6 +270,53 @@ import UniformTypeIdentifiers
     }
   }
 
+  /// Checks whether iOS currently restricts cellular/wireless data for this app.
+  /// On China-mainland (`CH/A`) devices, fresh installs start in `.restricted`,
+  /// whereas other regions start in `.notRestricted`. Does not trigger any prompt.
+  private static func checkWirelessDataRestricted(completion: @escaping (Bool) -> Void) {
+    let cellular = CTCellularData()
+    var replied = false
+    var timeoutWork: DispatchWorkItem?
+    func finish(_ value: Bool) {
+      DispatchQueue.main.async {
+        guard !replied else { return }
+        replied = true
+        timeoutWork?.cancel()
+        timeoutWork = nil
+        cellular.cellularDataRestrictionDidUpdateNotifier = nil
+        completion(value)
+      }
+    }
+    let work = DispatchWorkItem {
+      let regionIsCN = Locale.current.region?.identifier == "CN"
+      finish(regionIsCN)
+    }
+    timeoutWork = work
+    // Register notifier before reading initial state to avoid missing an update in between.
+    cellular.cellularDataRestrictionDidUpdateNotifier = { state in
+      switch state {
+      case .restricted:
+        finish(true)
+      case .notRestricted:
+        finish(false)
+      case .restrictedStateUnknown:
+        break
+      @unknown default:
+        break
+      }
+    }
+    switch cellular.restrictedState {
+    case .restricted:
+      finish(true)
+    case .notRestricted:
+      finish(false)
+    case .restrictedStateUnknown:
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: work)
+    @unknown default:
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.35, execute: work)
+    }
+  }
+
   private static func sanitizeExtension(_ raw: String) -> String {
     let cleaned = raw.lowercased().filter { $0.isASCII && ($0.isLetter || $0.isNumber) }
     return String(cleaned.prefix(8))
@@ -371,6 +419,10 @@ import UniformTypeIdentifiers
         self.incomingQueue.async {
           let prepared = Self.copyOrTranscodeToIncoming(url, in: launchDir, copyNative: false)
           DispatchQueue.main.async { result(prepared) }
+        }
+      case "isWirelessDataRestricted":
+        Self.checkWirelessDataRestricted { restricted in
+          result(restricted)
         }
       case "getIncomingFiles":
         self?.dartReady = true

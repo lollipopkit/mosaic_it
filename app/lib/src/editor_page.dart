@@ -18,6 +18,7 @@ import 'editor.dart';
 import 'editor_menus.dart';
 import 'feedback.dart';
 import 'feedback_sheet.dart';
+import 'intro_page.dart';
 import 'model_store.dart';
 import 'platform_bridge.dart';
 import 'rust/api.dart';
@@ -369,6 +370,7 @@ class _EditorPageState extends State<EditorPage> {
     final List<String> paths;
     try {
       if (_mobile) {
+        if (!await confirmFirstPickerIfRestricted(context) || !mounted) return;
         paths = await PlatformBridge.pickMedia(
           multiple: true,
           allowVideo: true,
@@ -959,7 +961,6 @@ class _EditorPageState extends State<EditorPage> {
   Widget _buildEditor(BuildContext context, EditSession s) {
     final scheme = Theme.of(context).colorScheme;
     final inset = MediaQuery.paddingOf(context);
-    final wideTopBar = MediaQuery.sizeOf(context).width >= 400;
     final shot = s.shot;
     final active = s.active;
     final selected = shot.boxes.where((b) => b.selected).length;
@@ -1047,7 +1048,8 @@ class _EditorPageState extends State<EditorPage> {
                         () {
                           final button = Semantics(
                             button: true,
-                            label: _l.peekOriginal,
+                            label:
+                                '${_l.peekOriginal}, ${_l.selectedOf(selected, shot.boxes.length)}',
                             child: Listener(
                               behavior: HitTestBehavior.opaque,
                               onPointerDown: (e) {
@@ -1080,42 +1082,22 @@ class _EditorPageState extends State<EditorPage> {
                               ),
                             ),
                           );
-                          return Frosted(
-                            shape: const CircleBorder(),
-                            child: _mobile
-                                ? button
-                                : Tooltip(
-                                    message: _l.peekOriginal,
-                                    child: button,
-                                  ),
+                          return Badge.count(
+                            count: selected,
+                            offset: const Offset(-6, 4),
+                            backgroundColor: scheme.primary,
+                            textColor: scheme.onPrimary,
+                            child: Frosted(
+                              shape: const CircleBorder(),
+                              child: _mobile
+                                  ? button
+                                  : Tooltip(
+                                      message: _l.peekOriginal,
+                                      child: button,
+                                    ),
+                            ),
                           );
                         }(),
-                        if (wideTopBar) ...[
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Semantics(
-                              label: _l.selectedOf(selected, shot.boxes.length),
-                              child: Frosted(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 8,
-                                  ),
-                                  child: Text(
-                                    '$selected / ${shot.boxes.length}',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontFeatures: [
-                                        ui.FontFeature.tabularFigures(),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
                         const SizedBox(width: 4),
                         round(
                           IconButton(

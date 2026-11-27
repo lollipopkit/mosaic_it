@@ -609,4 +609,14 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get retry => '다시 시도';
+
+  @override
+  String get iosWirelessPromptTitle => '무선 데이터 안내';
+
+  @override
+  String get iosWirelessPromptBody =>
+      '시스템 사진 선택기를 열 때 iCloud 썸네일로 인해 iOS 무선 데이터 허용 창이 뜰 수 있습니다. MosaicIt은 네트워크를 사용하지 않으므로 ‘허용 안 함’을 선택하세요.';
+
+  @override
+  String get continueAction => '계속';
 }

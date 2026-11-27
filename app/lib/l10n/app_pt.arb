@@ -116,5 +116,8 @@
   "peekOriginal": "Segure para ver o original",
   "selectMedia": "Selecionar fotos ou vídeo",
   "saveFailed": "Não foi possível salvar em Fotos",
-  "retry": "Tentar novamente"
+  "retry": "Tentar novamente",
+  "iosWirelessPromptTitle": "Aviso de dados sem fio",
+  "iosWirelessPromptBody": "Ao abrir o seletor de fotos do sistema, o iOS pode exibir um aviso de dados para miniaturas do iCloud. O MosaicIt não usa rede — toque em “Não Permitir”.",
+  "continueAction": "Continuar"
 }

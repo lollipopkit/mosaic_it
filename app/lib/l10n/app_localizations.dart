@@ -1153,6 +1153,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get retry;
+
+  /// Dialog title on China-mainland iOS devices before the first photo picker open.
+  ///
+  /// In en, this message translates to:
+  /// **'Wireless data prompt'**
+  String get iosWirelessPromptTitle;
+
+  /// Dialog body explaining why China-mainland iOS may show a wireless data prompt when opening the system photo picker and advising the user to tap Don't Allow.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening the system photo picker may trigger an iOS wireless data prompt for iCloud thumbnails. MosaicIt does not use the network — tap “Don’t Allow”.'**
+  String get iosWirelessPromptBody;
+
+  /// Primary button to proceed after reading a one-time notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueAction;
 }
 
 class _AppLocalizationsDelegate

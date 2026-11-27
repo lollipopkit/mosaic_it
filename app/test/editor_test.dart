@@ -291,12 +291,19 @@ void main() {
       );
       await t.pump();
       expect(t.takeException(), isNull);
-      // Narrow 360dp keeps count pill hidden so top bar buttons never crowd or truncate.
-      expect(find.text('1 / 2'), findsNothing);
 
-      // Hold-to-peek swaps the icon and releases cleanly on pointer up.
+      // Hold-to-peek swaps the icon, carries the selected-mask Badge, and releases cleanly.
       final peekFinder = find.byIcon(Icons.visibility_outlined);
       expect(peekFinder, findsOneWidget);
+      final peekBadge = find.ancestor(
+        of: peekFinder,
+        matching: find.byType(Badge),
+      );
+      expect(peekBadge, findsOneWidget);
+      expect(
+        find.descendant(of: peekBadge, matching: find.text('1')),
+        findsOneWidget,
+      );
       final gesture = await t.startGesture(t.getCenter(peekFinder));
       await t.pump();
       expect(find.byIcon(Icons.visibility), findsOneWidget);
@@ -307,43 +314,6 @@ void main() {
       expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
     },
   );
-
-  testWidgets('EditorPage shows count pill on >=400dp screens', (t) async {
-    final boxes = [
-      box(const Rect.fromLTRB(10, 10, 100, 60)),
-      box(const Rect.fromLTRB(120, 10, 200, 60), selected: false),
-    ];
-    final shot = Shot(png, const Size(400, 400), boxes);
-    const info = ModelInfo(
-      classes: ['phone', 'email'],
-      backend: 'CPU',
-      selectThresholds: {'phone': 0.5, 'email': 0.5},
-      verified: false,
-    );
-    await t.binding.setSurfaceSize(const Size(420, 800));
-    addTearDown(() => t.binding.setSurfaceSize(null));
-    await t.pumpWidget(
-      MediaQuery(
-        data: const MediaQueryData(size: Size(420, 800)),
-        child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: EditorPage(
-            shots: [shot],
-            settings: AppSettings(
-              fillStyle: FillStyle.solid,
-              fillColor: 0x000000,
-            ),
-            model: _FakeSession(),
-            info: info,
-          ),
-        ),
-      ),
-    );
-    await t.pump();
-    expect(t.takeException(), isNull);
-    expect(find.text('1 / 2'), findsOneWidget);
-  });
 
   testWidgets(
     'EditorPage renders empty state with direct media picker button',

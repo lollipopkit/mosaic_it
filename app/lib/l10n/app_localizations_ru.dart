@@ -623,4 +623,14 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get retry => 'Повторить';
+
+  @override
+  String get iosWirelessPromptTitle => 'Запрос беспроводных данных';
+
+  @override
+  String get iosWirelessPromptBody =>
+      'При открытии системного выбора фото iOS может показать запрос данных для миниатюр iCloud. MosaicIt не использует сеть — выберите «Не разрешать».';
+
+  @override
+  String get continueAction => 'Продолжить';
 }

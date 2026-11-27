@@ -34,6 +34,9 @@ class SettingStore extends SqliteStore with ThemeSettings {
   /// Whether the first-launch offline intro has been completed.
   late final introSeen = propertyDefault('introSeen', false);
 
+  /// Whether the one-time iOS China wireless-data prompt explanation has been shown.
+  late final pickerNoticeSeen = propertyDefault('pickerNoticeSeen', false);
+
   /// `ThresholdPreset` name: scales the model's thresholds.
   late final threshold = propertyDefault('threshold', 'medium');
 

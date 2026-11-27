@@ -89,6 +89,7 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
     try {
       String? path;
       if (_mobile) {
+        if (!await confirmFirstPickerIfRestricted(context) || !mounted) return;
         final picked = await PlatformBridge.pickMedia(
           multiple: false,
           allowVideo: false,

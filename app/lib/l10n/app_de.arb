@@ -116,5 +116,8 @@
   "peekOriginal": "Gedrückt halten für Original",
   "selectMedia": "Fotos oder Video auswählen",
   "saveFailed": "Speichern in Fotos fehlgeschlagen",
-  "retry": "Erneut versuchen"
+  "retry": "Erneut versuchen",
+  "iosWirelessPromptTitle": "Hinweis zu WLAN- & Mobilfunkdaten",
+  "iosWirelessPromptBody": "Beim Öffnen der System-Fotoauswahl zeigt iOS ggf. eine Datenabfrage für iCloud-Vorschaubilder. MosaicIt nutzt kein Netzwerk – tippe auf „Nicht erlauben“.",
+  "continueAction": "Weiter"
 }

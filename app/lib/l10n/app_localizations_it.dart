@@ -628,4 +628,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get retry => 'Riprova';
+
+  @override
+  String get iosWirelessPromptTitle => 'Avviso dati wireless';
+
+  @override
+  String get iosWirelessPromptBody =>
+      'L’apertura del selettore foto di sistema può attivare un avviso iOS per le miniature iCloud. MosaicIt non usa la rete: tocca «Non consentire».';
+
+  @override
+  String get continueAction => 'Continua';
 }

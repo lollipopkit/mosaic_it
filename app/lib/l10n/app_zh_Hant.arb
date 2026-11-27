@@ -142,5 +142,8 @@
   "peekOriginal": "按住檢視原圖",
   "selectMedia": "選擇照片或影片",
   "saveFailed": "儲存到相簿失敗",
-  "retry": "重試"
+  "retry": "重試",
+  "iosWirelessPromptTitle": "無線資料彈窗提示",
+  "iosWirelessPromptBody": "開啟系統相簿時，iOS 可能會因預覽 iCloud 縮圖彈出「允許使用無線資料」提示。碼住本身不連網，彈窗出現時直接選「不允許」即可。",
+  "continueAction": "繼續"
 }

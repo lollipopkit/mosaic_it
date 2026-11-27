@@ -613,6 +613,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get retry => 'Tentar novamente';
+
+  @override
+  String get iosWirelessPromptTitle => 'Aviso de dados sem fio';
+
+  @override
+  String get iosWirelessPromptBody =>
+      'Ao abrir o seletor de fotos do sistema, o iOS pode exibir um aviso de dados para miniaturas do iCloud. O MosaicIt não usa rede — toque em “Não Permitir”.';
+
+  @override
+  String get continueAction => 'Continuar';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).
@@ -1039,4 +1049,14 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get retry => 'Tentar novamente';
+
+  @override
+  String get iosWirelessPromptTitle => 'Aviso de dados sem fios';
+
+  @override
+  String get iosWirelessPromptBody =>
+      'Ao abrir o seletor de fotografias do sistema, o iOS pode mostrar um aviso de dados para miniaturas do iCloud. O MosaicIt não usa rede — toque em «Não permitir».';
+
+  @override
+  String get continueAction => 'Continuar';
 }

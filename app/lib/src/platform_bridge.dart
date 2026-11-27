@@ -84,6 +84,21 @@ class PlatformBridge {
     }
   }
 
+  /// On iOS, reports whether cellular/wireless data is currently restricted
+  /// (true on China-mainland fresh installs before the system prompt is answered).
+  static Future<bool> isWirelessDataRestricted() async {
+    if (!Platform.isIOS) return false;
+    ensureInitialized();
+    try {
+      return await _channel.invokeMethod<bool>('isWirelessDataRestricted') ??
+          false;
+    } on MissingPluginException {
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Copies the image file at [path] onto the system clipboard.
   static Future<bool> copyImageToClipboard(String path) async {
     ensureInitialized();

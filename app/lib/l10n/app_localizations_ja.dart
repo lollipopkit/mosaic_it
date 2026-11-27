@@ -609,4 +609,14 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get retry => '再試行';
+
+  @override
+  String get iosWirelessPromptTitle => 'ワイヤレスデータの確認について';
+
+  @override
+  String get iosWirelessPromptBody =>
+      'システムの写真ピッカーを開くと、iCloud サムネイルの表示により iOS のワイヤレスデータ確認が表示されることがあります。MosaicIt は通信を行わないため「許可しない」を選択してください。';
+
+  @override
+  String get continueAction => '続ける';
 }

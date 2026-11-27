@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
 import 'model_store.dart';
+import 'platform_bridge.dart';
 import 'store.dart';
 
 /// Public GitHub repository for MosaicIt (AGPL-3.0).
@@ -17,6 +18,44 @@ String platformNoNetPermBody(AppLocalizations l) {
   if (Platform.isAndroid) return l.introNoNetPermBodyAndroid;
   if (Platform.isMacOS) return l.introNoNetPermBodyDesktop;
   return l.introNoNetPermBodyIos;
+}
+
+/// On China-mainland iOS devices, shows a one-time notice before the first
+/// system photo picker open so users know to choose "Don't Allow" on the iOS
+/// wireless-data prompt triggered by out-of-process iCloud thumbnails.
+Future<bool> confirmFirstPickerIfRestricted(BuildContext context) async {
+  if (!Platform.isIOS) return true;
+  final seen = SettingStore.instance.pickerNoticeSeen;
+  if (seen.get()) return true;
+  final restricted = await PlatformBridge.isWirelessDataRestricted();
+  if (!restricted) {
+    await seen.set(true);
+    return context.mounted;
+  }
+  if (!context.mounted) return false;
+  final l = AppLocalizations.of(context);
+  final go = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(l.iosWirelessPromptTitle),
+      content: Text(l.iosWirelessPromptBody),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: Text(l.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          child: Text(l.continueAction),
+        ),
+      ],
+    ),
+  );
+  if (go == true) {
+    await seen.set(true);
+    return context.mounted;
+  }
+  return false;
 }
 
 /// Opens [url] in the system browser only (`LaunchMode.externalApplication`),
