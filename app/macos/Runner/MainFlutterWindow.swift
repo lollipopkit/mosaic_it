@@ -33,6 +33,18 @@ class MainFlutterWindow: NSWindow, NSDraggingDestination {
           return
         }
         result(Self.copyImageToPasteboard(path: path))
+      case "prepareImage":
+        guard
+          let args = call.arguments as? [String: Any],
+          let path = args["path"] as? String,
+          let delegate = appDelegate
+        else {
+          result(nil)
+          return
+        }
+        delegate.prepareImagePath(path) { prepared in
+          result(prepared)
+        }
       case "getIncomingFiles":
         appDelegate?.dartReady = true
         let items = appDelegate?.pendingIncoming ?? []
@@ -85,7 +97,7 @@ class MainFlutterWindow: NSWindow, NSDraggingDestination {
   private static func supportedURLs(from info: NSDraggingInfo) -> [URL] {
     let allowed: Set<String> = [
       "png", "jpg", "jpeg", "webp", "heic", "heif", "bmp", "tif", "tiff", "gif",
-      "mp4", "mov", "m4v", "mkv", "webm", "avi",
+      "mp4", "mov", "m4v", "mkv", "webm", "avi", "3gp", "3g2", "mpg", "mpeg", "ts",
     ]
     let urls = info.draggingPasteboard.readObjects(
       forClasses: [NSURL.self],

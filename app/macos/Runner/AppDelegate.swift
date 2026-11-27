@@ -18,15 +18,19 @@ class AppDelegate: FlutterAppDelegate {
 
   private static let passthroughExts: Set<String> = [
     "png", "jpg", "jpeg", "webp",
-    "mp4", "mov", "m4v", "mkv", "webm", "avi",
+    "mp4", "mov", "m4v", "mkv", "webm", "avi", "3gp", "3g2", "mpg", "mpeg", "ts",
   ]
-  private static let transcodeImageExts: Set<String> = [
-    "heic", "heif", "bmp", "tif", "tiff", "gif",
-  ]
+  private static let maxIncomingBytes: Int64 = 256 * 1024 * 1024
 
   override func applicationDidFinishLaunching(_ notification: Notification) {
     super.applicationDidFinishLaunching(notification)
     cleanupStaleIncomingDirs()
+  }
+
+  private var launchIncomingDir: URL {
+    URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+      .appendingPathComponent("incoming", isDirectory: true)
+      .appendingPathComponent(launchId, isDirectory: true)
   }
 
   private func cleanupStaleIncomingDirs() {
@@ -44,12 +48,19 @@ class AppDelegate: FlutterAppDelegate {
     }
   }
 
+  func prepareImagePath(_ path: String, completion: @escaping (String?) -> Void) {
+    let launchDir = launchIncomingDir
+    let url = URL(fileURLWithPath: path)
+    incomingQueue.async {
+      let resolved = Self.prepareIncoming(url, in: launchDir)
+      DispatchQueue.main.async { completion(resolved) }
+    }
+  }
+
   func enqueueIncomingURLs(_ urls: [URL]) {
     let fileURLs = urls.filter(\.isFileURL)
     guard !fileURLs.isEmpty else { return }
-    let launchDir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-      .appendingPathComponent("incoming", isDirectory: true)
-      .appendingPathComponent(launchId, isDirectory: true)
+    let launchDir = launchIncomingDir
 
     incomingQueue.async { [weak self] in
       let resolved = fileURLs.compactMap { Self.prepareIncoming($0, in: launchDir) }
@@ -67,25 +78,32 @@ class AppDelegate: FlutterAppDelegate {
 
   private static func prepareIncoming(_ url: URL, in dir: URL) -> String? {
     guard
-      let values = try? url.resourceValues(forKeys: [.isRegularFileKey]),
+      let values = try? url.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey]),
       values.isRegularFile == true
     else { return nil }
     let ext = url.pathExtension.lowercased()
     if passthroughExts.contains(ext) {
       return url.path
     }
-    guard transcodeImageExts.contains(ext) else { return nil }
-    // CoreImage is thread-safe, preserves full native pixel dimensions regardless
-    // of DPI, and bakes EXIF orientation into the transcoded JPEG.
+    if let size = values.fileSize, Int64(size) > maxIncomingBytes {
+      return nil
+    }
+    // CoreImage is thread-safe, handles HEIC/TIFF/BMP/GIF (including extensionless files),
+    // preserves full pixel dimensions, and bakes EXIF orientation.
     guard let ciImage = CIImage(contentsOf: url, options: [.applyOrientationProperty: true]) else {
       return nil
     }
+    // Composite over white so transparent PNG/GIF/TIFF regions do not turn black in JPEG.
+    let white = CIImage(color: .white).cropped(to: ciImage.extent)
+    let composited = ciImage.composited(over: white)
     try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-    let dst = dir.appendingPathComponent("\(UUID().uuidString).jpg")
+    let stem = sanitizeStem(url.deletingPathExtension().lastPathComponent)
+    let suffix = String(UUID().uuidString.prefix(8)).lowercased()
+    let dst = dir.appendingPathComponent("\(stem)-\(suffix).jpg")
     let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
     do {
       try ciContext.writeJPEGRepresentation(
-        of: ciImage,
+        of: composited,
         to: dst,
         colorSpace: colorSpace,
         options: [kCGImageDestinationLossyCompressionQuality as CIImageRepresentationOption: 0.95]
@@ -95,6 +113,12 @@ class AppDelegate: FlutterAppDelegate {
       try? FileManager.default.removeItem(at: dst)
       return nil
     }
+  }
+
+  private static func sanitizeStem(_ raw: String) -> String {
+    let cleaned = raw.filter { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-" || $0 == "_") }
+    let trimmed = String(cleaned.prefix(40))
+    return trimmed.isEmpty ? "image" : trimmed
   }
 
   override func application(_ application: NSApplication, open urls: [URL]) {

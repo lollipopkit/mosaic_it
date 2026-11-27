@@ -286,60 +286,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pickClass => 'Escolher uma classe';
 
   @override
-  String get filterScreenshots => 'Capturas de tela';
-
-  @override
-  String get filterAll => 'Todas';
-
-  @override
-  String get filterVideos => 'Vídeos';
-
-  @override
-  String get albums => 'Álbuns';
-
-  @override
-  String get limitedAccess =>
-      'O MosaicIt pode ver apenas algumas das suas fotos';
-
-  @override
-  String get manage => 'Gerenciar';
-
-  @override
-  String selectedImages(int count) {
-    return '$count selecionada(s)';
-  }
-
-  @override
-  String redactImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Ocultar $count imagens',
-      one: 'Ocultar 1 imagem',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get badgeRedacted => 'Ocultado';
-
-  @override
-  String get photosDenied =>
-      'O MosaicIt precisa de acesso às suas fotos para exibi-las aqui. As fotos nunca saem deste dispositivo.';
-
-  @override
-  String get openSettings => 'Abrir Ajustes';
-
-  @override
-  String get openFiles => 'Abrir arquivos';
-
-  @override
-  String get noPhotos => 'Nenhuma foto aqui';
-
-  @override
-  String get loading => 'Carregando…';
-
-  @override
   String get appearance => 'Aparência';
 
   @override
@@ -347,9 +293,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get appIcon => 'Ícone do app';
-
-  @override
-  String get aspectRatioGrid => 'Grade com proporção original';
 
   @override
   String get threshold => 'Limiar';
@@ -456,15 +399,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get saveAs => 'Save…';
 
   @override
-  String get saveAndDeleteOriginals => 'Save and delete originals';
-
-  @override
-  String get originalsToRecentlyDeleted => 'Originals go to Recently Deleted';
-
-  @override
-  String get originalsToTrash => 'Originals go to the trash';
-
-  @override
   String get exportFormat => 'Format';
 
   @override
@@ -487,11 +421,6 @@ class AppLocalizationsPt extends AppLocalizations {
       one: 'Saved 1 image to Photos',
     );
     return '$_temp0';
-  }
-
-  @override
-  String originalsNotDeleted(String error) {
-    return 'The originals were kept: $error';
   }
 
   @override
@@ -521,19 +450,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get reasonFillShowsThrough => 'fill shows through';
-
-  @override
-  String get introTitle => 'Choose screenshots to redact';
-
-  @override
-  String get introBody =>
-      'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.';
-
-  @override
-  String get allowPhotoAccess => 'Allow photo access';
-
-  @override
-  String get photosOffTitle => 'Photo access is off';
 
   @override
   String get openSource => 'Open source';
@@ -651,12 +567,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get introBundledReady => 'Modelo integrado pronto';
-
-  @override
-  String get introPhotosGranted => 'Acesso às fotos concedido';
-
-  @override
   String get resetBundledModel => 'Usar modelo integrado';
 
   @override
@@ -694,6 +604,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get peekOriginal => 'Segure para ver o original';
+
+  @override
+  String get selectMedia => 'Selecionar fotos ou vídeo';
+
+  @override
+  String get saveFailed => 'Não foi possível salvar em Fotos';
+
+  @override
+  String get retry => 'Tentar novamente';
 }
 
 /// The translations for Portuguese, as used in Portugal (`pt_PT`).
@@ -980,63 +899,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get pickClass => 'Escolher uma classe';
 
   @override
-  String get filterScreenshots => 'Capturas de ecrã';
-
-  @override
-  String get filterAll => 'Todas';
-
-  @override
-  String get filterVideos => 'Vídeos';
-
-  @override
-  String get albums => 'Álbuns';
-
-  @override
-  String get limitedAccess => 'O MosaicIt só pode ver algumas das suas fotos';
-
-  @override
-  String get manage => 'Gerir';
-
-  @override
-  String selectedImages(int count) {
-    return '$count selecionadas';
-  }
-
-  @override
-  String redactImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Redigir $count imagens',
-      many: 'Redigir muitas imagens',
-      few: 'Redigir poucas imagens',
-      two: 'Redigir 2 imagens',
-      one: 'Redigir 1 imagem',
-      zero: 'Redigir 0 imagens',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get badgeRedacted => 'Ocultada';
-
-  @override
-  String get photosDenied =>
-      'O MosaicIt precisa de acesso às suas fotos para as mostrar aqui. As fotos nunca saem deste dispositivo.';
-
-  @override
-  String get openSettings => 'Abrir Definições';
-
-  @override
-  String get openFiles => 'Abrir ficheiros';
-
-  @override
-  String get noPhotos => 'Não há fotos aqui';
-
-  @override
-  String get loading => 'A carregar…';
-
-  @override
   String get appearance => 'Aparência';
 
   @override
@@ -1044,9 +906,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get appIcon => 'Ícone da app';
-
-  @override
-  String get aspectRatioGrid => 'Grelha com proporção original';
 
   @override
   String get threshold => 'Limiar';
@@ -1134,12 +993,6 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   }
 
   @override
-  String get introBundledReady => 'Modelo integrado pronto';
-
-  @override
-  String get introPhotosGranted => 'Acesso às fotos concedido';
-
-  @override
   String get resetBundledModel => 'Usar modelo integrado';
 
   @override
@@ -1177,4 +1030,13 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
 
   @override
   String get peekOriginal => 'Segure para ver o original';
+
+  @override
+  String get selectMedia => 'Selecionar fotos ou vídeo';
+
+  @override
+  String get saveFailed => 'Não foi possível guardar em Fotografias';
+
+  @override
+  String get retry => 'Tentar novamente';
 }

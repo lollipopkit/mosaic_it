@@ -602,90 +602,6 @@ abstract class AppLocalizations {
   /// **'Choose a class'**
   String get pickClass;
 
-  /// Gallery filter chip: the Screenshots album.
-  ///
-  /// In en, this message translates to:
-  /// **'Screenshots'**
-  String get filterScreenshots;
-
-  /// Gallery filter chip: all photos.
-  ///
-  /// In en, this message translates to:
-  /// **'All'**
-  String get filterAll;
-
-  /// Gallery filter chip: videos.
-  ///
-  /// In en, this message translates to:
-  /// **'Videos'**
-  String get filterVideos;
-
-  /// Gallery filter chip that opens a list of albums.
-  ///
-  /// In en, this message translates to:
-  /// **'Albums'**
-  String get albums;
-
-  /// Banner: the user allowed access to only some photos (iOS limited photo access).
-  ///
-  /// In en, this message translates to:
-  /// **'MosaicIt can see only some of your photos'**
-  String get limitedAccess;
-
-  /// Button on that banner: choose which photos the app may see.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage'**
-  String get manage;
-
-  /// Title bar while selecting photos in the gallery: how many are selected.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} selected'**
-  String selectedImages(int count);
-
-  /// Main button after selecting photos: hide private information in them (redact).
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{Redact 1 image} other{Redact {count} images}}'**
-  String redactImages(int count);
-
-  /// Small tag on a gallery thumbnail: this photo was already redacted and exported.
-  ///
-  /// In en, this message translates to:
-  /// **'Redacted'**
-  String get badgeRedacted;
-
-  /// Shown when the app has no photo access: why it needs it, and that photos never leave the phone.
-  ///
-  /// In en, this message translates to:
-  /// **'MosaicIt needs access to your photos to show them here. Photos never leave this device.'**
-  String get photosDenied;
-
-  /// Button: open the system Settings app to grant photo access.
-  ///
-  /// In en, this message translates to:
-  /// **'Open Settings'**
-  String get openSettings;
-
-  /// Menu item on desktop: open image files from disk.
-  ///
-  /// In en, this message translates to:
-  /// **'Open files'**
-  String get openFiles;
-
-  /// Empty gallery: no photos in this album.
-  ///
-  /// In en, this message translates to:
-  /// **'No photos here'**
-  String get noPhotos;
-
-  /// Progress text while photos load.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading…'**
-  String get loading;
-
   /// Settings section header: look of the app.
   ///
   /// In en, this message translates to:
@@ -703,12 +619,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App icon'**
   String get appIcon;
-
-  /// Gallery menu, checkable: show each photo whole in its grid cell instead of cropped to a square.
-  ///
-  /// In en, this message translates to:
-  /// **'Aspect ratio grid'**
-  String get aspectRatioGrid;
 
   /// Settings row: how confident the detector must be to pre-select a region (a lower threshold pre-selects more regions).
   ///
@@ -884,24 +794,6 @@ abstract class AppLocalizations {
   /// **'Save…'**
   String get saveAs;
 
-  /// No description provided for @saveAndDeleteOriginals.
-  ///
-  /// In en, this message translates to:
-  /// **'Save and delete originals'**
-  String get saveAndDeleteOriginals;
-
-  /// iOS
-  ///
-  /// In en, this message translates to:
-  /// **'Originals go to Recently Deleted'**
-  String get originalsToRecentlyDeleted;
-
-  /// Android
-  ///
-  /// In en, this message translates to:
-  /// **'Originals go to the trash'**
-  String get originalsToTrash;
-
   /// No description provided for @exportFormat.
   ///
   /// In en, this message translates to:
@@ -931,12 +823,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Saved 1 image to Photos} other{Saved {count} images to Photos}}'**
   String savedToPhotos(num count);
-
-  /// No description provided for @originalsNotDeleted.
-  ///
-  /// In en, this message translates to:
-  /// **'The originals were kept: {error}'**
-  String originalsNotDeleted(String error);
 
   /// Select every region
   ///
@@ -985,30 +871,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'fill shows through'**
   String get reasonFillShowsThrough;
-
-  /// No description provided for @introTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose screenshots to redact'**
-  String get introTitle;
-
-  /// No description provided for @introBody.
-  ///
-  /// In en, this message translates to:
-  /// **'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.'**
-  String get introBody;
-
-  /// No description provided for @allowPhotoAccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Allow photo access'**
-  String get allowPhotoAccess;
-
-  /// No description provided for @photosOffTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo access is off'**
-  String get photosOffTitle;
 
   /// No description provided for @openSource.
   ///
@@ -1202,18 +1064,6 @@ abstract class AppLocalizations {
   /// **'unseen-det {version} · on-device'**
   String introBundledModelBody(String version);
 
-  /// No description provided for @introBundledReady.
-  ///
-  /// In en, this message translates to:
-  /// **'Bundled detector ready'**
-  String get introBundledReady;
-
-  /// No description provided for @introPhotosGranted.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo access granted'**
-  String get introPhotosGranted;
-
   /// No description provided for @resetBundledModel.
   ///
   /// In en, this message translates to:
@@ -1285,6 +1135,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hold to compare original'**
   String get peekOriginal;
+
+  /// Button in the editor to open the system media picker for images or a video.
+  ///
+  /// In en, this message translates to:
+  /// **'Select photos or video'**
+  String get selectMedia;
+
+  /// Toast shown when saving a redacted image to the system photo library fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save to Photos'**
+  String get saveFailed;
+
+  /// Button to retry loading the bundled detector model.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
 }
 
 class _AppLocalizationsDelegate

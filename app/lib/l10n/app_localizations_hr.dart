@@ -298,64 +298,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get pickClass => 'Odaberite klasu';
 
   @override
-  String get filterScreenshots => 'Snimke ekrana';
-
-  @override
-  String get filterAll => 'Sve';
-
-  @override
-  String get filterVideos => 'Videi';
-
-  @override
-  String get albums => 'Albumi';
-
-  @override
-  String get limitedAccess =>
-      'MosaicIt može vidjeti samo neke od vaših fotografija';
-
-  @override
-  String get manage => 'Upravljanje';
-
-  @override
-  String selectedImages(int count) {
-    return '$count odabrano';
-  }
-
-  @override
-  String redactImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Cenzuriraj $count slika',
-      many: 'Cenzuriraj nekoliko slika',
-      few: 'Cenzuriraj nekoliko slika',
-      two: 'Cenzuriraj 2 slike',
-      one: 'Cenzuriraj 1 sliku',
-      zero: 'Cenzuriraj 0 slika',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get badgeRedacted => 'Maskirano';
-
-  @override
-  String get photosDenied =>
-      'MosaicItu je potreban pristup vašim fotografijama kako bi ih prikazao ovdje. Fotografije nikada ne napuštaju ovaj uređaj.';
-
-  @override
-  String get openSettings => 'Otvori Postavke';
-
-  @override
-  String get openFiles => 'Otvori datoteke';
-
-  @override
-  String get noPhotos => 'Nema fotografija ovdje';
-
-  @override
-  String get loading => 'Učitavanje…';
-
-  @override
   String get appearance => 'Izgled';
 
   @override
@@ -363,9 +305,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get appIcon => 'Ikona aplikacije';
-
-  @override
-  String get aspectRatioGrid => 'Rešetka s omjerom slike';
 
   @override
   String get threshold => 'Prag';
@@ -472,15 +411,6 @@ class AppLocalizationsHr extends AppLocalizations {
   String get saveAs => 'Save…';
 
   @override
-  String get saveAndDeleteOriginals => 'Save and delete originals';
-
-  @override
-  String get originalsToRecentlyDeleted => 'Originals go to Recently Deleted';
-
-  @override
-  String get originalsToTrash => 'Originals go to the trash';
-
-  @override
   String get exportFormat => 'Format';
 
   @override
@@ -503,11 +433,6 @@ class AppLocalizationsHr extends AppLocalizations {
       one: 'Saved 1 image to Photos',
     );
     return '$_temp0';
-  }
-
-  @override
-  String originalsNotDeleted(String error) {
-    return 'The originals were kept: $error';
   }
 
   @override
@@ -537,19 +462,6 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get reasonFillShowsThrough => 'fill shows through';
-
-  @override
-  String get introTitle => 'Choose screenshots to redact';
-
-  @override
-  String get introBody =>
-      'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.';
-
-  @override
-  String get allowPhotoAccess => 'Allow photo access';
-
-  @override
-  String get photosOffTitle => 'Photo access is off';
 
   @override
   String get openSource => 'Open source';
@@ -667,12 +579,6 @@ class AppLocalizationsHr extends AppLocalizations {
   }
 
   @override
-  String get introBundledReady => 'Bundled detector ready';
-
-  @override
-  String get introPhotosGranted => 'Photo access granted';
-
-  @override
   String get resetBundledModel => 'Use bundled model';
 
   @override
@@ -709,4 +615,13 @@ class AppLocalizationsHr extends AppLocalizations {
 
   @override
   String get peekOriginal => 'Hold to compare original';
+
+  @override
+  String get selectMedia => 'Select photos or video';
+
+  @override
+  String get saveFailed => 'Could not save to Photos';
+
+  @override
+  String get retry => 'Retry';
 }

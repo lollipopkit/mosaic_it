@@ -114,26 +114,21 @@ class Shot {
     this.boxes, {
     this.hidden = const [],
     this.cameraPhoto = false,
-    this.assetId,
   });
 
   /// [image] with what the model found on it.
-  factory Shot.detected(File image, Detected d, {String? assetId}) => Shot(
+  factory Shot.detected(File image, Detected d) => Shot(
     image,
     Size(d.width.toDouble(), d.height.toDouble()),
     d.regions.map(EditBox.fromRegion).toList(),
     hidden: d.hidden.map(EditBox.fromRegion).toList(),
     cameraPhoto: d.cameraPhoto,
-    assetId: assetId,
   );
 
   /// Detections below the review threshold: outlined in the redact editor,
   /// where a tap on one adds a selected [BoxSource.tapped] copy to [boxes].
   /// Never changed themselves.
   final List<EditBox> hidden;
-
-  /// The photo-library item it was opened from, for the gallery's badges.
-  final String? assetId;
 
   final File image;
 

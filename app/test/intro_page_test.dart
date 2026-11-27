@@ -6,7 +6,7 @@ import 'package:unseen/src/intro_page.dart';
 
 void main() {
   testWidgets(
-    'MosaicIntroPage shows offline notice, GitHub URL, and photo step',
+    'MosaicIntroPage shows single-page offline notice and GitHub URL',
     (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -18,16 +18,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Page 1: offline declaration + GitHub repository link.
       expect(find.text('无联网功能'), findsOneWidget);
       expect(find.text(mosaicRepoDisplay), findsOneWidget);
-      expect(find.text('1/2', findRichText: true), findsOneWidget);
-
-      // Advance to Page 2 via IntroPage's Next button.
-      await tester.tap(find.byIcon(Icons.arrow_forward));
-      await tester.pumpAndSettle();
-
-      expect(find.text('内置模型已就绪'), findsOneWidget);
       expect(find.byIcon(Icons.done), findsOneWidget);
     },
   );

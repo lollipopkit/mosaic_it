@@ -281,57 +281,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pickClass => '选择类别';
 
   @override
-  String get filterScreenshots => '截图';
-
-  @override
-  String get filterAll => '全部';
-
-  @override
-  String get filterVideos => '视频';
-
-  @override
-  String get albums => '相册';
-
-  @override
-  String get limitedAccess => '只允许访问部分照片';
-
-  @override
-  String get manage => '管理';
-
-  @override
-  String selectedImages(int count) {
-    return '已选 $count 张';
-  }
-
-  @override
-  String redactImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '打码 $count 张',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get badgeRedacted => '已打码';
-
-  @override
-  String get photosDenied => '码住 需要访问照片才能在这里显示。照片不会离开这台设备。';
-
-  @override
-  String get openSettings => '打开设置';
-
-  @override
-  String get openFiles => '打开文件';
-
-  @override
-  String get noPhotos => '这里没有照片';
-
-  @override
-  String get loading => '正在加载…';
-
-  @override
   String get appearance => '外观';
 
   @override
@@ -339,9 +288,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appIcon => '应用图标';
-
-  @override
-  String get aspectRatioGrid => '按原始比例显示';
 
   @override
   String get threshold => '阈值';
@@ -447,15 +393,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get saveAs => 'Save…';
 
   @override
-  String get saveAndDeleteOriginals => 'Save and delete originals';
-
-  @override
-  String get originalsToRecentlyDeleted => 'Originals go to Recently Deleted';
-
-  @override
-  String get originalsToTrash => 'Originals go to the trash';
-
-  @override
   String get exportFormat => 'Format';
 
   @override
@@ -478,11 +415,6 @@ class AppLocalizationsZh extends AppLocalizations {
       one: 'Saved 1 image to Photos',
     );
     return '$_temp0';
-  }
-
-  @override
-  String originalsNotDeleted(String error) {
-    return 'The originals were kept: $error';
   }
 
   @override
@@ -512,19 +444,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get reasonFillShowsThrough => 'fill shows through';
-
-  @override
-  String get introTitle => 'Choose screenshots to redact';
-
-  @override
-  String get introBody =>
-      'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.';
-
-  @override
-  String get allowPhotoAccess => 'Allow photo access';
-
-  @override
-  String get photosOffTitle => 'Photo access is off';
 
   @override
   String get openSource => 'Open source';
@@ -636,12 +555,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get introBundledReady => '内置模型已就绪';
-
-  @override
-  String get introPhotosGranted => '已允许访问相册';
-
-  @override
   String get resetBundledModel => '恢复内置模型';
 
   @override
@@ -678,6 +591,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get peekOriginal => '按住查看原图';
+
+  @override
+  String get selectMedia => '选择照片或视频';
+
+  @override
+  String get saveFailed => '保存到相册失败';
+
+  @override
+  String get retry => '重试';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -958,59 +880,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get pickClass => '選擇類別';
 
   @override
-  String get filterScreenshots => '螢幕截圖';
-
-  @override
-  String get filterAll => '全部';
-
-  @override
-  String get filterVideos => '影片';
-
-  @override
-  String get albums => '相簿';
-
-  @override
-  String get limitedAccess => '碼住 只能看到部分照片';
-
-  @override
-  String get manage => '管理';
-
-  @override
-  String selectedImages(int count) {
-    return '已選取 $count 張';
-  }
-
-  @override
-  String redactImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '遮蔽 $count 張影像',
-      one: '遮蔽 1 張影像',
-      zero: '遮蔽 0 張影像',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get badgeRedacted => '已遮蔽';
-
-  @override
-  String get photosDenied => '碼住 需要存取您的照片才能在此顯示。照片絕不會離開此裝置。';
-
-  @override
-  String get openSettings => '開啟設定';
-
-  @override
-  String get openFiles => '開啟檔案';
-
-  @override
-  String get noPhotos => '此處沒有照片';
-
-  @override
-  String get loading => '載入中…';
-
-  @override
   String get appearance => '外觀';
 
   @override
@@ -1018,9 +887,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get appIcon => 'App 圖像';
-
-  @override
-  String get aspectRatioGrid => '以原始比例顯示';
 
   @override
   String get threshold => '閾值';
@@ -1195,12 +1061,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   }
 
   @override
-  String get introBundledReady => '內建模型已就緒';
-
-  @override
-  String get introPhotosGranted => '已允許存取相簿';
-
-  @override
   String get resetBundledModel => '恢復內建模型';
 
   @override
@@ -1237,4 +1097,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get peekOriginal => '按住檢視原圖';
+
+  @override
+  String get selectMedia => '選擇照片或影片';
+
+  @override
+  String get saveFailed => '儲存到相簿失敗';
+
+  @override
+  String get retry => '重試';
 }

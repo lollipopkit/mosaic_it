@@ -1,11 +1,11 @@
-import 'package:fl_lib/fl_lib.dart';
+import 'package:fl_lib/fl_lib.dart' hide EditorPage;
 import 'package:fl_lib/generated/l10n/lib_l10n.dart';
 import 'package:fl_lib/theme.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'l10n/app_localizations.dart';
-import 'src/home_page.dart';
+import 'src/editor_page.dart';
 import 'src/intro_page.dart';
 import 'src/model_store.dart';
 import 'src/platform_bridge.dart';
@@ -93,7 +93,7 @@ class _RootPageState extends State<_RootPage> {
     super.initState();
     PlatformBridge.ensureInitialized();
     // Preload the bundled model in the background while the user reads the
-    // first-launch intro so detection is ready immediately on HomePage.
+    // first-launch intro so detection is ready immediately in the editor.
     if (!_introSeen) ModelStore.preload();
   }
 
@@ -102,7 +102,7 @@ class _RootPageState extends State<_RootPage> {
     if (!_introSeen) {
       return MosaicIntroPage(onDone: () => setState(() => _introSeen = true));
     }
-    return const HomePage();
+    return const EditorPage();
   }
 }
 

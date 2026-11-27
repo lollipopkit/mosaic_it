@@ -58,20 +58,45 @@ void main() {
   );
 
   test(
-    'copyImageToClipboard forwards path and returns platform result',
+    'pickMedia, copyImage, saveImage, and prepareImage forward via channel',
     () async {
-      String? copiedPath;
+      final calls = <String, Object?>{};
       messenger.setMockMethodCallHandler(channel, (call) async {
-        if (call.method == 'copyImage') {
-          copiedPath = (call.arguments as Map)['path'] as String?;
-          return true;
-        }
-        return null;
+        calls[call.method] = call.arguments;
+        return switch (call.method) {
+          'pickMedia' => ['/tmp/picked.jpg', ''],
+          'copyImage' => true,
+          'saveImage' => true,
+          'prepareImage' => '/tmp/converted.jpg',
+          _ => null,
+        };
       });
 
-      final ok = await PlatformBridge.copyImageToClipboard('/tmp/out.png');
-      expect(ok, isTrue);
-      expect(copiedPath, '/tmp/out.png');
+      expect(
+        await PlatformBridge.pickMedia(multiple: false, allowVideo: false),
+        ['/tmp/picked.jpg'],
+      );
+      expect(calls['pickMedia'], {'multiple': false, 'allowVideo': false});
+      expect(await PlatformBridge.copyImageToClipboard('/tmp/out.png'), isTrue);
+      expect(await PlatformBridge.saveImageToPhotos('/tmp/out.png'), isTrue);
+
+      // Native formats pass through without calling native bridge.
+      expect(
+        await PlatformBridge.prepareImage('/tmp/native.png'),
+        '/tmp/native.png',
+      );
+      expect(calls.containsKey('prepareImage'), isFalse);
+
+      // Dotted directory with extensionless file must NOT look like ".png".
+      expect(PlatformBridge.extensionOf('/tmp/dir.png/noext'), '');
+      expect(
+        await PlatformBridge.prepareImage('/tmp/dir.png/noext'),
+        '/tmp/converted.jpg',
+      );
+      expect(
+        await PlatformBridge.prepareImage('/tmp/photo.HEIC'),
+        '/tmp/converted.jpg',
+      );
     },
   );
 }

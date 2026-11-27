@@ -1,17 +1,24 @@
 package com.lollipopkit.unseen
 
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.ComponentName
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.os.ext.SdkExtensions
+import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
@@ -30,6 +37,7 @@ class MainActivity : FlutterActivity() {
     @Volatile
     private var dartReady = false
     private val pendingIncoming = mutableListOf<String>()
+    private var pendingPickResult: MethodChannel.Result? = null
     private val launchId = UUID.randomUUID().toString()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,14 +55,53 @@ class MainActivity : FlutterActivity() {
         handleShareIntent(intent)
     }
 
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == REQ_PICK_MEDIA) {
+            val callback = pendingPickResult
+            pendingPickResult = null
+            if (callback == null) return
+            if (resultCode != Activity.RESULT_OK || data == null || ioExecutor.isShutdown) {
+                callback.success(emptyList<String>())
+                return
+            }
+            val uris = buildList {
+                data.clipData?.let { clip ->
+                    for (i in 0 until clip.itemCount) {
+                        clip.getItemAt(i).uri?.let(::add)
+                    }
+                }
+                if (isEmpty()) {
+                    data.data?.let(::add)
+                }
+            }
+            if (uris.isEmpty()) {
+                callback.success(emptyList<String>())
+                return
+            }
+            ioExecutor.execute {
+                val copied = try {
+                    uris.mapNotNull(::copyUriToIncomingCache)
+                } catch (_: Throwable) {
+                    emptyList()
+                }
+                runOnUiThread { callback.success(copied) }
+            }
+            return
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
     private fun cleanupStaleIncomingDirs() {
         if (ioExecutor.isShutdown) return
         val keep = launchId
         ioExecutor.execute {
-            val root = File(cacheDir, "incoming")
-            root.listFiles()?.forEach { entry ->
-                if (entry.name != keep) {
-                    entry.deleteRecursively()
+            runCatching {
+                val root = File(cacheDir, "incoming")
+                root.listFiles()?.forEach { entry ->
+                    if (entry.name != keep) {
+                        entry.deleteRecursively()
+                    }
                 }
             }
         }
@@ -100,7 +147,7 @@ class MainActivity : FlutterActivity() {
                     try {
                         val path = extractBundledModel(File(dirPath))
                         runOnUiThread { result.success(path) }
-                    } catch (e: Exception) {
+                    } catch (e: Throwable) {
                         runOnUiThread { result.error("bundled_model", e.message ?: e.toString(), null) }
                     }
                 }
@@ -109,6 +156,11 @@ class MainActivity : FlutterActivity() {
         platformChannel = channel
         channel.setMethodCallHandler { call, result ->
             when (call.method) {
+                "pickMedia" -> {
+                    val multiple = call.argument<Boolean>("multiple") ?: true
+                    val allowVideo = call.argument<Boolean>("allowVideo") ?: true
+                    launchSystemMediaPicker(multiple, allowVideo, result)
+                }
                 "copyImage" -> {
                     val path = call.argument<String>("path")
                     if (path.isNullOrEmpty() || ioExecutor.isShutdown) {
@@ -116,11 +168,45 @@ class MainActivity : FlutterActivity() {
                         return@setMethodCallHandler
                     }
                     ioExecutor.execute {
-                        val staged = stageClipboardFile(File(path))
+                        val staged = try {
+                            stageClipboardFile(File(path))
+                        } catch (_: Throwable) {
+                            null
+                        }
                         runOnUiThread {
                             val ok = staged != null && setClipboardImage(staged)
                             result.success(ok)
                         }
+                    }
+                }
+                "saveImage" -> {
+                    val path = call.argument<String>("path")
+                    if (path.isNullOrEmpty() || ioExecutor.isShutdown) {
+                        result.success(false)
+                        return@setMethodCallHandler
+                    }
+                    ioExecutor.execute {
+                        val ok = try {
+                            saveImageToMediaStore(File(path))
+                        } catch (_: Throwable) {
+                            false
+                        }
+                        runOnUiThread { result.success(ok) }
+                    }
+                }
+                "prepareImage" -> {
+                    val path = call.argument<String>("path")
+                    if (path.isNullOrEmpty() || ioExecutor.isShutdown) {
+                        result.success(null)
+                        return@setMethodCallHandler
+                    }
+                    ioExecutor.execute {
+                        val prepared = try {
+                            prepareLocalImage(File(path))
+                        } catch (_: Throwable) {
+                            null
+                        }
+                        runOnUiThread { result.success(prepared) }
                     }
                 }
                 "getIncomingFiles" -> {
@@ -137,6 +223,56 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun openDocumentIntent(multiple: Boolean, allowVideo: Boolean): Intent {
+        return Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = if (allowVideo) "*/*" else "image/*"
+            if (allowVideo) {
+                putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/*", "video/*"))
+            }
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, multiple)
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun launchSystemMediaPicker(
+        multiple: Boolean,
+        allowVideo: Boolean,
+        result: MethodChannel.Result,
+    ) {
+        if (pendingPickResult != null) {
+            result.success(emptyList<String>())
+            return
+        }
+        val hasPhotoPicker = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ||
+            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 2)
+        val candidates = buildList {
+            if (hasPhotoPicker) {
+                add(
+                    Intent(MediaStore.ACTION_PICK_IMAGES).apply {
+                        if (!allowVideo) type = "image/*"
+                        if (multiple) {
+                            putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, MediaStore.getPickImagesMaxLimit())
+                        }
+                    },
+                )
+            }
+            add(openDocumentIntent(multiple, allowVideo))
+        }
+        pendingPickResult = result
+        for (candidate in candidates) {
+            try {
+                startActivityForResult(candidate, REQ_PICK_MEDIA)
+                return
+            } catch (_: Throwable) {
+                // Fall back to ACTION_OPEN_DOCUMENT if ACTION_PICK_IMAGES is unavailable.
+            }
+        }
+        pendingPickResult = null
+        result.success(emptyList<String>())
+    }
+
     private fun handleShareIntent(intent: Intent?) {
         if (intent == null || ioExecutor.isShutdown) return
         val uris = extractShareUris(intent)
@@ -146,7 +282,11 @@ class MainActivity : FlutterActivity() {
         intent.removeExtra(Intent.EXTRA_STREAM)
         intent.clipData = null
         ioExecutor.execute {
-            val copied = uris.mapNotNull(::copyUriToIncomingCache)
+            val copied = try {
+                uris.mapNotNull(::copyUriToIncomingCache)
+            } catch (_: Throwable) {
+                emptyList()
+            }
             if (copied.isEmpty()) return@execute
             runOnUiThread {
                 val ch = platformChannel
@@ -195,8 +335,13 @@ class MainActivity : FlutterActivity() {
         var dst: File? = null
         return try {
             val mime = contentResolver.getType(uri)?.lowercase().orEmpty()
-            val ext = guessExtension(uri, mime)
+            val (displayName, sizeBytes) = queryMeta(uri)
+            val ext = guessExtension(displayName, mime)
             val isVideo = mime.startsWith("video/") || ext in VIDEO_EXTS
+            if (!isVideo && sizeBytes != null && sizeBytes > MAX_INCOMING_BYTES) {
+                return null
+            }
+            val stem = sanitizeStem(displayName?.substringBeforeLast('.'))
             val isNativeImage = mime in NATIVE_IMAGE_MIMES ||
                 (mime.isEmpty() && ext in NATIVE_IMAGE_EXTS)
             if (isVideo || isNativeImage) {
@@ -211,33 +356,42 @@ class MainActivity : FlutterActivity() {
                         }
                     }
                 }
-                val target = File(dir, "${UUID.randomUUID()}.$safeExt")
+                val target = File(dir, uniqueFileName(stem, safeExt))
                 dst = target
                 contentResolver.openInputStream(uri)?.use { input ->
                     target.outputStream().use { output -> input.copyTo(output, 65536) }
                 } ?: return null
                 return target.absolutePath
             }
-            // Transcode HEIC / BMP / TIFF / GIF / unknown image MIME (and bake EXIF
-            // orientation) into upright JPEG; non-images decode to null and are skipped.
             val bitmap = decodeBitmap(uri) ?: return null
-            val target = File(dir, "${UUID.randomUUID()}.jpg")
+            val target = File(dir, uniqueFileName(stem, "jpg"))
             dst = target
-            try {
-                target.outputStream().use { output ->
-                    if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 95, output)) {
-                        target.delete()
-                        return null
-                    }
-                }
-            } finally {
-                bitmap.recycle()
-            }
+            writeUprightJpeg(bitmap, target) ?: return null
             target.absolutePath
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
             dst?.delete()
             null
         }
+    }
+
+    private fun queryMeta(uri: Uri): Pair<String?, Long?> {
+        var name: String? = null
+        var size: Long? = null
+        runCatching {
+            contentResolver.query(
+                uri,
+                arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE),
+                null,
+                null,
+                null,
+            )?.use { c ->
+                if (c.moveToFirst()) {
+                    if (!c.isNull(0)) name = c.getString(0)
+                    if (!c.isNull(1)) size = c.getLong(1)
+                }
+            }
+        }
+        return name to size
     }
 
     private fun decodeBitmap(uri: Uri): Bitmap? {
@@ -251,7 +405,33 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun guessExtension(uri: Uri, mime: String): String {
+    private fun writeUprightJpeg(bitmap: Bitmap, target: File): File? {
+        var toCompress = bitmap
+        var flat: Bitmap? = null
+        try {
+            if (bitmap.hasAlpha()) {
+                val opaque = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+                Canvas(opaque).apply {
+                    drawColor(Color.WHITE)
+                    drawBitmap(bitmap, 0f, 0f, null)
+                }
+                flat = opaque
+                toCompress = opaque
+            }
+            target.outputStream().use { output ->
+                if (!toCompress.compress(Bitmap.CompressFormat.JPEG, 95, output)) {
+                    target.delete()
+                    return null
+                }
+            }
+            return target
+        } finally {
+            flat?.recycle()
+            bitmap.recycle()
+        }
+    }
+
+    private fun guessExtension(displayName: String?, mime: String): String {
         val fromMime = if (mime.isNotEmpty()) {
             MimeTypeMap.getSingleton().getExtensionFromMimeType(mime)
         } else null
@@ -259,14 +439,11 @@ class MainActivity : FlutterActivity() {
         if (cleanedMime.isNotEmpty()) {
             return if (cleanedMime == "jpeg") "jpg" else cleanedMime
         }
-        contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
-            if (c.moveToFirst()) {
-                val name = c.getString(0)
-                val dot = name?.lastIndexOf('.') ?: -1
-                if (dot > 0 && dot < name.length - 1) {
-                    val cleaned = sanitizeExtension(name.substring(dot + 1))
-                    if (cleaned.isNotEmpty()) return cleaned
-                }
+        if (displayName != null) {
+            val dot = displayName.lastIndexOf('.')
+            if (dot > 0 && dot < displayName.length - 1) {
+                val cleaned = sanitizeExtension(displayName.substring(dot + 1))
+                if (cleaned.isNotEmpty()) return cleaned
             }
         }
         return ""
@@ -275,6 +452,18 @@ class MainActivity : FlutterActivity() {
     private fun sanitizeExtension(raw: String?): String {
         if (raw.isNullOrEmpty()) return ""
         return raw.lowercase().filter { it in 'a'..'z' || it in '0'..'9' }.take(8)
+    }
+
+    private fun sanitizeStem(raw: String?): String {
+        val cleaned = raw.orEmpty()
+            .filter { it in 'a'..'z' || it in 'A'..'Z' || it in '0'..'9' || it == '-' || it == '_' }
+            .take(40)
+        return cleaned.ifEmpty { "image" }
+    }
+
+    private fun uniqueFileName(stem: String, ext: String): String {
+        val suffix = UUID.randomUUID().toString().take(8)
+        return "$stem-$suffix.$ext"
     }
 
     private fun stageClipboardFile(src: File): File? {
@@ -288,7 +477,7 @@ class MainActivity : FlutterActivity() {
             val dst = File(dir, "clipboard-${UUID.randomUUID()}.$ext")
             src.copyTo(dst, overwrite = true)
             dst
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
             null
         }
     }
@@ -299,8 +488,66 @@ class MainActivity : FlutterActivity() {
             val cm = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return false
             cm.setPrimaryClip(ClipData.newUri(contentResolver, "Redacted image", uri))
             true
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
             false
+        }
+    }
+
+    private fun saveImageToMediaStore(src: File): Boolean {
+        if (!src.isFile) return false
+        var insertedUri: Uri? = null
+        return try {
+            val ext = sanitizeExtension(src.extension).ifEmpty { "png" }
+            val mime = when (ext) {
+                "jpg", "jpeg" -> "image/jpeg"
+                "webp" -> "image/webp"
+                else -> "image/png"
+            }
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, src.name)
+                put(MediaStore.Images.Media.MIME_TYPE, mime)
+                put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/MosaicIt")
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            }
+            val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                ?: return false
+            insertedUri = uri
+            contentResolver.openOutputStream(uri)?.use { output ->
+                src.inputStream().use { input -> input.copyTo(output, 65536) }
+            } ?: throw IllegalStateException("Could not open MediaStore stream")
+            val done = ContentValues().apply {
+                put(MediaStore.Images.Media.IS_PENDING, 0)
+            }
+            contentResolver.update(uri, done, null, null)
+            true
+        } catch (_: Throwable) {
+            insertedUri?.let { uri -> runCatching { contentResolver.delete(uri, null, null) } }
+            false
+        }
+    }
+
+    private fun prepareLocalImage(src: File): String? {
+        if (!src.isFile || src.length() > MAX_INCOMING_BYTES) return null
+        val ext = sanitizeExtension(src.extension)
+        if (ext in NATIVE_IMAGE_EXTS) return src.absolutePath
+        val dir = File(File(cacheDir, "incoming"), launchId).apply { mkdirs() }
+        var dst: File? = null
+        return try {
+            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val source = ImageDecoder.createSource(src)
+                ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                    decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                }
+            } else {
+                BitmapFactory.decodeFile(src.absolutePath)
+            } ?: return null
+            val target = File(dir, uniqueFileName(sanitizeStem(src.nameWithoutExtension), "jpg"))
+            dst = target
+            writeUprightJpeg(bitmap, target) ?: return null
+            target.absolutePath
+        } catch (_: Throwable) {
+            dst?.delete()
+            null
         }
     }
 
@@ -364,6 +611,8 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        pendingPickResult?.success(emptyList<String>())
+        pendingPickResult = null
         ioExecutor.shutdown()
         super.onDestroy()
     }
@@ -401,9 +650,14 @@ class MainActivity : FlutterActivity() {
     }
 
     private companion object {
+        const val REQ_PICK_MEDIA = 4107
+        const val MAX_INCOMING_BYTES = 256L * 1024 * 1024
         val ICON_PREFIX = MainActivity::class.java.name.substringBeforeLast('.') + ".icon."
         val NATIVE_IMAGE_MIMES = setOf("image/png", "image/jpeg", "image/jpg", "image/webp")
         val NATIVE_IMAGE_EXTS = setOf("png", "jpg", "jpeg", "webp")
-        val VIDEO_EXTS = setOf("mp4", "mov", "m4v", "mkv", "webm", "avi")
+        val VIDEO_EXTS = setOf(
+            "mp4", "mov", "m4v", "mkv", "webm", "avi",
+            "3gp", "3g2", "mpg", "mpeg", "ts",
+        )
     }
 }

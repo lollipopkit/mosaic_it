@@ -39,7 +39,6 @@ dependencies:
   path_provider: ^2.1.6
   flutter_rust_bridge_hooks: 2.13.0
   code_assets: ^2.1.0
-  image_picker: ^1.2.4
   share_plus: ^13.3.1
   flutter_localizations:
     sdk: flutter
@@ -49,8 +48,6 @@ dependencies:
     path: packages/fl_lib
   # Material as a package (fl_lib's widgets and themes are built on it).
   material_ui: ^1.5.0
-  photo_manager: ^3.12.0
-  photo_manager_image_provider: ^2.2.0
   url_launcher: ^6.3.1
 
 dev_dependencies:

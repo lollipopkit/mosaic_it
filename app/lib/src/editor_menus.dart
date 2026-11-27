@@ -214,14 +214,7 @@ class _RegionSheetState extends State<_RegionSheet> {
 }
 
 /// Where the export sheet sends the redacted images (or opens feedback).
-enum ExportTarget {
-  copy,
-  share,
-  photos,
-  photosDeleteOriginals,
-  files,
-  feedback,
-}
+enum ExportTarget { copy, share, photos, files, feedback }
 
 /// Where to export to, the format and size, and an optional feedback entry.
 /// Settings are saved as they change; the chosen target is returned.
@@ -230,7 +223,6 @@ Future<ExportTarget?> showExportSheet(
   required AppSettings settings,
   required int images,
   required int regions,
-  required bool fromLibrary,
   int feedbackDiffCount = 0,
 }) => showResizableSheet<ExportTarget>(
   context,
@@ -262,15 +254,6 @@ Future<ExportTarget?> showExportSheet(
           if (mobile) ...[
             target(ExportTarget.share, l.share, Icons.ios_share),
             target(ExportTarget.photos, l.saveToPhotos, Icons.download),
-            if (fromLibrary)
-              target(
-                ExportTarget.photosDeleteOriginals,
-                l.saveAndDeleteOriginals,
-                Icons.delete_outline,
-                Platform.isIOS
-                    ? l.originalsToRecentlyDeleted
-                    : l.originalsToTrash,
-              ),
           ] else
             target(ExportTarget.files, l.saveAs, Icons.download),
           const Divider(),

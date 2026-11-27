@@ -284,60 +284,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get pickClass => '클래스 선택';
 
   @override
-  String get filterScreenshots => '스크린샷';
-
-  @override
-  String get filterAll => '모두';
-
-  @override
-  String get filterVideos => '동영상';
-
-  @override
-  String get albums => '앨범';
-
-  @override
-  String get limitedAccess => 'MosaicIt은 일부 사진만 볼 수 있습니다';
-
-  @override
-  String get manage => '관리';
-
-  @override
-  String selectedImages(int count) {
-    return '$count개 선택됨';
-  }
-
-  @override
-  String redactImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count개 이미지 마스킹',
-      one: '1개 이미지 마스킹',
-      zero: '0개 이미지 마스킹',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get badgeRedacted => '마스킹됨';
-
-  @override
-  String get photosDenied =>
-      'MosaicIt은 여기에 사진을 표시하려면 사진 접근 권한이 필요합니다. 사진은 이 기기를 절대 나가지 않습니다.';
-
-  @override
-  String get openSettings => '설정 열기';
-
-  @override
-  String get openFiles => '파일 열기';
-
-  @override
-  String get noPhotos => '여기에는 사진이 없습니다';
-
-  @override
-  String get loading => '로딩 중…';
-
-  @override
   String get appearance => '모양';
 
   @override
@@ -345,9 +291,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get appIcon => '앱 아이콘';
-
-  @override
-  String get aspectRatioGrid => '원본 비율 격자';
 
   @override
   String get threshold => '임계값';
@@ -453,15 +396,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get saveAs => 'Save…';
 
   @override
-  String get saveAndDeleteOriginals => 'Save and delete originals';
-
-  @override
-  String get originalsToRecentlyDeleted => 'Originals go to Recently Deleted';
-
-  @override
-  String get originalsToTrash => 'Originals go to the trash';
-
-  @override
   String get exportFormat => 'Format';
 
   @override
@@ -484,11 +418,6 @@ class AppLocalizationsKo extends AppLocalizations {
       one: 'Saved 1 image to Photos',
     );
     return '$_temp0';
-  }
-
-  @override
-  String originalsNotDeleted(String error) {
-    return 'The originals were kept: $error';
   }
 
   @override
@@ -518,19 +447,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get reasonFillShowsThrough => 'fill shows through';
-
-  @override
-  String get introTitle => 'Choose screenshots to redact';
-
-  @override
-  String get introBody =>
-      'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.';
-
-  @override
-  String get allowPhotoAccess => 'Allow photo access';
-
-  @override
-  String get photosOffTitle => 'Photo access is off';
 
   @override
   String get openSource => 'Open source';
@@ -648,12 +564,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get introBundledReady => '내장 모델 준비 완료';
-
-  @override
-  String get introPhotosGranted => '사진 접근 권한 허용됨';
-
-  @override
   String get resetBundledModel => '내장 모델로 복원';
 
   @override
@@ -690,4 +600,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get peekOriginal => '길게 눌러 원본 비교';
+
+  @override
+  String get selectMedia => '사진 또는 동영상 선택';
+
+  @override
+  String get saveFailed => '사진에 저장하지 못했습니다';
+
+  @override
+  String get retry => '다시 시도';
 }

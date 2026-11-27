@@ -300,72 +300,6 @@
   "@pickClass": {
     "description": "Title of a list: choose what kind of private information this box holds."
   },
-  "filterScreenshots": "Screenshots",
-  "@filterScreenshots": {
-    "description": "Gallery filter chip: the Screenshots album."
-  },
-  "filterAll": "All",
-  "@filterAll": {
-    "description": "Gallery filter chip: all photos."
-  },
-  "filterVideos": "Videos",
-  "@filterVideos": {
-    "description": "Gallery filter chip: videos."
-  },
-  "albums": "Albums",
-  "@albums": {
-    "description": "Gallery filter chip that opens a list of albums."
-  },
-  "limitedAccess": "MosaicIt can see only some of your photos",
-  "@limitedAccess": {
-    "description": "Banner: the user allowed access to only some photos (iOS limited photo access)."
-  },
-  "manage": "Manage",
-  "@manage": {
-    "description": "Button on that banner: choose which photos the app may see."
-  },
-  "selectedImages": "{count} selected",
-  "@selectedImages": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    },
-    "description": "Title bar while selecting photos in the gallery: how many are selected."
-  },
-  "redactImages": "{count, plural, =1{Redact 1 image} other{Redact {count} images}}",
-  "@redactImages": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    },
-    "description": "Main button after selecting photos: hide private information in them (redact)."
-  },
-  "badgeRedacted": "Redacted",
-  "@badgeRedacted": {
-    "description": "Small tag on a gallery thumbnail: this photo was already redacted and exported."
-  },
-  "photosDenied": "MosaicIt needs access to your photos to show them here. Photos never leave this device.",
-  "@photosDenied": {
-    "description": "Shown when the app has no photo access: why it needs it, and that photos never leave the phone."
-  },
-  "openSettings": "Open Settings",
-  "@openSettings": {
-    "description": "Button: open the system Settings app to grant photo access."
-  },
-  "openFiles": "Open files",
-  "@openFiles": {
-    "description": "Menu item on desktop: open image files from disk."
-  },
-  "noPhotos": "No photos here",
-  "@noPhotos": {
-    "description": "Empty gallery: no photos in this album."
-  },
-  "loading": "Loading…",
-  "@loading": {
-    "description": "Progress text while photos load."
-  },
   "appearance": "Appearance",
   "@appearance": {
     "description": "Settings section header: look of the app."
@@ -377,10 +311,6 @@
   "appIcon": "App icon",
   "@appIcon": {
     "description": "Settings row: choose the app's home screen icon."
-  },
-  "aspectRatioGrid": "Aspect ratio grid",
-  "@aspectRatioGrid": {
-    "description": "Gallery menu, checkable: show each photo whole in its grid cell instead of cropped to a square."
   },
   "threshold": "Threshold",
   "@threshold": {
@@ -498,15 +428,6 @@
   "share": "Share",
   "saveToPhotos": "Save to Photos",
   "saveAs": "Save…",
-  "saveAndDeleteOriginals": "Save and delete originals",
-  "originalsToRecentlyDeleted": "Originals go to Recently Deleted",
-  "@originalsToRecentlyDeleted": {
-    "description": "iOS"
-  },
-  "originalsToTrash": "Originals go to the trash",
-  "@originalsToTrash": {
-    "description": "Android"
-  },
   "exportFormat": "Format",
   "exportSize": "Size",
   "sizeOriginal": "Original",
@@ -524,14 +445,6 @@
     "placeholders": {
       "count": {
         "type": "num"
-      }
-    }
-  },
-  "originalsNotDeleted": "The originals were kept: {error}",
-  "@originalsNotDeleted": {
-    "placeholders": {
-      "error": {
-        "type": "String"
       }
     }
   },
@@ -566,10 +479,6 @@
   "reasonNotSelected": "not selected",
   "reasonBoxTooSmall": "box too small",
   "reasonFillShowsThrough": "fill shows through",
-  "introTitle": "Choose screenshots to redact",
-  "introBody": "MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.",
-  "allowPhotoAccess": "Allow photo access",
-  "photosOffTitle": "Photo access is off",
   "openSource": "Open source",
   "adaptivePreselectTitle": "Local adaptive pre-selection",
   "@adaptivePreselectTitle": {
@@ -647,8 +556,6 @@
       }
     }
   },
-  "introBundledReady": "Bundled detector ready",
-  "introPhotosGranted": "Photo access granted",
   "resetBundledModel": "Use bundled model",
   "reviewIntro": "Show intro again",
   "feedbackOpenWeb": "Open web form",
@@ -667,5 +574,17 @@
   "copyImage": "Copy image",
   "copiedToClipboard": "Copied to clipboard",
   "copyFailed": "Could not copy image",
-  "peekOriginal": "Hold to compare original"
+  "peekOriginal": "Hold to compare original",
+  "selectMedia": "Select photos or video",
+  "@selectMedia": {
+    "description": "Button in the editor to open the system media picker for images or a video."
+  },
+  "saveFailed": "Could not save to Photos",
+  "@saveFailed": {
+    "description": "Toast shown when saving a redacted image to the system photo library fails."
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Button to retry loading the bundled detector model."
+  }
 }

@@ -166,8 +166,8 @@ class SettingsPage extends StatefulWidget {
   /// Whether a user-imported custom model overrides the bundled model.
   final bool hasCustomModel;
 
-  /// Imports a model chosen by the user (advanced).
-  final Future<void> Function()? onChooseModel;
+  /// Imports a model chosen by the user (advanced); returns whether a new model was loaded.
+  final Future<bool> Function()? onChooseModel;
 
   /// Clears any user-imported model and reloads the bundled model.
   final Future<void> Function()? onResetModel;
@@ -179,6 +179,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   /// The launcher icon; null until read, or where it cannot be changed.
   AppIcon? _icon;
+  bool _working = false;
 
   @override
   void initState() {
@@ -369,9 +370,16 @@ class _SettingsPageState extends State<SettingsPage> {
             ListTile(
               leading: const Icon(Icons.restore),
               title: Text(t.resetBundledModel),
+              enabled: !_working,
               onTap: () async {
-                await widget.onResetModel!();
-                if (context.mounted) Navigator.of(context).pop();
+                if (_working) return;
+                setState(() => _working = true);
+                try {
+                  await widget.onResetModel!();
+                  if (context.mounted) Navigator.of(context).pop();
+                } finally {
+                  if (mounted) setState(() => _working = false);
+                }
               },
             ),
           if (widget.onChooseModel case final choose?)
@@ -379,9 +387,16 @@ class _SettingsPageState extends State<SettingsPage> {
               leading: const Icon(Icons.memory),
               title: Text(t.importModel),
               subtitle: Text(t.advanced),
+              enabled: !_working,
               onTap: () async {
-                await choose();
-                if (context.mounted) Navigator.of(context).pop();
+                if (_working) return;
+                setState(() => _working = true);
+                try {
+                  final changed = await choose();
+                  if (changed && context.mounted) Navigator.of(context).pop();
+                } finally {
+                  if (mounted) setState(() => _working = false);
+                }
               },
             ),
           header(t.about),

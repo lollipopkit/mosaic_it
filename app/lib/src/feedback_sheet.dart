@@ -6,7 +6,6 @@ import 'dart:ui' as ui;
 import 'package:file_selector/file_selector.dart';
 import 'package:fl_lib/fl_lib.dart'
     show SegmentedTab, SegmentedTabs, SheetScaffold, showResizableSheet;
-import 'package:image_picker/image_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -15,6 +14,7 @@ import 'boxes.dart';
 import 'editor.dart';
 import 'feedback.dart';
 import 'intro_page.dart';
+import 'platform_bridge.dart';
 import 'rust/api.dart';
 
 /// Opens the offline privacy-first feedback bottom sheet.
@@ -89,23 +89,36 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
     try {
       String? path;
       if (_mobile) {
-        final picked = await ImagePicker().pickImage(
-          source: ImageSource.gallery,
+        final picked = await PlatformBridge.pickMedia(
+          multiple: false,
+          allowVideo: false,
         );
-        path = picked?.path;
+        path = picked.firstOrNull;
       } else {
         final picked = await openFile(
           acceptedTypeGroups: [
             XTypeGroup(
               label: AppLocalizations.of(context).imagesFileType,
-              extensions: const ['png', 'jpg', 'jpeg', 'webp'],
+              extensions: const [
+                'png',
+                'jpg',
+                'jpeg',
+                'webp',
+                'heic',
+                'heif',
+                'bmp',
+                'tif',
+                'tiff',
+                'gif',
+              ],
             ),
           ],
         );
         path = picked?.path;
       }
       if (path == null || !mounted) return;
-      final file = File(path);
+      final prepared = await PlatformBridge.prepareImage(path);
+      final file = File(prepared);
       final detected = await model.detect(imagePath: file.path);
       if (!mounted) return;
       setState(() {
