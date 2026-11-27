@@ -52,6 +52,7 @@
   $effect(() => {
     const c = copy;
     document.documentElement.lang = c.meta.lang;
+    document.documentElement.dir = c.meta.dir;
     document.title = c.meta.title;
     const desc = document.querySelector('meta[name="description"]');
     if (desc) desc.setAttribute('content', c.meta.description);
@@ -211,7 +212,7 @@
       {/each}
     </div>
 
-    <div class="code-block">
+    <div class="code-block" dir="ltr">
       <div class="code-block-head">
         <span class="prompt">{copy.download.cliPrompt}</span>
         <button type="button" class="copy-btn" onclick={copyBuildCommands}>

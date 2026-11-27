@@ -360,49 +360,47 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String selectedOf(int selected, int total) {
-    return '$selected / $total selected';
+    return '$selected / $total 선택됨';
   }
 
   @override
-  String get fillStyle => 'Fill style';
+  String get fillStyle => '채우기 스타일';
 
   @override
-  String get colour => 'Colour';
+  String get colour => '색상';
 
   @override
   String exportSummary(num images, num regions) {
     String _temp0 = intl.Intl.pluralLogic(
       images,
       locale: localeName,
-      other: '$images images',
-      one: '1 image',
+      other: '이미지 $images장',
     );
     String _temp1 = intl.Intl.pluralLogic(
       regions,
       locale: localeName,
-      other: '$regions regions',
-      one: '1 region',
+      other: '영역 $regions개',
     );
     return '$_temp0 · $_temp1';
   }
 
   @override
-  String get share => 'Share';
+  String get share => '공유';
 
   @override
-  String get saveToPhotos => 'Save to Photos';
+  String get saveToPhotos => '사진에 저장';
 
   @override
-  String get saveAs => 'Save…';
+  String get saveAs => '저장…';
 
   @override
-  String get exportFormat => 'Format';
+  String get exportFormat => '형식';
 
   @override
-  String get exportSize => 'Size';
+  String get exportSize => '크기';
 
   @override
-  String get sizeOriginal => 'Original';
+  String get sizeOriginal => '원본';
 
   @override
   String sizePixels(int px) {
@@ -414,143 +412,141 @@ class AppLocalizationsKo extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Saved $count images to Photos',
-      one: 'Saved 1 image to Photos',
+      other: '이미지 $count장을 사진에 저장했습니다',
     );
     return '$_temp0';
   }
 
   @override
-  String get selectAll => 'All';
+  String get selectAll => '전체';
 
   @override
-  String get selectNone => 'None';
+  String get selectNone => '없음';
 
   @override
-  String get suggested => 'suggested';
+  String get suggested => '추천';
 
   @override
   String scoreValue(String score) {
-    return 'Score $score';
+    return '점수 $score';
   }
 
   @override
   String exportCheckBodyOf(int index) {
-    return 'After redaction, the check still found these areas in the output of image $index.';
+    return '마스킹 후에도 검사에서 이미지 $index의 출력물에 이 영역들이 여전히 발견되었습니다.';
   }
 
   @override
-  String get reasonNotSelected => 'not selected';
+  String get reasonNotSelected => '선택되지 않음';
 
   @override
-  String get reasonBoxTooSmall => 'box too small';
+  String get reasonBoxTooSmall => '영역이 너무 작음';
 
   @override
-  String get reasonFillShowsThrough => 'fill shows through';
+  String get reasonFillShowsThrough => '채우기가 비쳐 보임';
 
   @override
-  String get openSource => 'Open source';
+  String get openSource => '오픈소스';
 
   @override
-  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+  String get adaptivePreselectTitle => '기기 내 적응형 사전 선택';
 
   @override
   String adaptiveLearnedCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count classes adjusted',
-      one: '1 class adjusted',
+      other: '$count개 클래스 조정됨',
     );
     return '$_temp0';
   }
 
   @override
-  String get adaptiveReset => 'Reset local preferences';
+  String get adaptiveReset => '로컬 환경설정 초기화';
 
   @override
-  String get adaptiveResetDone => 'Local preferences reset';
+  String get adaptiveResetDone => '로컬 환경설정이 초기화되었습니다';
 
   @override
-  String get feedbackTitle => 'Report detection issue';
+  String get feedbackTitle => '감지 문제 신고';
 
   @override
-  String get feedbackShort => 'Feedback';
+  String get feedbackShort => '피드백';
 
   @override
-  String get feedbackMenu => 'Report issue';
+  String get feedbackMenu => '문제 신고';
 
   @override
-  String get feedbackAction => 'Report';
+  String get feedbackAction => '신고';
 
   @override
-  String get feedbackAttachScreenshot => 'Attach screenshot';
+  String get feedbackAttachScreenshot => '스크린샷 첨부';
 
   @override
-  String get feedbackModeMasked => 'Errors only';
+  String get feedbackModeMasked => '오류 영역만';
 
   @override
-  String get feedbackModeFull => 'Full image';
+  String get feedbackModeFull => '전체 이미지';
 
   @override
-  String get feedbackModeText => 'No image';
+  String get feedbackModeText => '이미지 없음';
 
   @override
-  String get feedbackTagMissed => 'Missed';
+  String get feedbackTagMissed => '미감지';
 
   @override
-  String get feedbackTagFalsePositive => 'False positive';
+  String get feedbackTagFalsePositive => '오탐';
 
   @override
-  String get feedbackTagBoxDrift => 'Box drift';
+  String get feedbackTagBoxDrift => '영역 어긋남';
 
   @override
-  String get feedbackTagWrongClass => 'Wrong class';
+  String get feedbackTagWrongClass => '잘못된 클래스';
 
   @override
-  String get feedbackTagOther => 'Other';
+  String get feedbackTagOther => '기타';
 
   @override
-  String get feedbackNoteHint => 'Optional note…';
+  String get feedbackNoteHint => '메모 (선택)…';
 
   @override
   String feedbackCountMasked(int count) {
-    return 'Masked $count';
+    return '마스킹됨 $count';
   }
 
   @override
   String feedbackCountMissed(int count) {
-    return 'Missed $count';
+    return '미감지 $count';
   }
 
   @override
   String feedbackCountFp(int count) {
-    return 'False positive $count';
+    return '오탐 $count';
   }
 
   @override
   String feedbackCountPreference(int count) {
-    return 'Unchecked $count';
+    return '선택 해제 $count';
   }
 
   @override
-  String get feedbackBoxMissed => 'Missed';
+  String get feedbackBoxMissed => '미감지';
 
   @override
-  String get feedbackBoxMissedMasked => 'Missed · masked';
+  String get feedbackBoxMissedMasked => '미감지 · 마스킹됨';
 
   @override
-  String get feedbackBoxFp => 'False positive';
+  String get feedbackBoxFp => '오탐';
 
   @override
-  String get feedbackBoxPreference => 'Keep visible';
+  String get feedbackBoxPreference => '표시 유지';
 
   @override
   String get introOfflineTitle => '네트워크 기능 없음';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt에는 네트워크 코드가 없으며 네트워크 권한도 요청하지 않습니다. 감지 모델이 앱에 내장되어 있어 이미지와 동영상이 기기 밖으로 전송되지 않습니다.';
+      'MosaicIt에는 네트워크 코드가 없으며 네트워크 권한도 요청하지 않습니다. 감지 모델이 앱에 내장되어 있어 이미지가 기기 밖으로 전송되지 않습니다.';
 
   @override
   String get introNoNetPermTitle => '네트워크 권한 없음';

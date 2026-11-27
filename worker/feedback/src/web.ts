@@ -4,6 +4,26 @@
 // Immediately strips location.hash via history.replaceState so screenshot
 // data never lingers in browser history.
 
+import { FEEDBACK_COPY, FEEDBACK_LOCALES } from './i18n.ts';
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeJsonScript(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 export function normalizeTurnstileSiteKey(raw?: string): string {
   if (typeof raw !== 'string') return '';
   const trimmed = raw.trim();
@@ -19,9 +39,12 @@ export function renderFeedbackWebHtml(turnstileSiteKey?: string): string {
   const turnstileScript = cleanSiteKey
     ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" async defer onerror="onTurnstileScriptError()"></script>'
     : '';
+  const langOptions = FEEDBACK_LOCALES.map(
+    (l) => `<option value="${escapeHtml(l.code)}">${escapeHtml(l.label)}</option>`,
+  ).join('');
 
   return `<!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -89,17 +112,17 @@ export function renderFeedbackWebHtml(turnstileSiteKey?: string): string {
   }
   .home-link:hover { color: var(--text); border-color: var(--primary); }
   h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.2px; }
-  .lang-btn {
+  .lang-sel {
     border: 1px solid var(--border);
     background: var(--card);
     color: var(--text);
     font: inherit;
     font-size: 12px;
-    padding: 5px 11px;
+    padding: 5px 10px;
     border-radius: 999px;
     cursor: pointer;
-    white-space: nowrap;
     flex-shrink: 0;
+    max-width: 148px;
   }
   .card {
     background: var(--card);
@@ -166,7 +189,7 @@ export function renderFeedbackWebHtml(turnstileSiteKey?: string): string {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    margin-right: 4px;
+    margin-inline-end: 4px;
     vertical-align: middle;
   }
   .dropzone {
@@ -235,7 +258,7 @@ export function renderFeedbackWebHtml(turnstileSiteKey?: string): string {
     outline: none;
   }
   textarea:focus { border-color: var(--primary); }
-  .counter { font-size: 11.5px; color: var(--faint); text-align: right; }
+  .counter { font-size: 11.5px; color: var(--faint); text-align: end; }
   .receipt {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 15px;
@@ -259,10 +282,10 @@ export function renderFeedbackWebHtml(turnstileSiteKey?: string): string {
 <div class="wrap">
   <header>
     <div class="head-left">
-      <a class="home-link" id="btnHome" href="https://mosaic.lollipopkit.com/">← 官网</a>
-      <h1 id="hTitle">MosaicIt 反馈</h1>
+      <a class="home-link" id="btnHome" href="https://mosaic.lollipopkit.com/">← Home</a>
+      <h1 id="hTitle">MosaicIt Feedback</h1>
     </div>
-    <button class="lang-btn" id="btnLang" type="button">EN</button>
+    <select class="lang-sel" id="langSel" aria-label="Language">${langOptions}</select>
   </header>
 
   <div id="statusBanner" class="banner hidden"></div>
@@ -321,77 +344,53 @@ const TURNSTILE_SITE_KEY = ${JSON.stringify(cleanSiteKey)};
 const TAG_IDS = ['missed', 'false_positive', 'box_drift', 'wrong_class', 'other'];
 const VALID_MODES = ['masked', 'full', 'text'];
 const VALID_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const COPY = {
-  zh: {
-    home: '← 官网',
-    title: 'MosaicIt 检测反馈',
-    lang: 'EN',
-    prefilled: '已从 MosaicIt 载入标注与截图，核对后直接提交即可。',
-    prefilledNoImg: '已从 MosaicIt 载入全部标注与遮挡框；由于图片体积超出 URL 上限，请补选或粘贴原截图（提交前将自动涂黑遮挡区域）。',
-    badHash: '无法解析来自应用的预填数据，仍可手动填写提交。',
-    badImg: '无法读取该图片格式，请选择 PNG、JPEG 或 WebP 图片。',
-    drop: '可选：拖入、选择或粘贴截图（支持提交前直接涂黑遮挡隐私）',
-    pick: '选择图片',
-    paste: '粘贴剪贴板图片',
-    switchText: '改为仅文字提交',
-    maskHint: '在图上拖动可追加黑色遮挡框',
-    undoMask: '撤销遮挡',
-    clearImg: '移除图片',
-    notePh: '补充说明（可选，例如场景或漏检/误检类型）',
-    submit: '提交反馈',
-    submitting: '正在提交…',
-    sentTitle: '反馈已收到',
-    newBtn: '提交另一条',
-    needContent: '请至少选择标签、填写说明或附带一张图片。',
-    needImgForMode: '当前模式包含标注框，请先选择或粘贴对应截图，或点击“改为仅文字提交”。',
-    needTurnstile: '请先完成人机验证。',
-    turnstileExpired: '人机验证已过期，请重新验证。',
-    turnstileError: '人机验证加载失败，请刷新页面或检查网络后重试。',
-    noClipboardImg: '剪贴板中没有图片',
-    tags: { missed: '漏检', false_positive: '误检', box_drift: '框偏移', wrong_class: '分类错误', other: '其他' },
-    legendMasked: n => '已遮挡 ' + n,
-    legendFn: n => '漏检 ' + n,
-    legendFp: n => '误检 ' + n,
-    legendExtra: n => '网页追加遮挡 ' + n,
-    modeNames: { masked: '脱敏图', full: '原图', text: '仅文字' },
-  },
-  en: {
-    home: '← Home',
-    title: 'MosaicIt Feedback',
-    lang: '中文',
-    prefilled: 'Loaded annotations and screenshot from MosaicIt. Review and submit.',
-    prefilledNoImg: 'Loaded annotations and mask boxes from MosaicIt. Image exceeded URL limit; pick or paste the screenshot (masked areas will be blacked out automatically before upload).',
-    badHash: 'Could not decode app handoff data; you can still submit manually.',
-    badImg: 'Could not read that image. Please pick a PNG, JPEG, or WebP image.',
-    drop: 'Optional: drop, pick, or paste a screenshot (drag on image to black out sensitive areas)',
-    pick: 'Choose image',
-    paste: 'Paste image',
-    switchText: 'Switch to text-only',
-    maskHint: 'Drag on image to add black mask boxes',
-    undoMask: 'Undo mask',
-    clearImg: 'Remove image',
-    notePh: 'Optional note (e.g. app or missed/false-positive type)',
-    submit: 'Submit feedback',
-    submitting: 'Submitting…',
-    sentTitle: 'Feedback received',
-    newBtn: 'Submit another',
-    needContent: 'Select a tag, enter a note, or attach an image.',
-    needImgForMode: 'Annotations are attached; pick/paste the screenshot or click "Switch to text-only".',
-    needTurnstile: 'Please complete the verification challenge first.',
-    turnstileExpired: 'Verification expired. Please verify again.',
-    turnstileError: 'Verification failed to load. Refresh or check your network and try again.',
-    noClipboardImg: 'No image found in clipboard',
-    tags: { missed: 'Missed', false_positive: 'False positive', box_drift: 'Box drift', wrong_class: 'Wrong class', other: 'Other' },
-    legendMasked: n => 'Masked ' + n,
-    legendFn: n => 'Missed ' + n,
-    legendFp: n => 'False positive ' + n,
-    legendExtra: n => 'Extra masks ' + n,
-    modeNames: { masked: 'Masked', full: 'Full image', text: 'Text only' },
-  },
-};
+const LOCALES = ${safeJsonScript(FEEDBACK_LOCALES)};
+const LOCALE_META = Object.assign(Object.create(null), Object.fromEntries(LOCALES.map(l => [l.code, l])));
+const COPY = Object.assign(Object.create(null), ${safeJsonScript(FEEDBACK_COPY)});
+const LOCALE_STORAGE_KEY = 'mosaic-locale';
+
+function matchLocale(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  const norm = raw.trim().toLowerCase().replace(/_/g, '-');
+  if (!norm) return null;
+  const parts = norm.split('-').filter(Boolean);
+  if (parts.length === 0) return null;
+  if (parts[0] === 'zh') {
+    return parts.some(p => p === 'tw' || p === 'hk' || p === 'mo' || p === 'hant') ? 'zh-TW' : 'zh-CN';
+  }
+  const base = parts[0];
+  if (Object.prototype.hasOwnProperty.call(LOCALE_META, base)) return base;
+  return null;
+}
+
+function detectInitialLocale() {
+  try {
+    const q = new URLSearchParams(location.search).get('lang');
+    const fromQ = matchLocale(q);
+    if (fromQ) return fromQ;
+  } catch (_) {}
+  try {
+    const fromStorage = matchLocale(localStorage.getItem(LOCALE_STORAGE_KEY));
+    if (fromStorage) return fromStorage;
+  } catch (_) {}
+  const langs = Array.isArray(navigator.languages) && navigator.languages.length ? navigator.languages : [navigator.language];
+  for (const item of langs) {
+    const matched = matchLocale(item);
+    if (matched) return matched;
+  }
+  return 'en';
+}
+
+function persistLocale(code) {
+  try { localStorage.setItem(LOCALE_STORAGE_KEY, code); } catch (_) {}
+}
+
+function fmtCount(tpl, n) {
+  return String(tpl || '').replace('{n}', String(n));
+}
 
 const state = {
-  lang: (navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en',
+  lang: detectInitialLocale(),
   handoff: null,          // validated unseen.feedback.v1 object from #d
   imageDeferred: false,   // true when app omitted #i= (e.g. Windows / >96 KiB)
   applyHandoffMasks: false, // true when user provides an unmasked image for a masked handoff
@@ -487,7 +486,7 @@ function renderBanner() {
   subEl.className = 'banner err hidden';
   subEl.textContent = '';
   if (!state.banner) return;
-  const t = COPY[state.lang];
+  const t = COPY[state.lang] || COPY.en;
   const msg = state.banner.key ? (t[state.banner.key] || '') : (state.banner.text || '');
   if (!msg) return;
   const target = state.banner.slot === 'submit' ? subEl : topEl;
@@ -515,10 +514,11 @@ function mountTurnstile() {
   const slot = document.getElementById('turnstileSlot');
   if (!slot) return;
   try {
+    const meta = LOCALE_META[state.lang] || LOCALE_META.en;
     const id = window.turnstile.render(slot, {
       sitekey: TURNSTILE_SITE_KEY,
       theme: 'auto',
-      language: state.lang === 'zh' ? 'zh-cn' : 'en',
+      language: meta.turnstileLang,
       callback: token => {
         state.turnstileToken = token || '';
         state.turnstileFailed = false;
@@ -804,11 +804,16 @@ function buildFinalPayload(uploadSize) {
 }
 
 function render() {
-  const t = COPY[state.lang];
-  document.documentElement.lang = state.lang === 'zh' ? 'zh-CN' : 'en';
+  const t = COPY[state.lang] || COPY.en;
+  const meta = LOCALE_META[state.lang] || LOCALE_META.en;
+  document.documentElement.lang = meta.code;
+  document.documentElement.dir = meta.dir;
+  document.title = t.title;
   document.getElementById('btnHome').textContent = t.home;
   document.getElementById('hTitle').textContent = t.title;
-  document.getElementById('btnLang').textContent = t.lang;
+  const langSel = document.getElementById('langSel');
+  langSel.value = meta.code;
+  langSel.setAttribute('aria-label', t.langLabel);
   document.getElementById('dropText').textContent = t.drop;
   document.getElementById('btnPick').textContent = t.pick;
   document.getElementById('btnPaste').textContent = t.paste;
@@ -863,10 +868,10 @@ function render() {
     const fnN = state.handoff ? state.handoff.diffs.filter(d => d.kind === 'fn_missed').length : 0;
     const fpN = state.handoff ? state.handoff.diffs.filter(d => d.kind === 'fp_confirmed').length : 0;
     const items = [];
-    if (maskedN > 0) items.push(['#000', t.legendMasked(maskedN)]);
-    if (fnN > 0) items.push(['#e5484d', t.legendFn(fnN)]);
-    if (fpN > 0) items.push(['#e08200', t.legendFp(fpN)]);
-    if (state.extraMasks.length > 0) items.push(['#ffa9c9', t.legendExtra(state.extraMasks.length)]);
+    if (maskedN > 0) items.push(['#000', fmtCount(t.legend.masked, maskedN)]);
+    if (fnN > 0) items.push(['#e5484d', fmtCount(t.legend.fn, fnN)]);
+    if (fpN > 0) items.push(['#e08200', fmtCount(t.legend.fp, fpN)]);
+    if (state.extraMasks.length > 0) items.push(['#ffa9c9', fmtCount(t.legend.extra, state.extraMasks.length)]);
     for (const [color, label] of items) {
       const span = document.createElement('span');
       const dot = document.createElement('span');
@@ -958,11 +963,14 @@ async function handleUserImage(blob) {
 }
 
 // Event wiring
-document.getElementById('btnLang').onclick = () => {
-  state.lang = state.lang === 'zh' ? 'en' : 'zh';
+document.getElementById('langSel').addEventListener('change', e => {
+  const next = matchLocale(e.target.value) || 'en';
+  if (next === state.lang) return;
+  state.lang = next;
+  persistLocale(next);
   remountTurnstile();
   render();
-};
+});
 document.getElementById('noteInput').addEventListener('input', e => {
   state.note = e.target.value;
   document.getElementById('noteCount').textContent = state.note.length + ' / 500';

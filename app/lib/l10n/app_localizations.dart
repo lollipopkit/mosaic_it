@@ -5,42 +5,21 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
-import 'app_localizations_ar.dart';
-import 'app_localizations_bn.dart';
-import 'app_localizations_cs.dart';
-import 'app_localizations_da.dart';
+import 'app_localizations_az.dart';
 import 'app_localizations_de.dart';
-import 'app_localizations_el.dart';
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
 import 'app_localizations_fa.dart';
-import 'app_localizations_fi.dart';
 import 'app_localizations_fr.dart';
-import 'app_localizations_he.dart';
-import 'app_localizations_hi.dart';
-import 'app_localizations_hr.dart';
-import 'app_localizations_hu.dart';
-import 'app_localizations_hy.dart';
 import 'app_localizations_id.dart';
 import 'app_localizations_it.dart';
 import 'app_localizations_ja.dart';
-import 'app_localizations_ka.dart';
 import 'app_localizations_ko.dart';
-import 'app_localizations_ms.dart';
-import 'app_localizations_nb.dart';
-import 'app_localizations_ne.dart';
 import 'app_localizations_nl.dart';
-import 'app_localizations_pl.dart';
 import 'app_localizations_pt.dart';
-import 'app_localizations_ro.dart';
 import 'app_localizations_ru.dart';
-import 'app_localizations_sv.dart';
-import 'app_localizations_ta.dart';
-import 'app_localizations_th.dart';
 import 'app_localizations_tr.dart';
 import 'app_localizations_uk.dart';
-import 'app_localizations_ur.dart';
-import 'app_localizations_vi.dart';
 import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
@@ -129,43 +108,21 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
-    Locale('ar'),
-    Locale('bn'),
-    Locale('cs'),
-    Locale('da'),
+    Locale('az'),
     Locale('de'),
-    Locale('el'),
     Locale('en'),
     Locale('es'),
     Locale('fa'),
-    Locale('fi'),
     Locale('fr'),
-    Locale('he'),
-    Locale('hi'),
-    Locale('hr'),
-    Locale('hu'),
-    Locale('hy'),
     Locale('id'),
     Locale('it'),
     Locale('ja'),
-    Locale('ka'),
     Locale('ko'),
-    Locale('ms'),
-    Locale('nb'),
-    Locale('ne'),
     Locale('nl'),
-    Locale('pl'),
     Locale('pt'),
-    Locale('pt', 'PT'),
-    Locale('ro'),
     Locale('ru'),
-    Locale('sv'),
-    Locale('ta'),
-    Locale('th'),
     Locale('tr'),
     Locale('uk'),
-    Locale('ur'),
-    Locale('vi'),
     Locale('zh'),
     Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
   ];
@@ -1043,7 +1000,7 @@ abstract class AppLocalizations {
   /// No description provided for @introOfflineBody.
   ///
   /// In en, this message translates to:
-  /// **'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.'**
+  /// **'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images never leave your device.'**
   String get introOfflineBody;
 
   /// No description provided for @introNoNetPermTitle.
@@ -1184,42 +1141,21 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) => <String>[
-    'ar',
-    'bn',
-    'cs',
-    'da',
+    'az',
     'de',
-    'el',
     'en',
     'es',
     'fa',
-    'fi',
     'fr',
-    'he',
-    'hi',
-    'hr',
-    'hu',
-    'hy',
     'id',
     'it',
     'ja',
-    'ka',
     'ko',
-    'ms',
-    'nb',
-    'ne',
     'nl',
-    'pl',
     'pt',
-    'ro',
     'ru',
-    'sv',
-    'ta',
-    'th',
     'tr',
     'uk',
-    'ur',
-    'vi',
     'zh',
   ].contains(locale.languageCode);
 
@@ -1240,92 +1176,38 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       }
   }
 
-  // Lookup logic when language+country codes are specified.
-  switch (locale.languageCode) {
-    case 'pt':
-      {
-        switch (locale.countryCode) {
-          case 'PT':
-            return AppLocalizationsPtPt();
-        }
-        break;
-      }
-  }
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'ar':
-      return AppLocalizationsAr();
-    case 'bn':
-      return AppLocalizationsBn();
-    case 'cs':
-      return AppLocalizationsCs();
-    case 'da':
-      return AppLocalizationsDa();
+    case 'az':
+      return AppLocalizationsAz();
     case 'de':
       return AppLocalizationsDe();
-    case 'el':
-      return AppLocalizationsEl();
     case 'en':
       return AppLocalizationsEn();
     case 'es':
       return AppLocalizationsEs();
     case 'fa':
       return AppLocalizationsFa();
-    case 'fi':
-      return AppLocalizationsFi();
     case 'fr':
       return AppLocalizationsFr();
-    case 'he':
-      return AppLocalizationsHe();
-    case 'hi':
-      return AppLocalizationsHi();
-    case 'hr':
-      return AppLocalizationsHr();
-    case 'hu':
-      return AppLocalizationsHu();
-    case 'hy':
-      return AppLocalizationsHy();
     case 'id':
       return AppLocalizationsId();
     case 'it':
       return AppLocalizationsIt();
     case 'ja':
       return AppLocalizationsJa();
-    case 'ka':
-      return AppLocalizationsKa();
     case 'ko':
       return AppLocalizationsKo();
-    case 'ms':
-      return AppLocalizationsMs();
-    case 'nb':
-      return AppLocalizationsNb();
-    case 'ne':
-      return AppLocalizationsNe();
     case 'nl':
       return AppLocalizationsNl();
-    case 'pl':
-      return AppLocalizationsPl();
     case 'pt':
       return AppLocalizationsPt();
-    case 'ro':
-      return AppLocalizationsRo();
     case 'ru':
       return AppLocalizationsRu();
-    case 'sv':
-      return AppLocalizationsSv();
-    case 'ta':
-      return AppLocalizationsTa();
-    case 'th':
-      return AppLocalizationsTh();
     case 'tr':
       return AppLocalizationsTr();
     case 'uk':
       return AppLocalizationsUk();
-    case 'ur':
-      return AppLocalizationsUr();
-    case 'vi':
-      return AppLocalizationsVi();
     case 'zh':
       return AppLocalizationsZh();
   }

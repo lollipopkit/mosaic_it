@@ -77,7 +77,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Экспортировано $count изображений',
       many: 'Экспортировано $count изображений',
       few: 'Экспортировано $count изображения',
-      one: 'Экспортировано 1 изображение',
+      one: 'Экспортировано $count изображение',
       zero: 'Экспортировано 0 изображений',
     );
     return '$_temp0';
@@ -165,7 +165,7 @@ class AppLocalizationsRu extends AppLocalizations {
       few:
           '$count области с конфиденциальной информацией всё ещё видны там ($classes).',
       one:
-          '1 область с конфиденциальной информацией всё ещё видна там ($classes).',
+          '$count область с конфиденциальной информацией всё ещё видна там ($classes).',
       zero: 'Там нет видимых областей с конфиденциальной информацией.',
     );
     return '$_temp0';
@@ -276,7 +276,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Областей могут быть читаемыми: $count',
       many: 'Областей могут быть читаемыми: $count',
       few: 'Области могут быть читаемыми: $count',
-      one: '1 область может быть читаемой',
+      one: '$count область может быть читаемой',
       zero: 'Областей не найдено',
     );
     return '$_temp0';
@@ -373,49 +373,53 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String selectedOf(int selected, int total) {
-    return '$selected / $total selected';
+    return 'Выбрано $selected / $total';
   }
 
   @override
-  String get fillStyle => 'Fill style';
+  String get fillStyle => 'Стиль заливки';
 
   @override
-  String get colour => 'Colour';
+  String get colour => 'Цвет';
 
   @override
   String exportSummary(num images, num regions) {
     String _temp0 = intl.Intl.pluralLogic(
       images,
       locale: localeName,
-      other: '$images images',
-      one: '1 image',
+      other: '$images изображений',
+      many: '$images изображений',
+      few: '$images изображения',
+      one: '$images изображение',
     );
     String _temp1 = intl.Intl.pluralLogic(
       regions,
       locale: localeName,
-      other: '$regions regions',
-      one: '1 region',
+      other: '$regions областей',
+      many: '$regions областей',
+      few: '$regions области',
+      one: '$regions область',
     );
     return '$_temp0 · $_temp1';
   }
 
   @override
-  String get share => 'Share';
+  String get share => 'Поделиться';
 
   @override
-  String get saveToPhotos => 'Save to Photos';
+  String get saveToPhotos => 'Сохранить в Фото';
 
   @override
-  String get saveAs => 'Save…';
+  String get saveAs => 'Сохранить…';
 
   @override
-  String get exportFormat => 'Format';
+  String get exportFormat => 'Формат';
 
   @override
-  String get exportSize => 'Size';
+  String get exportSize => 'Размер';
 
   @override
-  String get sizeOriginal => 'Original';
+  String get sizeOriginal => 'Оригинал';
 
   @override
   String sizePixels(int px) {
@@ -427,143 +431,147 @@ class AppLocalizationsRu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Saved $count images to Photos',
-      one: 'Saved 1 image to Photos',
+      other: '$count изображений сохранено в Фото',
+      many: '$count изображений сохранено в Фото',
+      few: '$count изображения сохранены в Фото',
+      one: '$count изображение сохранено в Фото',
     );
     return '$_temp0';
   }
 
   @override
-  String get selectAll => 'All';
+  String get selectAll => 'Все';
 
   @override
-  String get selectNone => 'None';
+  String get selectNone => 'Ничего';
 
   @override
-  String get suggested => 'suggested';
+  String get suggested => 'предложено';
 
   @override
   String scoreValue(String score) {
-    return 'Score $score';
+    return 'Оценка $score';
   }
 
   @override
   String exportCheckBodyOf(int index) {
-    return 'After redaction, the check still found these areas in the output of image $index.';
+    return 'После скрытия данных проверка снова обнаружила эти области в выводе изображения $index.';
   }
 
   @override
-  String get reasonNotSelected => 'not selected';
+  String get reasonNotSelected => 'не выбрано';
 
   @override
-  String get reasonBoxTooSmall => 'box too small';
+  String get reasonBoxTooSmall => 'рамка слишком мала';
 
   @override
-  String get reasonFillShowsThrough => 'fill shows through';
+  String get reasonFillShowsThrough => 'заливка просвечивает';
 
   @override
-  String get openSource => 'Open source';
+  String get openSource => 'Открытый исходный код';
 
   @override
-  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+  String get adaptivePreselectTitle => 'Локальный адаптивный предвыбор';
 
   @override
   String adaptiveLearnedCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count classes adjusted',
-      one: '1 class adjusted',
+      other: 'Настроено $count классов',
+      many: 'Настроено $count классов',
+      few: 'Настроено $count класса',
+      one: 'Настроен $count класс',
     );
     return '$_temp0';
   }
 
   @override
-  String get adaptiveReset => 'Reset local preferences';
+  String get adaptiveReset => 'Сбросить локальные предпочтения';
 
   @override
-  String get adaptiveResetDone => 'Local preferences reset';
+  String get adaptiveResetDone => 'Локальные предпочтения сброшены';
 
   @override
-  String get feedbackTitle => 'Report detection issue';
+  String get feedbackTitle => 'Сообщить об ошибке распознавания';
 
   @override
-  String get feedbackShort => 'Feedback';
+  String get feedbackShort => 'Отзыв';
 
   @override
-  String get feedbackMenu => 'Report issue';
+  String get feedbackMenu => 'Сообщить об ошибке';
 
   @override
-  String get feedbackAction => 'Report';
+  String get feedbackAction => 'Сообщить';
 
   @override
-  String get feedbackAttachScreenshot => 'Attach screenshot';
+  String get feedbackAttachScreenshot => 'Прикрепить скриншот';
 
   @override
-  String get feedbackModeMasked => 'Errors only';
+  String get feedbackModeMasked => 'Только ошибки';
 
   @override
-  String get feedbackModeFull => 'Full image';
+  String get feedbackModeFull => 'Полное изображение';
 
   @override
-  String get feedbackModeText => 'No image';
+  String get feedbackModeText => 'Без изображения';
 
   @override
-  String get feedbackTagMissed => 'Missed';
+  String get feedbackTagMissed => 'Пропущено';
 
   @override
-  String get feedbackTagFalsePositive => 'False positive';
+  String get feedbackTagFalsePositive => 'Ложное срабатывание';
 
   @override
-  String get feedbackTagBoxDrift => 'Box drift';
+  String get feedbackTagBoxDrift => 'Смещение рамки';
 
   @override
-  String get feedbackTagWrongClass => 'Wrong class';
+  String get feedbackTagWrongClass => 'Неверный класс';
 
   @override
-  String get feedbackTagOther => 'Other';
+  String get feedbackTagOther => 'Другое';
 
   @override
-  String get feedbackNoteHint => 'Optional note…';
+  String get feedbackNoteHint => 'Необязательная заметка…';
 
   @override
   String feedbackCountMasked(int count) {
-    return 'Masked $count';
+    return 'Скрыто: $count';
   }
 
   @override
   String feedbackCountMissed(int count) {
-    return 'Missed $count';
+    return 'Пропущено: $count';
   }
 
   @override
   String feedbackCountFp(int count) {
-    return 'False positive $count';
+    return 'Ложные: $count';
   }
 
   @override
   String feedbackCountPreference(int count) {
-    return 'Unchecked $count';
+    return 'Снято: $count';
   }
 
   @override
-  String get feedbackBoxMissed => 'Missed';
+  String get feedbackBoxMissed => 'Пропущено';
 
   @override
-  String get feedbackBoxMissedMasked => 'Missed · masked';
+  String get feedbackBoxMissedMasked => 'Пропущено · скрыто';
 
   @override
-  String get feedbackBoxFp => 'False positive';
+  String get feedbackBoxFp => 'Ложное срабатывание';
 
   @override
-  String get feedbackBoxPreference => 'Keep visible';
+  String get feedbackBoxPreference => 'Оставить видимым';
 
   @override
   String get introOfflineTitle => 'Без доступа к сети';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt не содержит сетевого кода и не запрашивает сетевых разрешений. Модель встроена в приложение, а изображения и видео не покидают устройство.';
+      'MosaicIt не содержит сетевого кода и не запрашивает сетевых разрешений. Модель встроена в приложение, а изображения не покидают устройство.';
 
   @override
   String get introNoNetPermTitle => 'Без сетевых разрешений';

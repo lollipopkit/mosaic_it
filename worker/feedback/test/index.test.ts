@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import worker, { detectImageFormat, validatePayload, verifyTurnstileToken, type Env } from '../src/index.ts';
+import { FEEDBACK_COPY, FEEDBACK_LOCALES } from '../src/i18n.ts';
 
 const PNG_BYTES = new Uint8Array([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
@@ -474,4 +475,48 @@ test('Turnstile edge cases: malformed tokens, upstream null/throw, default hostn
   );
   assert.equal(rMulti.status, 201);
   assert.equal(stored.size, 3);
+});
+
+test('Feedback UI supports all 17 ServerBox locales without English placeholders', async () => {
+  const expectedCodes = [
+    'en', 'zh-CN', 'zh-TW', 'ja', 'ko', 'de', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'uk', 'tr', 'id', 'fa', 'az',
+  ];
+  assert.deepEqual(FEEDBACK_LOCALES.map((l) => l.code), expectedCodes);
+
+  const enCopy = FEEDBACK_COPY.en;
+  for (const meta of FEEDBACK_LOCALES) {
+    const copy = FEEDBACK_COPY[meta.code];
+    assert.ok(copy, `missing copy for ${meta.code}`);
+    if (meta.code === 'fa') assert.equal(meta.dir, 'rtl');
+    else assert.equal(meta.dir, 'ltr');
+
+    // Every flat string field must be non-empty and (for non-en) not copy English placeholders
+    for (const [k, v] of Object.entries(enCopy)) {
+      if (typeof v !== 'string') continue;
+      const got = (copy as Record<string, unknown>)[k];
+      assert.equal(typeof got, 'string', `${meta.code}.${k} must be string`);
+      assert.ok((got as string).trim().length > 0, `${meta.code}.${k} must be non-empty`);
+      if (meta.code !== 'en' && v.length > 8) {
+        assert.notEqual(got, v, `${meta.code}.${k} must not use English placeholder`);
+      }
+    }
+    for (const group of ['tags', 'legend', 'modeNames'] as const) {
+      for (const [k, v] of Object.entries(enCopy[group])) {
+        const got = (copy[group] as Record<string, string>)[k];
+        assert.ok(typeof got === 'string' && got.trim().length > 0, `${meta.code}.${group}.${k} missing`);
+        if (group === 'legend') assert.ok(got.includes('{n}'), `${meta.code}.legend.${k} missing {n}`);
+      }
+    }
+  }
+
+  const { env } = makeEnv();
+  const res = await worker.fetch(new Request('https://fb.test/feedback'), env);
+  const html = await res.text();
+  assert.match(html, /<html lang="en">/);
+  assert.match(html, /<select class="lang-sel" id="langSel"/);
+  for (const meta of FEEDBACK_LOCALES) {
+    assert.ok(html.includes(`<option value="${meta.code}">${meta.label}</option>`), `missing option ${meta.code}`);
+  }
+  assert.match(html, /Object\.prototype\.hasOwnProperty\.call\(LOCALE_META, base\)/);
+  assert.doesNotMatch(html, /LOCALE_META\[base\]/);
 });

@@ -77,7 +77,7 @@ class AppLocalizationsUk extends AppLocalizations {
       other: 'Експортовано $count зображень',
       many: 'Експортовано $count зображень',
       few: 'Експортовано $count зображення',
-      one: 'Експортовано 1 зображення',
+      one: 'Експортовано $count зображення',
       zero: 'Експортовано 0 зображень',
     );
     return '$_temp0';
@@ -161,7 +161,7 @@ class AppLocalizationsUk extends AppLocalizations {
       other: '$count приватних областей все ще видимі там ($classes).',
       many: '$count приватних областей все ще видимі там ($classes).',
       few: '$count приватні області все ще видимі там ($classes).',
-      one: '1 приватна область все ще видима там ($classes).',
+      one: '$count приватна область все ще видима там ($classes).',
       zero: 'Немає приватних областей, що залишилися видимими там ($classes).',
     );
     return '$_temp0';
@@ -256,7 +256,7 @@ class AppLocalizationsUk extends AppLocalizations {
   String get similar => 'Схожі';
 
   @override
-  String get thisImage => 'Ця зображення';
+  String get thisImage => 'Це зображення';
 
   @override
   String allImagesCount(int count) {
@@ -268,10 +268,10 @@ class AppLocalizationsUk extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count областей можуть бути ще прочитано',
-      many: '$count областей можуть бути ще прочитано',
-      few: '$count області можуть бути ще прочитано',
-      one: '1 область може бути ще прочитано',
+      other: '$count областей можуть усе ще бути читабельними',
+      many: '$count областей можуть усе ще бути читабельними',
+      few: '$count області можуть усе ще бути читабельними',
+      one: '$count область може все ще бути читабельною',
       zero: 'Немає областей, які можуть бути прочитані',
     );
     return '$_temp0';
@@ -368,49 +368,53 @@ class AppLocalizationsUk extends AppLocalizations {
 
   @override
   String selectedOf(int selected, int total) {
-    return '$selected / $total selected';
+    return 'Вибрано $selected / $total';
   }
 
   @override
-  String get fillStyle => 'Fill style';
+  String get fillStyle => 'Стиль заповнення';
 
   @override
-  String get colour => 'Colour';
+  String get colour => 'Колір';
 
   @override
   String exportSummary(num images, num regions) {
     String _temp0 = intl.Intl.pluralLogic(
       images,
       locale: localeName,
-      other: '$images images',
-      one: '1 image',
+      other: '$images зображень',
+      many: '$images зображень',
+      few: '$images зображення',
+      one: '$images зображення',
     );
     String _temp1 = intl.Intl.pluralLogic(
       regions,
       locale: localeName,
-      other: '$regions regions',
-      one: '1 region',
+      other: '$regions областей',
+      many: '$regions областей',
+      few: '$regions області',
+      one: '$regions область',
     );
     return '$_temp0 · $_temp1';
   }
 
   @override
-  String get share => 'Share';
+  String get share => 'Поділитися';
 
   @override
-  String get saveToPhotos => 'Save to Photos';
+  String get saveToPhotos => 'Зберегти у Фото';
 
   @override
-  String get saveAs => 'Save…';
+  String get saveAs => 'Зберегти…';
 
   @override
-  String get exportFormat => 'Format';
+  String get exportFormat => 'Формат';
 
   @override
-  String get exportSize => 'Size';
+  String get exportSize => 'Розмір';
 
   @override
-  String get sizeOriginal => 'Original';
+  String get sizeOriginal => 'Оригінал';
 
   @override
   String sizePixels(int px) {
@@ -422,209 +426,214 @@ class AppLocalizationsUk extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Saved $count images to Photos',
-      one: 'Saved 1 image to Photos',
+      other: '$count зображень збережено у Фото',
+      many: '$count зображень збережено у Фото',
+      few: '$count зображення збережено у Фото',
+      one: '$count зображення збережено у Фото',
     );
     return '$_temp0';
   }
 
   @override
-  String get selectAll => 'All';
+  String get selectAll => 'Усі';
 
   @override
-  String get selectNone => 'None';
+  String get selectNone => 'Жодної';
 
   @override
-  String get suggested => 'suggested';
+  String get suggested => 'запропоновано';
 
   @override
   String scoreValue(String score) {
-    return 'Score $score';
+    return 'Оцінка $score';
   }
 
   @override
   String exportCheckBodyOf(int index) {
-    return 'After redaction, the check still found these areas in the output of image $index.';
+    return 'Після приховування перевірка все одно знайшла ці області в результаті зображення $index.';
   }
 
   @override
-  String get reasonNotSelected => 'not selected';
+  String get reasonNotSelected => 'не вибрано';
 
   @override
-  String get reasonBoxTooSmall => 'box too small';
+  String get reasonBoxTooSmall => 'рамка замала';
 
   @override
-  String get reasonFillShowsThrough => 'fill shows through';
+  String get reasonFillShowsThrough => 'заповнення просвічується';
 
   @override
-  String get openSource => 'Open source';
+  String get openSource => 'Відкритий код';
 
   @override
-  String get adaptivePreselectTitle => 'Local adaptive pre-selection';
+  String get adaptivePreselectTitle => 'Локальний адаптивний передвибір';
 
   @override
   String adaptiveLearnedCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count classes adjusted',
-      one: '1 class adjusted',
+      other: 'Налаштовано $count класів',
+      many: 'Налаштовано $count класів',
+      few: 'Налаштовано $count класи',
+      one: 'Налаштовано $count клас',
     );
     return '$_temp0';
   }
 
   @override
-  String get adaptiveReset => 'Reset local preferences';
+  String get adaptiveReset => 'Скинути локальні налаштування';
 
   @override
-  String get adaptiveResetDone => 'Local preferences reset';
+  String get adaptiveResetDone => 'Локальні налаштування скинуто';
 
   @override
-  String get feedbackTitle => 'Report detection issue';
+  String get feedbackTitle => 'Повідомити про помилку виявлення';
 
   @override
-  String get feedbackShort => 'Feedback';
+  String get feedbackShort => 'Відгук';
 
   @override
-  String get feedbackMenu => 'Report issue';
+  String get feedbackMenu => 'Повідомити про проблему';
 
   @override
-  String get feedbackAction => 'Report';
+  String get feedbackAction => 'Повідомити';
 
   @override
-  String get feedbackAttachScreenshot => 'Attach screenshot';
+  String get feedbackAttachScreenshot => 'Додати знімок екрана';
 
   @override
-  String get feedbackModeMasked => 'Errors only';
+  String get feedbackModeMasked => 'Лише помилки';
 
   @override
-  String get feedbackModeFull => 'Full image';
+  String get feedbackModeFull => 'Повне зображення';
 
   @override
-  String get feedbackModeText => 'No image';
+  String get feedbackModeText => 'Без зображення';
 
   @override
-  String get feedbackTagMissed => 'Missed';
+  String get feedbackTagMissed => 'Пропущено';
 
   @override
-  String get feedbackTagFalsePositive => 'False positive';
+  String get feedbackTagFalsePositive => 'Хибне спрацювання';
 
   @override
-  String get feedbackTagBoxDrift => 'Box drift';
+  String get feedbackTagBoxDrift => 'Зміщення рамки';
 
   @override
-  String get feedbackTagWrongClass => 'Wrong class';
+  String get feedbackTagWrongClass => 'Неправильний клас';
 
   @override
-  String get feedbackTagOther => 'Other';
+  String get feedbackTagOther => 'Інше';
 
   @override
-  String get feedbackNoteHint => 'Optional note…';
+  String get feedbackNoteHint => 'Необов’язкова примітка…';
 
   @override
   String feedbackCountMasked(int count) {
-    return 'Masked $count';
+    return 'Приховано: $count';
   }
 
   @override
   String feedbackCountMissed(int count) {
-    return 'Missed $count';
+    return 'Пропущено: $count';
   }
 
   @override
   String feedbackCountFp(int count) {
-    return 'False positive $count';
+    return 'Хибні: $count';
   }
 
   @override
   String feedbackCountPreference(int count) {
-    return 'Unchecked $count';
+    return 'Знято: $count';
   }
 
   @override
-  String get feedbackBoxMissed => 'Missed';
+  String get feedbackBoxMissed => 'Пропущено';
 
   @override
-  String get feedbackBoxMissedMasked => 'Missed · masked';
+  String get feedbackBoxMissedMasked => 'Пропущено · приховано';
 
   @override
-  String get feedbackBoxFp => 'False positive';
+  String get feedbackBoxFp => 'Хибне спрацювання';
 
   @override
-  String get feedbackBoxPreference => 'Keep visible';
+  String get feedbackBoxPreference => 'Залишити видимим';
 
   @override
-  String get introOfflineTitle => 'No network access';
+  String get introOfflineTitle => 'Без доступу до мережі';
 
   @override
   String get introOfflineBody =>
-      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+      'MosaicIt не містить мережевого коду й не запитує дозволів на мережу. Детектор вбудовано в додаток, а зображення ніколи не залишають ваш пристрій.';
 
   @override
-  String get introNoNetPermTitle => 'Zero network permissions';
+  String get introNoNetPermTitle => 'Жодних мережевих дозволів';
 
   @override
-  String get introBundledModelTitle => 'Bundled on-device model';
+  String get introBundledModelTitle => 'Вбудована модель на пристрої';
 
   @override
   String introBundledModelBody(String version) {
-    return 'unseen-det $version · on-device';
+    return 'unseen-det $version · на пристрої';
   }
 
   @override
-  String get resetBundledModel => 'Use bundled model';
+  String get resetBundledModel => 'Використати вбудовану модель';
 
   @override
-  String get reviewIntro => 'Show intro again';
+  String get reviewIntro => 'Показати вступ знову';
 
   @override
-  String get feedbackOpenWeb => 'Open web form';
+  String get feedbackOpenWeb => 'Відкрити вебформу';
 
   @override
-  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+  String get introNoNetPermBodyIos =>
+      'Жодних мережевих запитів · лише на пристрої';
 
   @override
-  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+  String get introNoNetPermBodyAndroid => 'Дозвіл INTERNET не оголошено';
 
   @override
-  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+  String get introNoNetPermBodyDesktop => 'Без мережевого доступу в пісочниці';
 
   @override
-  String get customModel => 'Custom model';
+  String get customModel => 'Власна модель';
 
   @override
   String modelClassCount(int count) {
-    return '$count classes';
+    return '$count класів';
   }
 
   @override
-  String get copyImage => 'Copy image';
+  String get copyImage => 'Копіювати зображення';
 
   @override
-  String get copiedToClipboard => 'Copied to clipboard';
+  String get copiedToClipboard => 'Скопійовано в буфер обміну';
 
   @override
-  String get copyFailed => 'Could not copy image';
+  String get copyFailed => 'Не вдалося скопіювати зображення';
 
   @override
-  String get peekOriginal => 'Hold to compare original';
+  String get peekOriginal => 'Утримуйте, щоб порівняти з оригіналом';
 
   @override
-  String get selectMedia => 'Select photos';
+  String get selectMedia => 'Вибрати фото';
 
   @override
-  String get saveFailed => 'Could not save to Photos';
+  String get saveFailed => 'Не вдалося зберегти у Фото';
 
   @override
-  String get retry => 'Retry';
+  String get retry => 'Повторити';
 
   @override
-  String get iosWirelessPromptTitle => 'Wireless data prompt';
+  String get iosWirelessPromptTitle => 'Запит на бездротові дані';
 
   @override
   String get iosWirelessPromptBody =>
-      'Opening the system photo picker may trigger an iOS wireless data prompt for iCloud thumbnails. MosaicIt does not use the network — tap “Don’t Allow”.';
+      'Відкриття системного вибору фото може викликати запит iOS на бездротові дані для мініатюр iCloud. MosaicIt не використовує мережу — натисніть «Не дозволяти».';
 
   @override
-  String get continueAction => 'Continue';
+  String get continueAction => 'Продовжити';
 }
