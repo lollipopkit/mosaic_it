@@ -98,20 +98,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get regionsTooltip => 'Regions';
 
   @override
-  String get notCalibrated =>
-      'Model is not calibrated: pre-selection uses a fixed threshold.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'Calibrated on unverified data ($domain): the recall guarantee does not apply yet.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'Calibrated for $domain images. Other kinds of images are outside the guarantee.';
-  }
-
-  @override
   String get cameraPhoto =>
       'This is a camera photo; the detector is made for screenshots, so its boxes here are unreliable.';
 
@@ -297,59 +283,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pickClass => 'Choose a class';
 
   @override
-  String get filterScreenshots => 'Screenshots';
-
-  @override
-  String get filterAll => 'All';
-
-  @override
-  String get filterVideos => 'Videos';
-
-  @override
-  String get albums => 'Albums';
-
-  @override
-  String get limitedAccess => 'MosaicIt can see only some of your photos';
-
-  @override
-  String get manage => 'Manage';
-
-  @override
-  String selectedImages(int count) {
-    return '$count selected';
-  }
-
-  @override
-  String redactImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Redact $count images',
-      one: 'Redact 1 image',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get badgeRedacted => 'Redacted';
-
-  @override
-  String get photosDenied =>
-      'MosaicIt needs access to your photos to show them here. Photos never leave this device.';
-
-  @override
-  String get openSettings => 'Open Settings';
-
-  @override
-  String get openFiles => 'Open files';
-
-  @override
-  String get noPhotos => 'No photos here';
-
-  @override
-  String get loading => 'Loading…';
-
-  @override
   String get appearance => 'Appearance';
 
   @override
@@ -357,18 +290,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appIcon => 'App icon';
-
-  @override
-  String get aspectRatioGrid => 'Aspect ratio grid';
-
-  @override
-  String get modelDownloadFailed => 'The model could not be downloaded';
-
-  @override
-  String get retry => 'Retry';
-
-  @override
-  String get autoUpdateModel => 'Update the model automatically';
 
   @override
   String get threshold => 'Threshold';
@@ -474,15 +395,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveAs => 'Save…';
 
   @override
-  String get saveAndDeleteOriginals => 'Save and delete originals';
-
-  @override
-  String get originalsToRecentlyDeleted => 'Originals go to Recently Deleted';
-
-  @override
-  String get originalsToTrash => 'Originals go to the trash';
-
-  @override
   String get exportFormat => 'Format';
 
   @override
@@ -505,11 +417,6 @@ class AppLocalizationsEn extends AppLocalizations {
       one: 'Saved 1 image to Photos',
     );
     return '$_temp0';
-  }
-
-  @override
-  String originalsNotDeleted(String error) {
-    return 'The originals were kept: $error';
   }
 
   @override
@@ -541,28 +448,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reasonFillShowsThrough => 'fill shows through';
 
   @override
-  String get introTitle => 'Choose screenshots to redact';
-
-  @override
-  String get introBody =>
-      'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.';
-
-  @override
-  String get allowPhotoAccess => 'Allow photo access';
-
-  @override
-  String get photosOffTitle => 'Photo access is off';
-
-  @override
   String get openSource => 'Open source';
-
-  @override
-  String get downloadingDetector => 'Downloading the detector';
-
-  @override
-  String percent(int value) {
-    return '$value%';
-  }
 
   @override
   String get adaptivePreselectTitle => 'Local adaptive pre-selection';
@@ -595,15 +481,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackAction => 'Report';
-
-  @override
-  String get feedbackSubmit => 'Submit';
-
-  @override
-  String get feedbackDone => 'Done';
-
-  @override
-  String get feedbackSentTitle => 'Feedback sent';
 
   @override
   String get feedbackAttachScreenshot => 'Attach screenshot';
@@ -666,4 +543,79 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedbackBoxPreference => 'Keep visible';
+
+  @override
+  String get introOfflineTitle => 'No network access';
+
+  @override
+  String get introOfflineBody =>
+      'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.';
+
+  @override
+  String get introNoNetPermTitle => 'Zero network permissions';
+
+  @override
+  String get introBundledModelTitle => 'Bundled on-device model';
+
+  @override
+  String introBundledModelBody(String version) {
+    return 'unseen-det $version · on-device';
+  }
+
+  @override
+  String get resetBundledModel => 'Use bundled model';
+
+  @override
+  String get reviewIntro => 'Show intro again';
+
+  @override
+  String get feedbackOpenWeb => 'Open web form';
+
+  @override
+  String get introNoNetPermBodyIos => 'No network requests · on-device only';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'No INTERNET permission declared';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'No network entitlement in sandbox';
+
+  @override
+  String get customModel => 'Custom model';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count classes';
+  }
+
+  @override
+  String get copyImage => 'Copy image';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get copyFailed => 'Could not copy image';
+
+  @override
+  String get peekOriginal => 'Hold to compare original';
+
+  @override
+  String get selectMedia => 'Select photos or video';
+
+  @override
+  String get saveFailed => 'Could not save to Photos';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get iosWirelessPromptTitle => 'Wireless data prompt';
+
+  @override
+  String get iosWirelessPromptBody =>
+      'Opening the system photo picker may trigger an iOS wireless data prompt for iCloud thumbnails. MosaicIt does not use the network — tap “Don’t Allow”.';
+
+  @override
+  String get continueAction => 'Continue';
 }

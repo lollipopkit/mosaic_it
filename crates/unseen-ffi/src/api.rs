@@ -6,9 +6,9 @@ use anyhow::{Context, Result};
 use flutter_rust_bridge::frb;
 use image::Rgb;
 use unseen_core::{
-    Candidates, DetectOptions, Detection, Detector, FindOptions, KeyframeOptions, Keyframes, Manifest, ModelMeta,
-    PUBLIC_KEY, RedactStyle, Resolution, Selection, Threshold, Timeline, Tracker, blake3_file, export_check,
-    find_similar, is_camera_photo, load_image, redact, redaction_patches,
+    Candidates, DetectOptions, Detection, Detector, FindOptions, KeyframeOptions, Keyframes, ModelMeta, RedactStyle,
+    Resolution, Selection, Threshold, Timeline, Tracker, blake3_file, export_check, find_similar, is_camera_photo,
+    load_image, redact, redaction_patches,
 };
 use unseen_media::{Timestamp, VideoReader, VideoWriter};
 
@@ -235,9 +235,6 @@ fn backends(
     Ok((Box::new(OrtBackend::load_with(model, opts)?), face_detector()?))
 }
 
-/// The release variant this platform runs ([`model_update`]).
-const VARIANT: &str = if cfg!(target_os = "android") { "litert" } else { "tiled" };
-
 impl Session {
     /// `cache_dir` keeps compiled hardware models between loads. Faces come
     /// from the built-in face detector, whatever the model.
@@ -345,7 +342,9 @@ impl Session {
     /// Redacts `rects`, runs the export self-check (skipped when `force` is
     /// set) and writes `out_path` (format from its extension, no metadata).
     /// `max_side` scales the written image down so its longer side is at most
-    /// that many pixels; the check runs at full size.
+    /// that many pixels; `jpeg_quality` (1..=100) overrides the default JPEG
+    /// quality when writing `.jpg`/`.jpeg`. The check runs at full size.
+    #[allow(clippy::too_many_arguments)]
     pub fn redact_and_export(
         &self,
         image_path: String,
@@ -354,6 +353,7 @@ impl Session {
         fill: Fill,
         force: bool,
         max_side: Option<u32>,
+        jpeg_quality: Option<u8>,
     ) -> Result<ExportOutcome> {
         let src = open(&image_path)?;
         let boxes = boxes_of(&rects);
@@ -361,7 +361,8 @@ impl Session {
         let mut out = src.clone();
         redact(&mut out, &boxes, PAD, style);
         if force {
-            write_image(&out, Path::new(&out_path), max_side).with_context(|| format!("writing {out_path}"))?;
+            write_image(&out, Path::new(&out_path), max_side, jpeg_quality)
+                .with_context(|| format!("writing {out_path}"))?;
             return Ok(ExportOutcome {
                 written: true,
                 surviving: vec![],
@@ -378,7 +379,8 @@ impl Session {
         let check = export_check(&mut self.lock(), &src, &out, prev.as_ref(), &boxes, PAD, style)?;
         let written = check.passed();
         if written {
-            write_image(&out, Path::new(&out_path), max_side).with_context(|| format!("writing {out_path}"))?;
+            write_image(&out, Path::new(&out_path), max_side, jpeg_quality)
+                .with_context(|| format!("writing {out_path}"))?;
         }
         Ok(ExportOutcome {
             written,
@@ -396,7 +398,7 @@ impl Session {
 const JPEG_QUALITY: u8 = 92;
 
 /// Writes `img` in the format of `path`'s extension, scaled down to `max_side`.
-fn write_image(img: &image::RgbImage, path: &Path, max_side: Option<u32>) -> Result<()> {
+fn write_image(img: &image::RgbImage, path: &Path, max_side: Option<u32>, jpeg_quality: Option<u8>) -> Result<()> {
     let scaled;
     let img = match max_side {
         Some(m) if img.width().max(img.height()) > m => {
@@ -415,46 +417,13 @@ fn write_image(img: &image::RgbImage, path: &Path, max_side: Option<u32>) -> Res
         .and_then(|e| e.to_str())
         .is_some_and(|e| e.eq_ignore_ascii_case("jpg") || e.eq_ignore_ascii_case("jpeg"));
     if jpeg {
+        let q = jpeg_quality.unwrap_or(JPEG_QUALITY).clamp(1, 100);
         let out = std::io::BufWriter::new(std::fs::File::create(path)?);
-        image::codecs::jpeg::JpegEncoder::new_with_quality(out, JPEG_QUALITY).encode_image(img)?;
+        image::codecs::jpeg::JpegEncoder::new_with_quality(out, q).encode_image(img)?;
     } else {
         img.save(path)?;
     }
     Ok(())
-}
-
-/// A published release newer than the installed model.
-pub struct ModelUpdate {
-    pub version: String,
-    /// File name to install the model under; the sidecar is `<file>.json`.
-    pub file: String,
-    pub model_url: String,
-    pub sidecar_url: String,
-    pub blake3: String,
-    pub sidecar_blake3: String,
-}
-
-/// The newest release this app can run in a downloaded `manifest`, if it is
-/// newer than the model at `installed`. Fails unless the manifest carries the
-/// publisher's signature; an installed model that is not a listed release of
-/// this platform's variant (`litert` on Android, else `tiled`) is the user's
-/// own and gets no update.
-pub fn model_update(manifest: Vec<u8>, installed: Option<String>) -> Result<Option<ModelUpdate>> {
-    let m = Manifest::signed(&manifest, PUBLIC_KEY)?;
-    Ok(m.update(VARIANT, installed.as_deref().map(Path::new))?
-        .map(|e| ModelUpdate {
-            version: e.version.clone(),
-            file: e.file.clone(),
-            model_url: e.model_url(),
-            sidecar_url: e.sidecar_url(),
-            blake3: e.blake3.clone(),
-            sidecar_blake3: e.sidecar_blake3.clone(),
-        }))
-}
-
-/// Hex BLAKE3 of a file's content.
-pub fn file_blake3(path: String) -> Result<String> {
-    Ok(blake3_file(Path::new(&path))?)
 }
 
 /// Regions that look like `rect` of `image_path`, searched in `target_path`
@@ -754,11 +723,19 @@ mod tests {
             ("c.png", Some(1000), (400, 100), image::ImageFormat::Png),
         ] {
             let p = dir.join(name);
-            super::write_image(&img, &p, max).unwrap();
+            super::write_image(&img, &p, max, None).unwrap();
             let r = image::ImageReader::open(&p).unwrap().with_guessed_format().unwrap();
             assert_eq!(r.format(), Some(format), "{name}");
             assert_eq!(r.into_dimensions().unwrap(), size, "{name}");
         }
+        let noisy = image::RgbImage::from_fn(200, 200, |x, y| {
+            image::Rgb([(x * 13 % 256) as u8, (y * 29 % 256) as u8, ((x + y) * 7 % 256) as u8])
+        });
+        let hi = dir.join("hi.jpg");
+        let lo = dir.join("lo.jpg");
+        super::write_image(&noisy, &hi, None, Some(92)).unwrap();
+        super::write_image(&noisy, &lo, None, Some(40)).unwrap();
+        assert!(std::fs::metadata(&lo).unwrap().len() < std::fs::metadata(&hi).unwrap().len());
         std::fs::remove_dir_all(dir).unwrap();
     }
 }

@@ -99,19 +99,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get regionsTooltip => '区域';
 
   @override
-  String get notCalibrated => '模型未校准：预选使用固定阈值。';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return '在未经验证的数据 ($domain) 上校准：召回率保证尚未生效。';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return '已针对 $domain 图片进行校准。其他类型的图片不在保证范围内。';
-  }
-
-  @override
   String get cameraPhoto => '这是一张相机照片；检测器专为截图设计，因此此处的框选不可靠。';
 
   @override
@@ -294,57 +281,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pickClass => '选择类别';
 
   @override
-  String get filterScreenshots => '截图';
-
-  @override
-  String get filterAll => '全部';
-
-  @override
-  String get filterVideos => '视频';
-
-  @override
-  String get albums => '相册';
-
-  @override
-  String get limitedAccess => '只允许访问部分照片';
-
-  @override
-  String get manage => '管理';
-
-  @override
-  String selectedImages(int count) {
-    return '已选 $count 张';
-  }
-
-  @override
-  String redactImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '打码 $count 张',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get badgeRedacted => '已打码';
-
-  @override
-  String get photosDenied => '码住 需要访问照片才能在这里显示。照片不会离开这台设备。';
-
-  @override
-  String get openSettings => '打开设置';
-
-  @override
-  String get openFiles => '打开文件';
-
-  @override
-  String get noPhotos => '这里没有照片';
-
-  @override
-  String get loading => '正在加载…';
-
-  @override
   String get appearance => '外观';
 
   @override
@@ -352,18 +288,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appIcon => '应用图标';
-
-  @override
-  String get aspectRatioGrid => '按原始比例显示';
-
-  @override
-  String get modelDownloadFailed => '模型下载失败';
-
-  @override
-  String get retry => '重试';
-
-  @override
-  String get autoUpdateModel => '自动更新模型';
 
   @override
   String get threshold => '阈值';
@@ -469,15 +393,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get saveAs => 'Save…';
 
   @override
-  String get saveAndDeleteOriginals => 'Save and delete originals';
-
-  @override
-  String get originalsToRecentlyDeleted => 'Originals go to Recently Deleted';
-
-  @override
-  String get originalsToTrash => 'Originals go to the trash';
-
-  @override
   String get exportFormat => 'Format';
 
   @override
@@ -500,11 +415,6 @@ class AppLocalizationsZh extends AppLocalizations {
       one: 'Saved 1 image to Photos',
     );
     return '$_temp0';
-  }
-
-  @override
-  String originalsNotDeleted(String error) {
-    return 'The originals were kept: $error';
   }
 
   @override
@@ -536,28 +446,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reasonFillShowsThrough => 'fill shows through';
 
   @override
-  String get introTitle => 'Choose screenshots to redact';
-
-  @override
-  String get introBody =>
-      'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.';
-
-  @override
-  String get allowPhotoAccess => 'Allow photo access';
-
-  @override
-  String get photosOffTitle => 'Photo access is off';
-
-  @override
   String get openSource => 'Open source';
-
-  @override
-  String get downloadingDetector => 'Downloading the detector';
-
-  @override
-  String percent(int value) {
-    return '$value%';
-  }
 
   @override
   String get adaptivePreselectTitle => '本机自适应预选';
@@ -584,15 +473,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get feedbackAction => '反馈错例';
-
-  @override
-  String get feedbackSubmit => '提交反馈';
-
-  @override
-  String get feedbackDone => '完成';
-
-  @override
-  String get feedbackSentTitle => '已提交反馈';
 
   @override
   String get feedbackAttachScreenshot => '选择截图';
@@ -655,6 +535,81 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get feedbackBoxPreference => '不想遮';
+
+  @override
+  String get introOfflineTitle => '无联网功能';
+
+  @override
+  String get introOfflineBody =>
+      'MosaicIt 不包含任何网络请求代码，也未申请系统网络权限。检测模型已内置于安装包中，所有识别与打码均在本机完成。';
+
+  @override
+  String get introNoNetPermTitle => '零网络权限';
+
+  @override
+  String get introBundledModelTitle => '检测模型已内置';
+
+  @override
+  String introBundledModelBody(String version) {
+    return 'unseen-det $version · 本机内置';
+  }
+
+  @override
+  String get resetBundledModel => '恢复内置模型';
+
+  @override
+  String get reviewIntro => '重新查看介绍';
+
+  @override
+  String get feedbackOpenWeb => '前往网页提交';
+
+  @override
+  String get introNoNetPermBodyIos => '不发起任何网络请求 · 仅本机运行';
+
+  @override
+  String get introNoNetPermBodyAndroid => '未申请 INTERNET 网络权限';
+
+  @override
+  String get introNoNetPermBodyDesktop => '沙盒未申请网络访问权限';
+
+  @override
+  String get customModel => '自定义模型';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count 个类别';
+  }
+
+  @override
+  String get copyImage => '复制图片';
+
+  @override
+  String get copiedToClipboard => '已复制到剪贴板';
+
+  @override
+  String get copyFailed => '复制图片失败';
+
+  @override
+  String get peekOriginal => '按住查看原图';
+
+  @override
+  String get selectMedia => '选择照片或视频';
+
+  @override
+  String get saveFailed => '保存到相册失败';
+
+  @override
+  String get retry => '重试';
+
+  @override
+  String get iosWirelessPromptTitle => '无线数据弹窗提示';
+
+  @override
+  String get iosWirelessPromptBody =>
+      '打开系统相册时，iOS 可能会因预览 iCloud 缩略图弹出「允许使用无线数据」提示。码住本身不联网，弹窗出现时直接选「不允许」即可。';
+
+  @override
+  String get continueAction => '继续';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -749,19 +704,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get regionsTooltip => '區域';
-
-  @override
-  String get notCalibrated => '模型未校準：預選使用固定閾值。';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return '已針對未驗證資料 ($domain) 進行校準：召回率保證尚未生效。';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return '已針對 $domain 圖片進行校準。其他類型的圖片不在保證範圍內。';
-  }
 
   @override
   String get cameraPhoto => '這是相機照片；偵測器是為截圖設計的，因此此處的框選結果不可靠。';
@@ -948,59 +890,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get pickClass => '選擇類別';
 
   @override
-  String get filterScreenshots => '螢幕截圖';
-
-  @override
-  String get filterAll => '全部';
-
-  @override
-  String get filterVideos => '影片';
-
-  @override
-  String get albums => '相簿';
-
-  @override
-  String get limitedAccess => '碼住 只能看到部分照片';
-
-  @override
-  String get manage => '管理';
-
-  @override
-  String selectedImages(int count) {
-    return '已選取 $count 張';
-  }
-
-  @override
-  String redactImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '遮蔽 $count 張影像',
-      one: '遮蔽 1 張影像',
-      zero: '遮蔽 0 張影像',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get badgeRedacted => '已遮蔽';
-
-  @override
-  String get photosDenied => '碼住 需要存取您的照片才能在此顯示。照片絕不會離開此裝置。';
-
-  @override
-  String get openSettings => '開啟設定';
-
-  @override
-  String get openFiles => '開啟檔案';
-
-  @override
-  String get noPhotos => '此處沒有照片';
-
-  @override
-  String get loading => '載入中…';
-
-  @override
   String get appearance => '外觀';
 
   @override
@@ -1008,18 +897,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get appIcon => 'App 圖像';
-
-  @override
-  String get aspectRatioGrid => '以原始比例顯示';
-
-  @override
-  String get modelDownloadFailed => '模型下載失敗';
-
-  @override
-  String get retry => '重試';
-
-  @override
-  String get autoUpdateModel => '自動更新模型';
 
   @override
   String get threshold => '閾值';
@@ -1114,15 +991,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get feedbackAction => '回報錯例';
 
   @override
-  String get feedbackSubmit => '提交回饋';
-
-  @override
-  String get feedbackDone => '完成';
-
-  @override
-  String get feedbackSentTitle => '已提交回饋';
-
-  @override
   String get feedbackAttachScreenshot => '選擇截圖';
 
   @override
@@ -1183,4 +1051,79 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get feedbackBoxPreference => '不想遮';
+
+  @override
+  String get introOfflineTitle => '無聯網功能';
+
+  @override
+  String get introOfflineBody =>
+      'MosaicIt 不包含任何網路請求程式碼，也未申請系統網路權限。偵測模型已內建於安裝包中，所有辨識與打碼皆於本機完成。';
+
+  @override
+  String get introNoNetPermTitle => '零網路權限';
+
+  @override
+  String get introBundledModelTitle => '偵測模型已內建';
+
+  @override
+  String introBundledModelBody(String version) {
+    return 'unseen-det $version · 本機內建';
+  }
+
+  @override
+  String get resetBundledModel => '恢復內建模型';
+
+  @override
+  String get reviewIntro => '重新檢視介紹';
+
+  @override
+  String get feedbackOpenWeb => '前往網頁提交';
+
+  @override
+  String get introNoNetPermBodyIos => '不發起任何網路請求 · 僅本機執行';
+
+  @override
+  String get introNoNetPermBodyAndroid => '未申請 INTERNET 網路權限';
+
+  @override
+  String get introNoNetPermBodyDesktop => '沙盒未申請網路存取權限';
+
+  @override
+  String get customModel => '自訂模型';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count 個類別';
+  }
+
+  @override
+  String get copyImage => '複製圖片';
+
+  @override
+  String get copiedToClipboard => '已複製到剪貼簿';
+
+  @override
+  String get copyFailed => '複製圖片失敗';
+
+  @override
+  String get peekOriginal => '按住檢視原圖';
+
+  @override
+  String get selectMedia => '選擇照片或影片';
+
+  @override
+  String get saveFailed => '儲存到相簿失敗';
+
+  @override
+  String get retry => '重試';
+
+  @override
+  String get iosWirelessPromptTitle => '無線資料彈窗提示';
+
+  @override
+  String get iosWirelessPromptBody =>
+      '開啟系統相簿時，iOS 可能會因預覽 iCloud 縮圖彈出「允許使用無線資料」提示。碼住本身不連網，彈窗出現時直接選「不允許」即可。';
+
+  @override
+  String get continueAction => '繼續';
 }

@@ -11,7 +11,9 @@ import 'adaptive_prefs.dart';
 import 'app_icon.dart';
 import 'app_icon_picker.dart';
 import 'feedback_sheet.dart';
+import 'intro_page.dart';
 import 'l10n.dart';
+import 'model_store.dart';
 import 'rust/api.dart';
 import 'store.dart';
 
@@ -21,6 +23,7 @@ import 'package:fl_lib/fl_lib.dart'
         SegmentedTabs,
         SheetChoiceTile,
         SheetScaffold,
+        libL10n,
         showResizableSheet;
 import 'package:fl_lib/theme.dart';
 
@@ -29,7 +32,6 @@ class AppSettings {
   AppSettings({
     required this.fillStyle,
     required this.fillColor,
-    this.autoUpdateModel = true,
     this.threshold = ThresholdPreset.medium,
     this.offClasses = defaultOffClasses,
     this.adaptivePreselect = true,
@@ -47,9 +49,6 @@ class AppSettings {
 
   /// 0xRRGGBB for [FillStyle.solid].
   int fillColor;
-
-  /// Download newer model releases; they take effect at the next launch.
-  bool autoUpdateModel;
 
   /// Scales the model's thresholds: low pre-selects more, high less.
   ThresholdPreset threshold;
@@ -80,7 +79,6 @@ class AppSettings {
           FillStyle.values.asNameMap()[_store.fillStyle.get()] ??
           FillStyle.solid,
       fillColor: _store.fillColor.get(),
-      autoUpdateModel: _store.autoUpdateModel.get(),
       threshold:
           ThresholdPreset.values.asNameMap()[_store.threshold.get()] ??
           ThresholdPreset.medium,
@@ -96,7 +94,6 @@ class AppSettings {
   Future<void> save() => Future.wait([
     _store.fillStyle.set(fillStyle.name),
     _store.fillColor.set(fillColor),
-    _store.autoUpdateModel.set(autoUpdateModel),
     _store.threshold.set(threshold.name),
     _store.offClasses.set(offClasses.toList()),
     _store.adaptivePreselect.set(adaptivePreselect),
@@ -150,7 +147,9 @@ class SettingsPage extends StatefulWidget {
     this.classes = const [],
     this.info,
     this.model,
+    this.hasCustomModel = false,
     this.onChooseModel,
+    this.onResetModel,
   });
 
   final AppSettings settings;
@@ -161,11 +160,17 @@ class SettingsPage extends StatefulWidget {
   /// The loaded model: its calibration and inference backend.
   final ModelInfo? info;
 
-  /// Active session, used when attaching a screenshot to feedback.
+  /// Active session, used when preparing a redacted screenshot for web feedback.
   final Session? model;
 
-  /// Imports a model chosen by the user (advanced).
-  final Future<void> Function()? onChooseModel;
+  /// Whether a user-imported custom model overrides the bundled model.
+  final bool hasCustomModel;
+
+  /// Imports a model chosen by the user (advanced); returns whether a new model was loaded.
+  final Future<bool> Function()? onChooseModel;
+
+  /// Clears any user-imported model and reloads the bundled model.
+  final Future<void> Function()? onResetModel;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -174,6 +179,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   /// The launcher icon; null until read, or where it cannot be changed.
   AppIcon? _icon;
+  bool _working = false;
 
   @override
   void initState() {
@@ -351,30 +357,72 @@ class _SettingsPageState extends State<SettingsPage> {
           if (widget.info case final i?)
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: Text(switch ((i.domain, i.verified)) {
-                (null, _) => t.notCalibrated,
-                (final d?, false) => t.calibratedUnverified(d),
-                (final d?, true) => t.calibratedFor(d),
-              }),
-              subtitle: Text(i.backend),
+              title: Text(
+                widget.hasCustomModel
+                    ? t.customModel
+                    : t.introBundledModelBody(ModelStore.bundledModelVersion),
+              ),
+              subtitle: Text(
+                '${i.backend} · ${t.modelClassCount(i.classes.length)}',
+              ),
             ),
-          SwitchListTile(
-            secondary: const Icon(Icons.system_update_alt),
-            title: Text(t.autoUpdateModel),
-            value: s.autoUpdateModel,
-            onChanged: (v) => _set((s) => s.autoUpdateModel = v),
-          ),
+          if (widget.hasCustomModel && widget.onResetModel != null)
+            ListTile(
+              leading: const Icon(Icons.restore),
+              title: Text(t.resetBundledModel),
+              enabled: !_working,
+              onTap: () async {
+                if (_working) return;
+                setState(() => _working = true);
+                try {
+                  await widget.onResetModel!();
+                  if (context.mounted) Navigator.of(context).pop();
+                } finally {
+                  if (mounted) setState(() => _working = false);
+                }
+              },
+            ),
           if (widget.onChooseModel case final choose?)
             ListTile(
               leading: const Icon(Icons.memory),
               title: Text(t.importModel),
               subtitle: Text(t.advanced),
+              enabled: !_working,
               onTap: () async {
-                await choose();
-                if (context.mounted) Navigator.of(context).pop();
+                if (_working) return;
+                setState(() => _working = true);
+                try {
+                  final changed = await choose();
+                  if (changed && context.mounted) Navigator.of(context).pop();
+                } finally {
+                  if (mounted) setState(() => _working = false);
+                }
               },
             ),
           header(t.about),
+          ListTile(
+            leading: const Icon(Icons.wifi_off_rounded),
+            title: Text(t.introOfflineTitle),
+            subtitle: Text(platformNoNetPermBody(t)),
+          ),
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: Text(t.reviewIntro),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (ctx) =>
+                    MosaicIntroPage(onDone: () => Navigator.of(ctx).pop()),
+              ),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.code),
+            title: Text(t.openSource),
+            subtitle: const Text(mosaicRepoDisplay),
+            trailing: const Icon(Icons.north_east, size: 18),
+            onTap: () => openExternalUrl(mosaicRepoUrl),
+          ),
           ListTile(
             leading: const Icon(Icons.description_outlined),
             title: Text(t.licenses),
@@ -400,11 +448,18 @@ class _AppearancePageState extends State<_AppearancePage> {
     final a = ThemeAppearance(context, (f) {
       if (mounted) setState(f);
     });
+    // Exclude fl_lib's theme-package installer row because it offers URL
+    // downloads, keeping the app strictly offline.
+    final installLabel = libL10n.appearanceThemeInstall;
     return Scaffold(
       appBar: AppBar(title: Text(AppLocalizations.of(context).theme)),
       body: ListView(
         children: [
-          for (final r in [...a.themeRows(), ...a.fontRows()]) r.build(),
+          for (final r in [
+            ...a.themeRows().where((r) => r.label != installLabel),
+            ...a.fontRows(),
+          ])
+            r.build(),
         ],
       ),
     );

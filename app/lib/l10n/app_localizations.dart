@@ -302,24 +302,6 @@ abstract class AppLocalizations {
   /// **'Regions'**
   String get regionsTooltip;
 
-  /// No description provided for @notCalibrated.
-  ///
-  /// In en, this message translates to:
-  /// **'Model is not calibrated: pre-selection uses a fixed threshold.'**
-  String get notCalibrated;
-
-  /// No description provided for @calibratedUnverified.
-  ///
-  /// In en, this message translates to:
-  /// **'Calibrated on unverified data ({domain}): the recall guarantee does not apply yet.'**
-  String calibratedUnverified(String domain);
-
-  /// No description provided for @calibratedFor.
-  ///
-  /// In en, this message translates to:
-  /// **'Calibrated for {domain} images. Other kinds of images are outside the guarantee.'**
-  String calibratedFor(String domain);
-
   /// No description provided for @cameraPhoto.
   ///
   /// In en, this message translates to:
@@ -620,90 +602,6 @@ abstract class AppLocalizations {
   /// **'Choose a class'**
   String get pickClass;
 
-  /// Gallery filter chip: the Screenshots album.
-  ///
-  /// In en, this message translates to:
-  /// **'Screenshots'**
-  String get filterScreenshots;
-
-  /// Gallery filter chip: all photos.
-  ///
-  /// In en, this message translates to:
-  /// **'All'**
-  String get filterAll;
-
-  /// Gallery filter chip: videos.
-  ///
-  /// In en, this message translates to:
-  /// **'Videos'**
-  String get filterVideos;
-
-  /// Gallery filter chip that opens a list of albums.
-  ///
-  /// In en, this message translates to:
-  /// **'Albums'**
-  String get albums;
-
-  /// Banner: the user allowed access to only some photos (iOS limited photo access).
-  ///
-  /// In en, this message translates to:
-  /// **'MosaicIt can see only some of your photos'**
-  String get limitedAccess;
-
-  /// Button on that banner: choose which photos the app may see.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage'**
-  String get manage;
-
-  /// Title bar while selecting photos in the gallery: how many are selected.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} selected'**
-  String selectedImages(int count);
-
-  /// Main button after selecting photos: hide private information in them (redact).
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{Redact 1 image} other{Redact {count} images}}'**
-  String redactImages(int count);
-
-  /// Small tag on a gallery thumbnail: this photo was already redacted and exported.
-  ///
-  /// In en, this message translates to:
-  /// **'Redacted'**
-  String get badgeRedacted;
-
-  /// Shown when the app has no photo access: why it needs it, and that photos never leave the phone.
-  ///
-  /// In en, this message translates to:
-  /// **'MosaicIt needs access to your photos to show them here. Photos never leave this device.'**
-  String get photosDenied;
-
-  /// Button: open the system Settings app to grant photo access.
-  ///
-  /// In en, this message translates to:
-  /// **'Open Settings'**
-  String get openSettings;
-
-  /// Menu item on desktop: open image files from disk.
-  ///
-  /// In en, this message translates to:
-  /// **'Open files'**
-  String get openFiles;
-
-  /// Empty gallery: no photos in this album.
-  ///
-  /// In en, this message translates to:
-  /// **'No photos here'**
-  String get noPhotos;
-
-  /// Progress text while photos load.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading…'**
-  String get loading;
-
   /// Settings section header: look of the app.
   ///
   /// In en, this message translates to:
@@ -721,30 +619,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'App icon'**
   String get appIcon;
-
-  /// Gallery menu, checkable: show each photo whole in its grid cell instead of cropped to a square.
-  ///
-  /// In en, this message translates to:
-  /// **'Aspect ratio grid'**
-  String get aspectRatioGrid;
-
-  /// Gallery notice: the detector model, downloaded on first launch, could not be fetched (offline or server error).
-  ///
-  /// In en, this message translates to:
-  /// **'The model could not be downloaded'**
-  String get modelDownloadFailed;
-
-  /// Button: try the failed download again.
-  ///
-  /// In en, this message translates to:
-  /// **'Retry'**
-  String get retry;
-
-  /// Settings switch: download newer detector models when they are published.
-  ///
-  /// In en, this message translates to:
-  /// **'Update the model automatically'**
-  String get autoUpdateModel;
 
   /// Settings row: how confident the detector must be to pre-select a region (a lower threshold pre-selects more regions).
   ///
@@ -920,24 +794,6 @@ abstract class AppLocalizations {
   /// **'Save…'**
   String get saveAs;
 
-  /// No description provided for @saveAndDeleteOriginals.
-  ///
-  /// In en, this message translates to:
-  /// **'Save and delete originals'**
-  String get saveAndDeleteOriginals;
-
-  /// iOS
-  ///
-  /// In en, this message translates to:
-  /// **'Originals go to Recently Deleted'**
-  String get originalsToRecentlyDeleted;
-
-  /// Android
-  ///
-  /// In en, this message translates to:
-  /// **'Originals go to the trash'**
-  String get originalsToTrash;
-
   /// No description provided for @exportFormat.
   ///
   /// In en, this message translates to:
@@ -967,12 +823,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Saved 1 image to Photos} other{Saved {count} images to Photos}}'**
   String savedToPhotos(num count);
-
-  /// No description provided for @originalsNotDeleted.
-  ///
-  /// In en, this message translates to:
-  /// **'The originals were kept: {error}'**
-  String originalsNotDeleted(String error);
 
   /// Select every region
   ///
@@ -1022,47 +872,11 @@ abstract class AppLocalizations {
   /// **'fill shows through'**
   String get reasonFillShowsThrough;
 
-  /// No description provided for @introTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose screenshots to redact'**
-  String get introTitle;
-
-  /// No description provided for @introBody.
-  ///
-  /// In en, this message translates to:
-  /// **'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.'**
-  String get introBody;
-
-  /// No description provided for @allowPhotoAccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Allow photo access'**
-  String get allowPhotoAccess;
-
-  /// No description provided for @photosOffTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Photo access is off'**
-  String get photosOffTitle;
-
   /// No description provided for @openSource.
   ///
   /// In en, this message translates to:
   /// **'Open source'**
   String get openSource;
-
-  /// No description provided for @downloadingDetector.
-  ///
-  /// In en, this message translates to:
-  /// **'Downloading the detector'**
-  String get downloadingDetector;
-
-  /// No description provided for @percent.
-  ///
-  /// In en, this message translates to:
-  /// **'{value}%'**
-  String percent(int value);
 
   /// Settings toggle: adjust per-class pre-selection thresholds locally on this device from user edits.
   ///
@@ -1111,24 +925,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report'**
   String get feedbackAction;
-
-  /// No description provided for @feedbackSubmit.
-  ///
-  /// In en, this message translates to:
-  /// **'Submit'**
-  String get feedbackSubmit;
-
-  /// No description provided for @feedbackDone.
-  ///
-  /// In en, this message translates to:
-  /// **'Done'**
-  String get feedbackDone;
-
-  /// No description provided for @feedbackSentTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Feedback sent'**
-  String get feedbackSentTitle;
 
   /// No description provided for @feedbackAttachScreenshot.
   ///
@@ -1237,6 +1033,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Keep visible'**
   String get feedbackBoxPreference;
+
+  /// No description provided for @introOfflineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No network access'**
+  String get introOfflineTitle;
+
+  /// No description provided for @introOfflineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'MosaicIt contains no networking code and requests no network permission. The detector is bundled inside the app, and images and videos never leave your device.'**
+  String get introOfflineBody;
+
+  /// No description provided for @introNoNetPermTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero network permissions'**
+  String get introNoNetPermTitle;
+
+  /// No description provided for @introBundledModelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bundled on-device model'**
+  String get introBundledModelTitle;
+
+  /// No description provided for @introBundledModelBody.
+  ///
+  /// In en, this message translates to:
+  /// **'unseen-det {version} · on-device'**
+  String introBundledModelBody(String version);
+
+  /// No description provided for @resetBundledModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Use bundled model'**
+  String get resetBundledModel;
+
+  /// No description provided for @reviewIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Show intro again'**
+  String get reviewIntro;
+
+  /// No description provided for @feedbackOpenWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Open web form'**
+  String get feedbackOpenWeb;
+
+  /// No description provided for @introNoNetPermBodyIos.
+  ///
+  /// In en, this message translates to:
+  /// **'No network requests · on-device only'**
+  String get introNoNetPermBodyIos;
+
+  /// No description provided for @introNoNetPermBodyAndroid.
+  ///
+  /// In en, this message translates to:
+  /// **'No INTERNET permission declared'**
+  String get introNoNetPermBodyAndroid;
+
+  /// No description provided for @introNoNetPermBodyDesktop.
+  ///
+  /// In en, this message translates to:
+  /// **'No network entitlement in sandbox'**
+  String get introNoNetPermBodyDesktop;
+
+  /// No description provided for @customModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom model'**
+  String get customModel;
+
+  /// No description provided for @modelClassCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} classes'**
+  String modelClassCount(int count);
+
+  /// No description provided for @copyImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy image'**
+  String get copyImage;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
+
+  /// No description provided for @copyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not copy image'**
+  String get copyFailed;
+
+  /// No description provided for @peekOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold to compare original'**
+  String get peekOriginal;
+
+  /// Button in the editor to open the system media picker for images or a video.
+  ///
+  /// In en, this message translates to:
+  /// **'Select photos or video'**
+  String get selectMedia;
+
+  /// Toast shown when saving a redacted image to the system photo library fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save to Photos'**
+  String get saveFailed;
+
+  /// Button to retry loading the bundled detector model.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// Dialog title on China-mainland iOS devices before the first photo picker open.
+  ///
+  /// In en, this message translates to:
+  /// **'Wireless data prompt'**
+  String get iosWirelessPromptTitle;
+
+  /// Dialog body explaining why China-mainland iOS may show a wireless data prompt when opening the system photo picker and advising the user to tap Don't Allow.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening the system photo picker may trigger an iOS wireless data prompt for iCloud thumbnails. MosaicIt does not use the network — tap “Don’t Allow”.'**
+  String get iosWirelessPromptBody;
+
+  /// Primary button to proceed after reading a one-time notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueAction;
 }
 
 class _AppLocalizationsDelegate

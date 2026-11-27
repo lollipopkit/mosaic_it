@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:file_selector/file_selector.dart';
 import 'package:fl_lib/fl_lib.dart'
     show SegmentedTab, SegmentedTabs, SheetScaffold, showResizableSheet;
-import 'package:image_picker/image_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -13,28 +13,30 @@ import '../l10n/app_localizations.dart';
 import 'boxes.dart';
 import 'editor.dart';
 import 'feedback.dart';
+import 'intro_page.dart';
+import 'platform_bridge.dart';
 import 'rust/api.dart';
 
-/// Opens the privacy-first feedback bottom sheet.
+/// Opens the offline privacy-first feedback bottom sheet.
 ///
-/// When [shot] is provided (from [EditorPage]), opens directly in masked
-/// preview mode with interactive error-vs-preference toggles. When [shot] is
-/// null (from Home or Settings), starts in text-only mode and optionally lets
-/// the user attach a screenshot when [model] is available.
-Future<FeedbackReceipt?> showFeedbackSheet(
+/// The app never sends network requests itself: once the user confirms what to
+/// share, the sheet encodes the annotations (and, when under the URL budget,
+/// the redacted JPEG) into the `#fragment` of the web feedback URL and hands
+/// it off to the system browser.
+Future<bool?> showFeedbackSheet(
   BuildContext context, {
   Shot? shot,
   Session? model,
   ModelInfo? info,
-  FeedbackClient? client,
-}) => showResizableSheet<FeedbackReceipt>(
+  Future<bool> Function(Uri uri)? launchUri,
+}) => showResizableSheet<bool>(
   context,
   restLimit: SheetScaffold.restLimit,
   builder: (context) => _FeedbackSheet(
     initialShot: shot,
     model: model,
     info: info,
-    client: client,
+    launchUri: launchUri,
   ),
 );
 
@@ -43,21 +45,19 @@ class _FeedbackSheet extends StatefulWidget {
     required this.initialShot,
     required this.model,
     required this.info,
-    required this.client,
+    required this.launchUri,
   });
 
   final Shot? initialShot;
   final Session? model;
   final ModelInfo? info;
-  final FeedbackClient? client;
+  final Future<bool> Function(Uri uri)? launchUri;
 
   @override
   State<_FeedbackSheet> createState() => _FeedbackSheetState();
 }
 
 class _FeedbackSheetState extends State<_FeedbackSheet> {
-  late final bool _ownsClient = widget.client == null;
-  late final FeedbackClient _client = widget.client ?? FeedbackClient();
   late final _draft = FeedbackDraft(
     shot: widget.model != null ? widget.initialShot : null,
     mode: widget.model == null || widget.initialShot == null
@@ -65,19 +65,17 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
         : FeedbackPrivacyMode.masked,
   );
   late final _noteCtrl = TextEditingController();
-  bool _submitting = false;
+  bool _preparing = false;
   bool _picking = false;
   String? _error;
-  FeedbackReceipt? _receipt;
 
   static final _mobile = Platform.isIOS || Platform.isAndroid;
 
-  bool get _locked => _submitting || _picking;
+  bool get _locked => _preparing || _picking;
 
   @override
   void dispose() {
     _noteCtrl.dispose();
-    if (_ownsClient) _client.close();
     super.dispose();
   }
 
@@ -91,23 +89,37 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
     try {
       String? path;
       if (_mobile) {
-        final picked = await ImagePicker().pickImage(
-          source: ImageSource.gallery,
+        if (!await confirmFirstPickerIfRestricted(context) || !mounted) return;
+        final picked = await PlatformBridge.pickMedia(
+          multiple: false,
+          allowVideo: false,
         );
-        path = picked?.path;
+        path = picked.firstOrNull;
       } else {
         final picked = await openFile(
           acceptedTypeGroups: [
             XTypeGroup(
               label: AppLocalizations.of(context).imagesFileType,
-              extensions: const ['png', 'jpg', 'jpeg', 'webp'],
+              extensions: const [
+                'png',
+                'jpg',
+                'jpeg',
+                'webp',
+                'heic',
+                'heif',
+                'bmp',
+                'tif',
+                'tiff',
+                'gif',
+              ],
             ),
           ],
         );
         path = picked?.path;
       }
       if (path == null || !mounted) return;
-      final file = File(path);
+      final prepared = await PlatformBridge.prepareImage(path);
+      final file = File(prepared);
       final detected = await model.detect(imagePath: file.path);
       if (!mounted) return;
       setState(() {
@@ -156,24 +168,53 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
     return widget.info?.domain ?? 'none';
   }
 
-  Future<void> _submit() async {
+  Future<(Uint8List, Size)> _renderFeedbackJpeg({
+    required Session model,
+    required File imgFile,
+    required List<PixelRect> rects,
+    required String outPath,
+    required int maxSide,
+    required int quality,
+  }) async {
+    final outcome = await model.redactAndExport(
+      imagePath: imgFile.path,
+      outPath: outPath,
+      rects: rects,
+      fill: Fill(style: FillStyle.solid, color: 0x000000, seed: BigInt.zero),
+      force: true,
+      maxSide: maxSide,
+      jpegQuality: quality,
+    );
+    if (!outcome.written) {
+      throw StateError('Failed to prepare redacted image');
+    }
+    final file = File(outPath);
+    final bytes = await file.readAsBytes();
+    final size = await _readImageSize(file);
+    return (bytes, size);
+  }
+
+  Future<void> _openWebFeedback() async {
     if (_locked || !_draft.canSubmit) return;
     // Capture an immutable snapshot synchronously before the first await so
-    // the uploaded image and JSON metadata are guaranteed consistent.
+    // the prepared image and JSON metadata are guaranteed consistent.
     final snap = _draft.snapshot();
     setState(() {
-      _submitting = true;
+      _preparing = true;
       _error = null;
     });
     File? tempFile;
     try {
       final modelId = await _resolveModelId();
       Size? uploadedSize;
+      Uint8List? inlineImage;
+      var imageDeferred = false;
+
       if (snap.mode != FeedbackPrivacyMode.text) {
         final imgFile = snap.imageFile;
         final model = widget.model;
         if (imgFile == null || model == null) {
-          throw const FeedbackException('No model available to prepare image');
+          throw StateError('No model available to prepare image');
         }
         final dir = await getTemporaryDirectory();
         final outPath =
@@ -188,33 +229,59 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
               bottom: r.bottom,
             ),
         ];
-        final outcome = await model.redactAndExport(
-          imagePath: imgFile.path,
-          outPath: outPath,
-          rects: rects,
-          fill: Fill(
-            style: FillStyle.solid,
-            color: 0x000000,
-            seed: BigInt.zero,
-          ),
-          force: true,
-          maxSide: feedbackMaxImageSide,
-        );
-        if (!outcome.written) {
-          throw const FeedbackException('Failed to prepare redacted image');
+        // Windows ShellExecuteW caps URLs at ~32 KiB, so skip encoding an
+        // inline JPEG there and hand off the pre-filled annotations + masks.
+        final allowInline = !Platform.isWindows;
+        if (!allowInline) {
+          uploadedSize = snap.sourceSize;
+          imageDeferred = true;
+        } else {
+          const attempts = [
+            (feedbackMaxImageSide, 70),
+            (feedbackMaxImageSide, 55),
+            (960, 55),
+          ];
+          Size? lastSize;
+          for (final (side, quality) in attempts) {
+            final (bytes, size) = await _renderFeedbackJpeg(
+              model: model,
+              imgFile: imgFile,
+              rects: rects,
+              outPath: outPath,
+              maxSide: side,
+              quality: quality,
+            );
+            lastSize = size;
+            if (bytes.length <= feedbackMaxInlineImageBytes) {
+              inlineImage = bytes;
+              break;
+            }
+          }
+          uploadedSize = lastSize;
+          if (inlineImage == null) {
+            imageDeferred = true;
+          }
         }
-        uploadedSize = await _readImageSize(tempFile);
       }
+
       final payload = snap.buildPayload(
         modelId: modelId,
         uploadedSize: uploadedSize,
       );
-      final receipt = await _client.submit(
+      final uri = buildFeedbackWebUri(
         payload: payload,
-        imageFile: snap.mode == FeedbackPrivacyMode.text ? null : tempFile,
+        imageBytes: inlineImage,
+        imageDeferred: imageDeferred,
       );
+      final launcher =
+          widget.launchUri ?? (Uri u) => openExternalUrl(u.toString());
+      final launched = await launcher(uri);
       if (!mounted) return;
-      setState(() => _receipt = receipt);
+      if (!launched) {
+        setState(() => _error = 'Could not open browser');
+        return;
+      }
+      Navigator.pop(context, true);
     } catch (e) {
       if (mounted) setState(() => _error = '$e');
     } finally {
@@ -223,7 +290,7 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
           await tempFile.delete();
         } catch (_) {}
       }
-      if (mounted) setState(() => _submitting = false);
+      if (mounted) setState(() => _preparing = false);
     }
   }
 
@@ -241,50 +308,21 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    if (_receipt case final r?) {
-      return SheetScaffold(
-        title: Text(l.feedbackSentTitle),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(context, r),
-            child: Text(l.feedbackDone),
-          ),
-        ],
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            children: [
-              Icon(Icons.check_circle, color: scheme.primary, size: 28),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  r.id,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontFeatures: const [ui.FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     final shot = _draft.shot;
     final canAttachImage = widget.model != null;
 
     return PopScope(
-      canPop: !_submitting,
+      canPop: !_preparing,
       child: SheetScaffold(
         title: Text(l.feedbackTitle),
         actions: [
           TextButton(
-            onPressed: _submitting ? null : () => Navigator.pop(context),
+            onPressed: _preparing ? null : () => Navigator.pop(context),
             child: Text(l.cancel),
           ),
-          FilledButton(
-            onPressed: _locked || !_draft.canSubmit ? null : _submit,
-            child: _submitting
+          FilledButton.icon(
+            onPressed: _locked || !_draft.canSubmit ? null : _openWebFeedback,
+            icon: _preparing
                 ? SizedBox.square(
                     dimension: 16,
                     child: CircularProgressIndicator(
@@ -292,7 +330,8 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
                       color: scheme.onPrimary,
                     ),
                   )
-                : Text(l.feedbackSubmit),
+                : const Icon(Icons.open_in_new, size: 17),
+            label: Text(l.feedbackOpenWeb),
           ),
         ],
         child: SingleChildScrollView(

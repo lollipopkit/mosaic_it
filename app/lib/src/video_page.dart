@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_selector/file_selector.dart';
+import 'package:fl_lib/fl_lib.dart' show SheetScaffold, showResizableSheet;
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -219,35 +220,40 @@ class _VideoPageState extends State<VideoPage> {
       return;
     }
     final f = r.failed!;
-    final action = await showDialog<_Failed>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(_l.exportCheckFailedAt(clock(s.times[f.frame]))),
-        content: Text(
-          _l.videoRegionsVisible(
-            f.surviving.length,
-            f.surviving
-                .map((r) => classLabel(_l, r.className))
-                .toSet()
-                .join(', '),
+    final action = await showResizableSheet<_Failed>(
+      context,
+      builder: (ctx) {
+        final l = AppLocalizations.of(ctx);
+        return SheetScaffold(
+          title: Text(l.exportCheckFailedAt(clock(s.times[f.frame]))),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, _Failed.force),
+              child: Text(l.exportAnyway),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, _Failed.show),
+              child: Text(l.showFrame),
+            ),
+          ],
+          child: Text(
+            l.videoRegionsVisible(
+              f.surviving.length,
+              f.surviving
+                  .map((r) => classLabel(l, r.className))
+                  .toSet()
+                  .join(', '),
+            ),
+            style: const TextStyle(height: 1.5),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(_l.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, _Failed.force),
-            child: Text(_l.exportAnyway),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, _Failed.show),
-            child: Text(_l.showFrame),
-          ),
-        ],
-      ),
+        );
+      },
     );
+    if (!mounted) return;
     switch (action) {
       case _Failed.show:
         setState(() => _frame = f.frame);

@@ -31,14 +31,11 @@ class SettingStore extends SqliteStore with ThemeSettings {
   /// Longest side of exported images in pixels; 0 keeps the original size.
   late final exportMaxSide = propertyDefault('exportMaxSide', 0);
 
-  /// Gallery zoom level: 0 has the largest cells; 1 is five columns on a phone.
-  late final gridZoom = propertyDefault('gridZoom', 1);
+  /// Whether the first-launch offline intro has been completed.
+  late final introSeen = propertyDefault('introSeen', false);
 
-  /// Gallery cells show the whole image instead of a square crop.
-  late final gridAspect = propertyDefault('gridAspect', false);
-
-  /// Replace a released model with newer releases as they are published.
-  late final autoUpdateModel = propertyDefault('autoUpdateModel', true);
+  /// Whether the one-time iOS China wireless-data prompt explanation has been shown.
+  late final pickerNoticeSeen = propertyDefault('pickerNoticeSeen', false);
 
   /// `ThresholdPreset` name: scales the model's thresholds.
   late final threshold = propertyDefault('threshold', 'medium');
@@ -58,17 +55,3 @@ class SettingStore extends SqliteStore with ThemeSettings {
 
 /// Faces are left to the user: a photo's faces are often meant to be seen.
 const defaultOffClasses = {'face'};
-
-/// What was done to a photo-library item, by asset id, for the gallery's
-/// badges.
-class MarksStore extends SqliteStore {
-  MarksStore() : super('marks');
-
-  static final instance = MarksStore();
-
-  static const redacted = 'redacted';
-
-  String? of(String assetId) => get<String>(assetId);
-
-  void mark(String assetId, String what) => set(assetId, what);
-}

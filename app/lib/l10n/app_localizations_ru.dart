@@ -101,20 +101,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get regionsTooltip => 'Области';
 
   @override
-  String get notCalibrated =>
-      'Модель не откалибрована: предварительный выбор использует фиксированный порог.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return 'Откалибрована на неподтверждённых данных ($domain): гарантия полноты пока не действует.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return 'Откалибрована для изображений типа $domain. Другие типы изображений не покрываются гарантией.';
-  }
-
-  @override
   String get cameraPhoto =>
       'Это фото с камеры; детектор предназначен для скриншотов, поэтому его рамки здесь ненадёжны.';
 
@@ -310,72 +296,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get pickClass => 'Выберите класс';
 
   @override
-  String get filterScreenshots => 'Скриншоты';
-
-  @override
-  String get filterAll => 'Все';
-
-  @override
-  String get filterVideos => 'Видео';
-
-  @override
-  String get albums => 'Альбомы';
-
-  @override
-  String get limitedAccess =>
-      'MosaicIt имеет доступ только к некоторым вашим фотографиям';
-
-  @override
-  String get manage => 'Управлять';
-
-  @override
-  String selectedImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Выбрано: $count',
-      many: 'Выбрано: $count',
-      few: 'Выбрано: $count',
-      one: 'Выбрано: $count',
-      zero: 'Выбрано: 0',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String redactImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: 'Скрыть данные в $count изображениях',
-      many: 'Скрыть данные в $count изображениях',
-      few: 'Скрыть данные в $count изображениях',
-      one: 'Скрыть данные в 1 изображении',
-      zero: 'Скрыть данные: 0',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get badgeRedacted => 'Скрыто';
-
-  @override
-  String get photosDenied =>
-      'MosaicIt требует доступа к вашим фотографиям, чтобы отображать их здесь. Фотографии никогда не покидают это устройство.';
-
-  @override
-  String get openSettings => 'Открыть «Настройки»';
-
-  @override
-  String get openFiles => 'Открыть файлы';
-
-  @override
-  String get noPhotos => 'Здесь нет фотографий';
-
-  @override
-  String get loading => 'Загрузка…';
-
-  @override
   String get appearance => 'Внешний вид';
 
   @override
@@ -383,18 +303,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get appIcon => 'Значок приложения';
-
-  @override
-  String get aspectRatioGrid => 'Сетка с исходными пропорциями';
-
-  @override
-  String get modelDownloadFailed => 'Не удалось загрузить модель';
-
-  @override
-  String get retry => 'Повторить';
-
-  @override
-  String get autoUpdateModel => 'Обновлять модель автоматически';
 
   @override
   String get threshold => 'Порог';
@@ -501,15 +409,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get saveAs => 'Save…';
 
   @override
-  String get saveAndDeleteOriginals => 'Save and delete originals';
-
-  @override
-  String get originalsToRecentlyDeleted => 'Originals go to Recently Deleted';
-
-  @override
-  String get originalsToTrash => 'Originals go to the trash';
-
-  @override
   String get exportFormat => 'Format';
 
   @override
@@ -532,11 +431,6 @@ class AppLocalizationsRu extends AppLocalizations {
       one: 'Saved 1 image to Photos',
     );
     return '$_temp0';
-  }
-
-  @override
-  String originalsNotDeleted(String error) {
-    return 'The originals were kept: $error';
   }
 
   @override
@@ -568,28 +462,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get reasonFillShowsThrough => 'fill shows through';
 
   @override
-  String get introTitle => 'Choose screenshots to redact';
-
-  @override
-  String get introBody =>
-      'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.';
-
-  @override
-  String get allowPhotoAccess => 'Allow photo access';
-
-  @override
-  String get photosOffTitle => 'Photo access is off';
-
-  @override
   String get openSource => 'Open source';
-
-  @override
-  String get downloadingDetector => 'Downloading the detector';
-
-  @override
-  String percent(int value) {
-    return '$value%';
-  }
 
   @override
   String get adaptivePreselectTitle => 'Local adaptive pre-selection';
@@ -622,15 +495,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get feedbackAction => 'Report';
-
-  @override
-  String get feedbackSubmit => 'Submit';
-
-  @override
-  String get feedbackDone => 'Done';
-
-  @override
-  String get feedbackSentTitle => 'Feedback sent';
 
   @override
   String get feedbackAttachScreenshot => 'Attach screenshot';
@@ -693,4 +557,80 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get feedbackBoxPreference => 'Keep visible';
+
+  @override
+  String get introOfflineTitle => 'Без доступа к сети';
+
+  @override
+  String get introOfflineBody =>
+      'MosaicIt не содержит сетевого кода и не запрашивает сетевых разрешений. Модель встроена в приложение, а изображения и видео не покидают устройство.';
+
+  @override
+  String get introNoNetPermTitle => 'Без сетевых разрешений';
+
+  @override
+  String get introBundledModelTitle => 'Встроенная локальная модель';
+
+  @override
+  String introBundledModelBody(String version) {
+    return 'unseen-det $version · встроена';
+  }
+
+  @override
+  String get resetBundledModel => 'Использовать встроенную модель';
+
+  @override
+  String get reviewIntro => 'Показать введение снова';
+
+  @override
+  String get feedbackOpenWeb => 'Открыть веб-форму';
+
+  @override
+  String get introNoNetPermBodyIos =>
+      'Без сетевых запросов · только на устройстве';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'Разрешение INTERNET отсутствует';
+
+  @override
+  String get introNoNetPermBodyDesktop => 'Без сетевого доступа в песочнице';
+
+  @override
+  String get customModel => 'Пользовательская модель';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count классов';
+  }
+
+  @override
+  String get copyImage => 'Копировать изображение';
+
+  @override
+  String get copiedToClipboard => 'Скопировано в буфер обмена';
+
+  @override
+  String get copyFailed => 'Не удалось скопировать изображение';
+
+  @override
+  String get peekOriginal => 'Удерживайте для просмотра оригинала';
+
+  @override
+  String get selectMedia => 'Выбрать фото или видео';
+
+  @override
+  String get saveFailed => 'Не удалось сохранить в Фото';
+
+  @override
+  String get retry => 'Повторить';
+
+  @override
+  String get iosWirelessPromptTitle => 'Запрос беспроводных данных';
+
+  @override
+  String get iosWirelessPromptBody =>
+      'При открытии системного выбора фото iOS может показать запрос данных для миниатюр iCloud. MosaicIt не использует сеть — выберите «Не разрешать».';
+
+  @override
+  String get continueAction => 'Продолжить';
 }

@@ -67,7 +67,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => 878386423;
+  int get rustContentHash => -1991255094;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -101,6 +101,7 @@ abstract class RustLibApi extends BaseApi {
     required Fill fill,
     required bool force,
     int? maxSide,
+    int? jpegQuality,
   });
 
   void crateApiSessionSetOffClasses({
@@ -148,17 +149,10 @@ abstract class RustLibApi extends BaseApi {
 
   VideoSummary crateApiVideoProjectSummary({required VideoProject that});
 
-  Future<String> crateApiFileBlake3({required String path});
-
   Future<List<PixelRect>> crateApiFindSimilarRegions({
     required String imagePath,
     required PixelRect rect,
     String? targetPath,
-  });
-
-  Future<ModelUpdate?> crateApiModelUpdate({
-    required List<int> manifest,
-    String? installed,
   });
 
   Future<List<PreviewPatch>> crateApiRedactionPreview({
@@ -328,6 +322,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required Fill fill,
     required bool force,
     int? maxSide,
+    int? jpegQuality,
   }) {
     return handler.executeNormal(
       NormalTask(
@@ -343,6 +338,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_box_autoadd_fill(fill, serializer);
           sse_encode_bool(force, serializer);
           sse_encode_opt_box_autoadd_u_32(maxSide, serializer);
+          sse_encode_opt_box_autoadd_u_8(jpegQuality, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -355,7 +351,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiSessionRedactAndExportConstMeta,
-        argValues: [that, imagePath, outPath, rects, fill, force, maxSide],
+        argValues: [
+          that,
+          imagePath,
+          outPath,
+          rects,
+          fill,
+          force,
+          maxSide,
+          jpegQuality,
+        ],
         apiImpl: this,
       ),
     );
@@ -372,6 +377,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           "fill",
           "force",
           "maxSide",
+          "jpegQuality",
         ],
       );
 
@@ -702,34 +708,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<String> crateApiFileBlake3({required String path}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(path, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 15,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiFileBlake3ConstMeta,
-        argValues: [path],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiFileBlake3ConstMeta =>
-      const TaskConstMeta(debugName: "file_blake3", argNames: ["path"]);
-
-  @override
   Future<List<PixelRect>> crateApiFindSimilarRegions({
     required String imagePath,
     required PixelRect rect,
@@ -745,7 +723,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 15,
             port: port_,
           );
         },
@@ -766,40 +744,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<ModelUpdate?> crateApiModelUpdate({
-    required List<int> manifest,
-    String? installed,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_list_prim_u_8_loose(manifest, serializer);
-          sse_encode_opt_String(installed, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 17,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_opt_box_autoadd_model_update,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiModelUpdateConstMeta,
-        argValues: [manifest, installed],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiModelUpdateConstMeta => const TaskConstMeta(
-    debugName: "model_update",
-    argNames: ["manifest", "installed"],
-  );
-
-  @override
   Future<List<PreviewPatch>> crateApiRedactionPreview({
     required String imagePath,
     required List<PixelRect> rects,
@@ -815,7 +759,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 16,
             port: port_,
           );
         },
@@ -973,12 +917,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ModelUpdate dco_decode_box_autoadd_model_update(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_model_update(raw);
-  }
-
-  @protected
   PixelRect dco_decode_box_autoadd_pixel_rect(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_pixel_rect(raw);
@@ -986,6 +924,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   int dco_decode_box_autoadd_u_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
+  }
+
+  @protected
+  int dco_decode_box_autoadd_u_8(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
   }
@@ -1128,12 +1072,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  List<int> dco_decode_list_prim_u_8_loose(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw as List<int>;
-  }
-
-  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint8List;
@@ -1191,22 +1129,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ModelUpdate dco_decode_model_update(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 6)
-      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
-    return ModelUpdate(
-      version: dco_decode_String(arr[0]),
-      file: dco_decode_String(arr[1]),
-      modelUrl: dco_decode_String(arr[2]),
-      sidecarUrl: dco_decode_String(arr[3]),
-      blake3: dco_decode_String(arr[4]),
-      sidecarBlake3: dco_decode_String(arr[5]),
-    );
-  }
-
-  @protected
   String? dco_decode_opt_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_String(raw);
@@ -1225,15 +1147,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ModelUpdate? dco_decode_opt_box_autoadd_model_update(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null ? null : dco_decode_box_autoadd_model_update(raw);
-  }
-
-  @protected
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_u_32(raw);
+  }
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_8(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_u_8(raw);
   }
 
   @protected
@@ -1537,14 +1459,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ModelUpdate sse_decode_box_autoadd_model_update(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_model_update(deserializer));
-  }
-
-  @protected
   PixelRect sse_decode_box_autoadd_pixel_rect(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_pixel_rect(deserializer));
@@ -1554,6 +1468,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_u_32(deserializer));
+  }
+
+  @protected
+  int sse_decode_box_autoadd_u_8(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_u_8(deserializer));
   }
 
   @protected
@@ -1705,13 +1625,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var len_ = sse_decode_i_32(deserializer);
-    return deserializer.buffer.getUint8List(len_);
-  }
-
-  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
@@ -1794,25 +1707,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ModelUpdate sse_decode_model_update(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_version = sse_decode_String(deserializer);
-    var var_file = sse_decode_String(deserializer);
-    var var_modelUrl = sse_decode_String(deserializer);
-    var var_sidecarUrl = sse_decode_String(deserializer);
-    var var_blake3 = sse_decode_String(deserializer);
-    var var_sidecarBlake3 = sse_decode_String(deserializer);
-    return ModelUpdate(
-      version: var_version,
-      file: var_file,
-      modelUrl: var_modelUrl,
-      sidecarUrl: var_sidecarUrl,
-      blake3: var_blake3,
-      sidecarBlake3: var_sidecarBlake3,
-    );
-  }
-
-  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -1850,24 +1744,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ModelUpdate? sse_decode_opt_box_autoadd_model_update(
-    SseDeserializer deserializer,
-  ) {
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_model_update(deserializer));
+      return (sse_decode_box_autoadd_u_32(deserializer));
     } else {
       return null;
     }
   }
 
   @protected
-  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer) {
+  int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_u_32(deserializer));
+      return (sse_decode_box_autoadd_u_8(deserializer));
     } else {
       return null;
     }
@@ -2213,15 +2105,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_box_autoadd_model_update(
-    ModelUpdate self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_model_update(self, serializer);
-  }
-
-  @protected
   void sse_encode_box_autoadd_pixel_rect(
     PixelRect self,
     SseSerializer serializer,
@@ -2234,6 +2117,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_u_32(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_8(self, serializer);
   }
 
   @protected
@@ -2373,18 +2262,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_list_prim_u_8_loose(
-    List<int> self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_i_32(self.length, serializer);
-    serializer.buffer.putUint8List(
-      self is Uint8List ? self : Uint8List.fromList(self),
-    );
-  }
-
-  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
@@ -2457,17 +2334,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_model_update(ModelUpdate self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.version, serializer);
-    sse_encode_String(self.file, serializer);
-    sse_encode_String(self.modelUrl, serializer);
-    sse_encode_String(self.sidecarUrl, serializer);
-    sse_encode_String(self.blake3, serializer);
-    sse_encode_String(self.sidecarBlake3, serializer);
-  }
-
-  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -2504,25 +2370,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_opt_box_autoadd_model_update(
-    ModelUpdate? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_model_update(self, serializer);
-    }
-  }
-
-  @protected
   void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_u_32(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_u_8(self, serializer);
     }
   }
 
@@ -2682,7 +2545,8 @@ class SessionImpl extends RustOpaque implements Session {
   /// Redacts `rects`, runs the export self-check (skipped when `force` is
   /// set) and writes `out_path` (format from its extension, no metadata).
   /// `max_side` scales the written image down so its longer side is at most
-  /// that many pixels; the check runs at full size.
+  /// that many pixels; `jpeg_quality` (1..=100) overrides the default JPEG
+  /// quality when writing `.jpg`/`.jpeg`. The check runs at full size.
   Future<ExportOutcome> redactAndExport({
     required String imagePath,
     required String outPath,
@@ -2690,6 +2554,7 @@ class SessionImpl extends RustOpaque implements Session {
     required Fill fill,
     required bool force,
     int? maxSide,
+    int? jpegQuality,
   }) => RustLib.instance.api.crateApiSessionRedactAndExport(
     that: this,
     imagePath: imagePath,
@@ -2698,6 +2563,7 @@ class SessionImpl extends RustOpaque implements Session {
     fill: fill,
     force: force,
     maxSide: maxSide,
+    jpegQuality: jpegQuality,
   );
 
   /// Classes detected but not pre-selected, and skipped by the export check.

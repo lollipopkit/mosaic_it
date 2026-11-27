@@ -83,11 +83,16 @@ class BoxEditor extends StatefulWidget {
     this.mergeFrom,
     this.onMergePick,
     this.fitPadding = EdgeInsets.zero,
+    this.peekOriginal = false,
   });
 
   /// Kept clear when the image is fitted: what floats over the editor. The
   /// image still pans under it.
   final EdgeInsets fitPadding;
+
+  /// Temporarily hides redaction fill patches so the user can inspect the
+  /// underlying pixels while keeping box outlines visible.
+  final bool peekOriginal;
 
   final EditSession session;
   final bool drawing;
@@ -516,7 +521,7 @@ class _BoxEditorState extends State<BoxEditor> {
                           },
                           zoom: _zoom,
                           label: (c) => classLabel(l10n, c),
-                          previews: _previews,
+                          previews: widget.peekOriginal ? const [] : _previews,
                           accent: scheme.primary,
                           score: (s) => s.toStringAsFixed(2),
                         ),

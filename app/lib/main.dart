@@ -1,11 +1,14 @@
-import 'package:fl_lib/fl_lib.dart';
+import 'package:fl_lib/fl_lib.dart' hide EditorPage;
 import 'package:fl_lib/generated/l10n/lib_l10n.dart';
 import 'package:fl_lib/theme.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'l10n/app_localizations.dart';
-import 'src/home_page.dart';
+import 'src/editor_page.dart';
+import 'src/intro_page.dart';
+import 'src/model_store.dart';
+import 'src/platform_bridge.dart';
 import 'src/rust/frb_generated.dart';
 import 'src/store.dart';
 
@@ -68,10 +71,38 @@ class _UnseenAppState extends State<UnseenApp> {
           theme: buildAppTheme(source),
           darkTheme: buildAppTheme(source, brightness: Brightness.dark),
           themeMode: ThemeMode.values[store.themeMode.get().clamp(0, 2)],
-          home: const _L10n(child: HomePage()),
+          home: const _L10n(child: _RootPage()),
         );
       },
     );
+  }
+}
+
+class _RootPage extends StatefulWidget {
+  const _RootPage();
+
+  @override
+  State<_RootPage> createState() => _RootPageState();
+}
+
+class _RootPageState extends State<_RootPage> {
+  late bool _introSeen = SettingStore.instance.introSeen.get();
+
+  @override
+  void initState() {
+    super.initState();
+    PlatformBridge.ensureInitialized();
+    // Preload the bundled model in the background while the user reads the
+    // first-launch intro so detection is ready immediately in the editor.
+    if (!_introSeen) ModelStore.preload();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_introSeen) {
+      return MosaicIntroPage(onDone: () => setState(() => _introSeen = true));
+    }
+    return const EditorPage();
   }
 }
 

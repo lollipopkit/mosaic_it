@@ -51,6 +51,83 @@ jobs:
       # pinned in its rust-toolchain.toml.
       - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - run: flutter pub get
+      - name: Verify zero-network offline app policy
+        run: |
+          python3 - <<'PY'
+          import pathlib, plistlib, re, sys
+          import xml.etree.ElementTree as ET
+
+          ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
+          TOOLS_NS = "{http://schemas.android.com/tools}"
+
+          # 1. Main AndroidManifest must declare zero permissions (offline + zero photo-read).
+          main_xml = ET.parse("android/app/src/main/AndroidManifest.xml").getroot()
+          perms = [p.attrib.get(f"{ANDROID_NS}name") for p in main_xml.findall("uses-permission")]
+          if perms:
+              sys.exit(f"main AndroidManifest.xml must declare zero permissions, found: {perms}")
+
+          # 2. Release AndroidManifest must strip transitive network/camera/storage/biometric permissions.
+          rel_xml = ET.parse("android/app/src/release/AndroidManifest.xml").getroot()
+          removed_perms = {
+              perm.attrib.get(f"{ANDROID_NS}name")
+              for perm in rel_xml.findall("uses-permission")
+              if perm.attrib.get(f"{TOOLS_NS}node") == "remove"
+          }
+          required_removed = {
+              "android.permission.INTERNET",
+              "android.permission.CAMERA",
+              "android.permission.RECORD_AUDIO",
+              "android.permission.WRITE_EXTERNAL_STORAGE",
+              "android.permission.READ_EXTERNAL_STORAGE",
+              "android.permission.READ_MEDIA_IMAGES",
+              "android.permission.READ_MEDIA_VIDEO",
+              "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+              "android.permission.USE_BIOMETRIC",
+          }
+          missing_removed = sorted(required_removed - removed_perms)
+          if missing_removed:
+              sys.exit(f"release AndroidManifest.xml must remove permissions: {missing_removed}")
+
+          # 3. iOS Info.plist must not declare read-all-photos, camera, or Face ID permissions.
+          with open("ios/Runner/Info.plist", "rb") as f:
+              ios_plist = plistlib.load(f)
+          for forbidden_key in (
+              "NSPhotoLibraryUsageDescription",
+              "NSCameraUsageDescription",
+              "NSFaceIDUsageDescription",
+              "NSLocalNetworkUsageDescription",
+              "NSBonjourServices",
+          ):
+              if forbidden_key in ios_plist:
+                  sys.exit(f"ios/Runner/Info.plist must not declare {forbidden_key}")
+
+          # 4. macOS Release entitlements must not enable any network entitlement.
+          with open("macos/Runner/Release.entitlements", "rb") as f:
+              ent = plistlib.load(f)
+          for key, val in ent.items():
+              if key.startswith("com.apple.security.network.") and val:
+                  sys.exit(f"Release.entitlements must not enable {key}")
+
+          # 5. pubspec.yaml must not depend on HTTP clients, photo_manager, or image_picker.
+          pubspec = pathlib.Path("pubspec.yaml").read_text()
+          if re.search(
+              r"^[ \t]+(dio|http|connectivity_plus|web_socket_channel|photo_manager|image_picker):",
+              pubspec,
+              re.M,
+          ):
+              sys.exit("pubspec.yaml must not depend on networking, photo_manager, or image_picker packages")
+
+          # 6. App Dart sources must not import/use HTTP or socket APIs.
+          forbidden = re.compile(
+              r"(package:(dio|http)/|\b(HttpClient|WebSocket|RawSocket|ServerSocket|HttpServer)\b|Socket\.connect)"
+          )
+          for p in pathlib.Path("lib").rglob("*.dart"):
+              if "l10n" in p.parts:
+                  continue
+              if m := forbidden.search(p.read_text()):
+                  sys.exit(f"Forbidden networking reference {m.group(0)!r} in {p}")
+          print("Zero-network policy verified.")
+          PY
       - run: dart run license_checker check-licenses -c license_config.yaml -i
       - run: dart format --output=none --set-exit-if-changed lib test hook
       - run: flutter analyze

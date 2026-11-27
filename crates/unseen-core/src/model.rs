@@ -110,12 +110,18 @@ impl ModelMeta {
 
 /// Decodes an image, telling the format from its bytes rather than the file
 /// name: pickers and share targets hand over files whose extension does not
-/// match their content.
+/// match their content. Applies EXIF orientation so portrait photos match what
+/// the UI displays.
 pub fn load_image(path: &Path) -> Result<RgbImage> {
+    use image::{ImageDecoder, metadata::Orientation};
     let fail = |e: &dyn std::fmt::Display| Error::Image(format!("{}: {e}", path.display()));
     let reader = image::ImageReader::open(path).map_err(|e| fail(&e))?;
     let reader = reader.with_guessed_format().map_err(|e| fail(&e))?;
-    Ok(reader.decode().map_err(|e| fail(&e))?.to_rgb8())
+    let mut decoder = reader.into_decoder().map_err(|e| fail(&e))?;
+    let orientation = decoder.orientation().unwrap_or(Orientation::NoTransforms);
+    let mut img = image::DynamicImage::from_decoder(decoder).map_err(|e| fail(&e))?;
+    img.apply_orientation(orientation);
+    Ok(img.to_rgb8())
 }
 
 /// The file carries a camera make or model in its EXIF, as photos do and
@@ -247,5 +253,37 @@ mod tests {
         assert!(
             parse(r#"{"classes": ["a"], "strides": [8], "resolution": "native", "shapes": [[896, 1280]]}"#).is_err()
         );
+    }
+
+    #[test]
+    fn load_image_applies_exif_orientation() {
+        // Encode a 4x2 JPEG, then inject an APP1 EXIF segment with Orientation = 6 (90° CW).
+        let src = RgbImage::from_fn(4, 2, |x, y| image::Rgb([x as u8 * 60, y as u8 * 120, 42]));
+        let mut jpeg = Vec::new();
+        image::DynamicImage::ImageRgb8(src)
+            .write_to(&mut std::io::Cursor::new(&mut jpeg), image::ImageFormat::Jpeg)
+            .unwrap();
+        assert_eq!(&jpeg[0..2], &[0xFF, 0xD8]);
+        // Minimal little-endian TIFF header + 1 IFD0 entry: tag 0x0112 (Orientation), SHORT, count 1, value 6.
+        let exif_payload: &[u8] = &[
+            b'E', b'x', b'i', b'f', 0x00, 0x00, // Exif\0\0
+            b'I', b'I', 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, // TIFF LE header, IFD0 @ 8
+            0x01, 0x00, // 1 entry
+            0x12, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, // Orientation = 6
+            0x00, 0x00, 0x00, 0x00, // next IFD = 0
+        ];
+        let seg_len = (exif_payload.len() + 2) as u16;
+        let mut with_exif = Vec::with_capacity(jpeg.len() + exif_payload.len() + 4);
+        with_exif.extend_from_slice(&jpeg[0..2]);
+        with_exif.extend_from_slice(&[0xFF, 0xE1]);
+        with_exif.extend_from_slice(&seg_len.to_be_bytes());
+        with_exif.extend_from_slice(exif_payload);
+        with_exif.extend_from_slice(&jpeg[2..]);
+
+        let tmp = std::env::temp_dir().join(format!("unseen-exif-test-{}.jpg", std::process::id()));
+        std::fs::write(&tmp, &with_exif).unwrap();
+        let loaded = load_image(&tmp).unwrap();
+        let _ = std::fs::remove_file(&tmp);
+        assert_eq!(loaded.dimensions(), (2, 4));
     }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -7,7 +8,6 @@ import 'package:fl_lib/fl_lib.dart'
     show ContextMenuAction, Frosted, showContextMenu;
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:photo_manager/photo_manager.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../l10n/app_localizations.dart';
@@ -18,46 +18,89 @@ import 'editor.dart';
 import 'editor_menus.dart';
 import 'feedback.dart';
 import 'feedback_sheet.dart';
+import 'intro_page.dart';
+import 'model_store.dart';
+import 'platform_bridge.dart';
 import 'rust/api.dart';
 import 'settings.dart';
-import 'store.dart';
+import 'video_page.dart';
 
-/// Redacting a batch of opened images: a top bar (back, undo, count,
-/// export), the editor, the batch strip, and the tools (fill, draw, similar,
-/// merge, regions).
+/// Main workspace: opens directly into the redaction editor, lets the user pick
+/// photos or videos via the OS picker (zero photo-library read permission), and
+/// accepts files shared or dropped from the OS.
 class EditorPage extends StatefulWidget {
   const EditorPage({
     super.key,
-    required this.shots,
-    required this.settings,
-    required this.model,
-    required this.info,
+    this.shots,
+    this.settings,
+    this.model,
+    this.info,
   });
 
-  final List<Shot> shots;
-  final AppSettings settings;
-  final Session model;
-  final ModelInfo info;
+  /// Pre-loaded shots (optional; used by widget tests).
+  final List<Shot>? shots;
+  final AppSettings? settings;
+  final Session? model;
+  final ModelInfo? info;
 
   @override
   State<EditorPage> createState() => _EditorPageState();
 }
 
 class _EditorPageState extends State<EditorPage> {
-  late final _s = EditSession(widget.shots)..addListener(_changed);
+  static final _mobile = Platform.isIOS || Platform.isAndroid;
+  static const _videoExts = {
+    'mp4',
+    'mov',
+    'm4v',
+    'mkv',
+    'webm',
+    'avi',
+    '3gp',
+    '3g2',
+    'mpg',
+    'mpeg',
+    'ts',
+  };
+  static const _desktopMediaExts = [
+    'png',
+    'jpg',
+    'jpeg',
+    'webp',
+    'heic',
+    'heif',
+    'bmp',
+    'tif',
+    'tiff',
+    'gif',
+    'mp4',
+    'mov',
+    'm4v',
+    'mkv',
+    'webm',
+    'avi',
+    '3gp',
+    '3g2',
+    'mpg',
+    'mpeg',
+    'ts',
+  ];
 
-  /// Library originals can go to Recently Deleted (iOS) or the trash
-  /// (Android 11+).
-  static final Future<bool> _canTrash = Platform.isIOS
-      ? Future.value(true)
-      : Platform.isAndroid
-      ? PhotoManager.systemVersion().then((v) => (int.tryParse(v) ?? 0) >= 30)
-      : Future.value(false);
+  Session? _model;
+  ModelInfo? _info;
+  late AppSettings _settings;
+  bool _hasCustomModel = false;
+  EditSession? _editSession;
 
   /// On from the start: a missed value is one drag away; two fingers move
   /// the view.
   bool _drawing = true;
+  bool _peeking = false;
+  final _peekPointers = <int>{};
+  late final AppLifecycleListener _lifecycle;
   String? _busy;
+  bool _picking = false;
+  bool _exporting = false;
 
   /// Taps on boxes merge them into [_mergeFrom] (the first one tapped when
   /// merging started without an active box).
@@ -71,19 +114,78 @@ class _EditorPageState extends State<EditorPage> {
   /// session so repeated exports (e.g. Save then Share) do not double-count.
   final _learnedShots = <Shot>{};
 
+  /// External file batches received before the model finished loading or while
+  /// another batch or export is in flight.
+  final _pendingIncoming = <String>[];
+  final _incomingQueue = <List<String>>[];
+  bool _drainingIncoming = false;
+  bool _coldDrained = false;
+  StreamSubscription<List<String>>? _incomingSub;
+
   AppLocalizations get _l => AppLocalizations.of(context);
-  static final _mobile = Platform.isIOS || Platform.isAndroid;
+  bool get _standalone => widget.shots == null;
+
+  @override
+  void initState() {
+    super.initState();
+    _settings =
+        widget.settings ??
+        AppSettings(fillStyle: FillStyle.solid, fillColor: 0x000000);
+    _model = widget.model;
+    _info = widget.info;
+    if (widget.shots case final initial? when initial.isNotEmpty) {
+      _editSession = EditSession(initial)..addListener(_changed);
+    }
+    _lifecycle = AppLifecycleListener(
+      onInactive: _stopPeeking,
+      onHide: _stopPeeking,
+    );
+    if (_standalone) {
+      _incomingSub = PlatformBridge.incomingFiles.listen(_handleIncomingPaths);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadAndDrain());
+    }
+  }
+
+  Future<void> _loadAndDrain() async {
+    await _loadModel();
+    if (!mounted || _model == null || _info == null || _coldDrained) return;
+    _coldDrained = true;
+    final cold = await PlatformBridge.drainIncomingFiles();
+    if (!mounted) return;
+    final initial = <String>[..._pendingIncoming, ...cold];
+    _pendingIncoming.clear();
+    if (initial.isNotEmpty) {
+      _enqueueIncoming(initial);
+    }
+  }
+
+  void _stopPeeking() {
+    _peekPointers.clear();
+    if (_peeking && mounted) setState(() => _peeking = false);
+  }
+
+  @override
+  void deactivate() {
+    _peekPointers.clear();
+    _peeking = false;
+    super.deactivate();
+  }
 
   @override
   void dispose() {
-    _s.dispose();
+    _incomingSub?.cancel();
+    _lifecycle.dispose();
+    _editSession?.removeListener(_changed);
+    _editSession?.dispose();
     super.dispose();
   }
 
   void _changed() => setState(() {
+    final s = _editSession;
+    if (s == null) return;
     // A merge starts from a box of the shown shot (gone after a shot
     // switch, delete or undo).
-    if (_mergeFrom case final m? when !_s.shot.boxes.contains(m)) {
+    if (_mergeFrom case final m? when !s.shot.boxes.contains(m)) {
       _mergeFrom = null;
     }
   });
@@ -97,19 +199,284 @@ class _EditorPageState extends State<EditorPage> {
     try {
       await f();
     } catch (e) {
-      if (mounted) _toast('$e');
+      await WidgetsBinding.instance.endOfFrame;
+      if (mounted) _toast(_message(e));
     } finally {
       if (mounted) setState(() => _busy = null);
     }
   }
 
-  List<String> get _classes => [...widget.info.classes, manualClass];
+  String _message(Object e) => switch (e) {
+    ModelPickError(sidecarFor: final m?) => _l.pickSidecar(m),
+    ModelPickError() => _l.pickOneModel(modelExtensions.join(' / ')),
+    _ => '$e',
+  };
+
+  List<String> get _classes => [...?_info?.classes, manualClass];
+
+  // --- model & settings ----------------------------------------------------
+
+  Future<void> _loadModel() => _run(_l.loadingModel, () async {
+    final settings = await AppSettings.load();
+    final hasCustom = await ModelStore.hasCustomModel();
+    if (!mounted) return;
+    setState(() {
+      _settings = settings;
+      _hasCustomModel = hasCustom;
+    });
+    Session? s;
+    try {
+      s = await ModelStore.takePreloadedOrLoad();
+    } catch (e) {
+      if (hasCustom) {
+        await ModelStore.clearCustom();
+        if (mounted) setState(() => _hasCustomModel = false);
+        s = await ModelStore.load();
+      } else {
+        throw StateError(_l.savedModelFailed('$e'));
+      }
+    }
+    if (mounted) _setSession(s);
+  });
+
+  void _setSession(Session? s) => setState(() {
+    if (s != null) _settings.applyTo(s);
+    _model = s;
+    _info = s?.info();
+  });
+
+  Future<bool> _chooseModel() async {
+    final files = await openFiles(
+      acceptedTypeGroups: [
+        Platform.isIOS
+            ? XTypeGroup(
+                label: _l.modelFileType,
+                uniformTypeIdentifiers: const ['public.data'],
+              )
+            : Platform.isAndroid
+            ? XTypeGroup(label: _l.modelFileType, mimeTypes: const ['*/*'])
+            : XTypeGroup(
+                label: _l.modelFileType,
+                extensions: [
+                  for (final e in modelExtensions) e.substring(1),
+                  'json',
+                ],
+              ),
+      ],
+      confirmButtonText: _l.useModel,
+    );
+    if (files.isEmpty) return false;
+    var ok = false;
+    await _run(_l.loadingModel, () async {
+      final s = await ModelStore.importAndOpen([for (final x in files) x.path]);
+      if (!mounted) return;
+      setState(() => _hasCustomModel = true);
+      _setSession(s);
+      ok = true;
+    });
+    return ok;
+  }
+
+  Future<void> _resetBundledModel() => _run(_l.loadingModel, () async {
+    await ModelStore.clearCustom();
+    final s = await ModelStore.load();
+    if (!mounted) return;
+    setState(() => _hasCustomModel = false);
+    _setSession(s);
+  });
+
+  Future<void> _openSettings() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SettingsPage(
+          settings: _settings,
+          classes: _info?.classes ?? const [],
+          info: _info,
+          model: _model,
+          hasCustomModel: _hasCustomModel,
+          onChooseModel: _chooseModel,
+          onResetModel: _resetBundledModel,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (_model case final s?) _settings.applyTo(s);
+    setState(() {});
+    _maybeDrainIncoming();
+  }
+
+  // --- picking & incoming files --------------------------------------------
+
+  void _handleIncomingPaths(List<String> paths) {
+    if (!mounted || paths.isEmpty) return;
+    if (_model == null || _info == null) {
+      _pendingIncoming.addAll(paths);
+      return;
+    }
+    _enqueueIncoming(paths);
+  }
+
+  void _enqueueIncoming(List<String> paths) {
+    _incomingQueue.add(paths);
+    _maybeDrainIncoming();
+  }
+
+  void _maybeDrainIncoming() {
+    if (_drainingIncoming || _exporting || _busy != null) return;
+    if (_incomingQueue.isEmpty || !mounted) return;
+    unawaited(_drainIncomingQueue());
+  }
+
+  Future<void> _drainIncomingQueue() async {
+    _drainingIncoming = true;
+    try {
+      while (_incomingQueue.isNotEmpty && mounted) {
+        if (_exporting || _busy != null) break;
+        final batch = _incomingQueue.removeAt(0);
+        final openedVideo = await _openPaths(batch);
+        // Stop draining after pushing VideoPage so queued batches do not
+        // immediately dismiss it; any newer incoming event will re-trigger.
+        if (openedVideo) break;
+      }
+    } finally {
+      _drainingIncoming = false;
+    }
+  }
+
+  static bool _isVideoPath(String path) =>
+      _videoExts.contains(PlatformBridge.extensionOf(path));
+
+  Shot _prepareShot(File image, Detected detected) {
+    final shot = Shot.detected(image, detected);
+    AdaptivePrefs.instance.apply(
+      shot,
+      enabled: _settings.adaptivePreselect,
+      offClasses: _settings.offClasses,
+      preset: _settings.threshold,
+      baseThresholds: _info?.selectThresholds ?? const {},
+    );
+    return shot;
+  }
+
+  /// Opens the native zero-permission media picker (PHPicker on iOS, Photo
+  /// Picker on Android, file dialog on desktop).
+  Future<void> _pickMedia() async {
+    if (_picking || _busy != null || _exporting) return;
+    if (_model == null || _info == null) {
+      _toast(_l.chooseModelFirst);
+      return;
+    }
+    _picking = true;
+    final List<String> paths;
+    try {
+      if (_mobile) {
+        if (!await confirmFirstPickerIfRestricted(context) || !mounted) return;
+        paths = await PlatformBridge.pickMedia(
+          multiple: true,
+          allowVideo: true,
+        );
+      } else {
+        final picked = await openFiles(
+          acceptedTypeGroups: [
+            XTypeGroup(label: _l.imagesFileType, extensions: _desktopMediaExts),
+          ],
+        );
+        paths = [for (final x in picked) x.path];
+      }
+    } catch (e) {
+      if (mounted) _toast('$e');
+      return;
+    } finally {
+      _picking = false;
+    }
+    if (paths.isEmpty || !mounted) return;
+    _enqueueIncoming(paths);
+  }
+
+  /// Opens [paths] in the editor (or [VideoPage] for video-only picks).
+  /// Returns true if a [VideoPage] was pushed.
+  Future<bool> _openPaths(List<String> paths) async {
+    final s = _model, info = _info;
+    if (s == null || info == null || !mounted) return false;
+    final files = [
+      for (final p in paths)
+        if (File(p).existsSync()) File(p),
+    ];
+    if (files.isEmpty) return false;
+    Navigator.of(context).popUntil((r) => r.isFirst);
+    if (!mounted) return false;
+
+    final videos = [
+      for (final f in files)
+        if (_isVideoPath(f.path)) f,
+    ];
+    final images = [
+      for (final f in files)
+        if (!_isVideoPath(f.path)) f,
+    ];
+    if (images.isEmpty) {
+      if (videos.isEmpty) return false;
+      unawaited(
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => VideoPage(
+              session: s,
+              video: videos.first,
+              fill: _settings.fill,
+            ),
+          ),
+        ),
+      );
+      return true;
+    }
+
+    final shots = <Shot>[];
+    Object? firstError;
+    await _run(_l.detecting, () async {
+      for (final (i, image) in images.indexed) {
+        if (!mounted) return;
+        if (images.length > 1) {
+          setState(() => _busy = _l.detectingProgress(i + 1, images.length));
+        }
+        try {
+          final preparedPath = await PlatformBridge.prepareImage(image.path);
+          final prepared = File(preparedPath);
+          final d = await s.detect(imagePath: prepared.path);
+          shots.add(_prepareShot(prepared, d));
+        } catch (e) {
+          firstError ??= e;
+        }
+      }
+      if (shots.isEmpty && firstError != null) {
+        throw firstError!;
+      }
+    });
+    if (shots.isEmpty || !mounted) return false;
+    if (firstError != null) {
+      _toast(_message(firstError!));
+    }
+    final next = EditSession(shots)..addListener(_changed);
+    final prev = _editSession;
+    setState(() {
+      _editSession = next;
+      _merging = false;
+      _mergeFrom = null;
+      _peekPointers.clear();
+      _peeking = false;
+      _learnedShots.clear();
+    });
+    prev?.removeListener(_changed);
+    prev?.dispose();
+    return false;
+  }
 
   // --- boxes --------------------------------------------------------------
 
   Future<void> _pickClass(EditBox b) async {
+    final s = _editSession;
+    if (s == null) return;
     final c = await showClassSheet(context, _classes, b.className);
-    if (c != null) _s.reclass(b, c);
+    if (c != null) s.reclass(b, c);
   }
 
   void _startMerge(EditBox? from) => setState(() {
@@ -117,22 +484,28 @@ class _EditorPageState extends State<EditorPage> {
     _mergeFrom = from;
   });
 
-  void _mergePick(EditBox? b) => setState(() {
-    if (b == null) {
-      _merging = false;
-      _mergeFrom = null;
-    } else if (_mergeFrom case final from?) {
-      _s.merge(from, b);
-    } else {
-      _mergeFrom = b;
-      _s.active = b;
-    }
-  });
+  void _mergePick(EditBox? b) {
+    final s = _editSession;
+    if (s == null) return;
+    setState(() {
+      if (b == null) {
+        _merging = false;
+        _mergeFrom = null;
+      } else if (_mergeFrom case final from?) {
+        s.merge(from, b);
+      } else {
+        _mergeFrom = b;
+        s.active = b;
+      }
+    });
+  }
 
   /// Selects or adds every region in the batch that looks like [f] (same
   /// render scale assumed, as for screenshots from one device).
   Future<void> _findSimilar(EditBox f) async {
-    final src = _s.shot;
+    final s = _editSession;
+    if (s == null) return;
+    final src = s.shot;
     await _run(_l.findingSimilar, () async {
       final rect = PixelRect(
         left: f.rect.left,
@@ -141,7 +514,7 @@ class _EditorPageState extends State<EditorPage> {
         bottom: f.rect.bottom,
       );
       var found = 0, added = 0;
-      for (final shot in _s.shots) {
+      for (final shot in s.shots) {
         final hits = await findSimilarRegions(
           imagePath: src.image.path,
           rect: rect,
@@ -149,26 +522,29 @@ class _EditorPageState extends State<EditorPage> {
         );
         if (hits.isEmpty) continue;
         found += hits.length;
-        _s.record(shot);
+        s.record(shot);
         added += mergeFound(shot.boxes, [
           for (final m in hits) Rect.fromLTRB(m.left, m.top, m.right, m.bottom),
         ], f.className);
       }
-      _s.changed();
+      s.changed();
       if (mounted) {
         _toast(
-          _s.shots.length > 1
-              ? _l.similarSelectedAcross(found, added, _s.shots.length)
+          s.shots.length > 1
+              ? _l.similarSelectedAcross(found, added, s.shots.length)
               : _l.similarSelected(found, added),
         );
       }
     });
+    _maybeDrainIncoming();
   }
 
   // --- menus --------------------------------------------------------------
 
   /// The menu of [b], under its place [r] in the editor.
   void _boxMenu(EditBox b, Rect r) {
+    final s = _editSession;
+    if (s == null) return;
     final view = _viewKey.currentContext?.findRenderObject() as RenderBox?;
     showContextMenu(context, at: view?.localToGlobal(r.bottomCenter), [
       classAction(_l, b, () => _pickClass(b)),
@@ -187,13 +563,13 @@ class _EditorPageState extends State<EditorPage> {
         ContextMenuAction(
           text: _l.split,
           icon: Icons.call_split,
-          onTap: () => _s.split(b),
+          onTap: () => s.split(b),
         ),
       ContextMenuAction(
         text: _l.delete,
         icon: Icons.delete_outline,
         destructive: true,
-        onTap: () => _s.remove(b),
+        onTap: () => s.remove(b),
       ),
     ]);
   }
@@ -202,32 +578,37 @@ class _EditorPageState extends State<EditorPage> {
     if (!mounted) return Future.value();
     return showFeedbackSheet(
       context,
-      shot: shot ?? _s.shot,
-      model: widget.model,
-      info: widget.info,
+      shot: shot ?? _editSession?.shot,
+      model: _model,
+      info: _info,
     );
   }
 
   Future<void> _openExport() async {
-    final canTrash = await _canTrash;
-    if (!mounted) return;
-    final target = await showExportSheet(
-      context,
-      settings: widget.settings,
-      images: _s.shots.length,
-      regions: _s.selectedCount,
-      fromLibrary: canTrash && _s.shots.any((s) => s.assetId != null),
-      feedbackDiffCount: FeedbackDraft(shot: _s.shot).rawDiffCount,
-    );
-    if (target == null) return;
-    if (target == ExportTarget.feedback) {
-      await _openFeedback();
-      return;
-    }
+    final s = _editSession;
+    if (s == null || _exporting) return;
+    _exporting = true;
     try {
-      await _export(target);
-    } catch (e) {
-      if (mounted) _toast('$e');
+      final target = await showExportSheet(
+        context,
+        settings: _settings,
+        images: s.shots.length,
+        regions: s.selectedCount,
+        feedbackDiffCount: FeedbackDraft(shot: s.shot).rawDiffCount,
+      );
+      if (target == null || !mounted) return;
+      if (target == ExportTarget.feedback) {
+        await _openFeedback();
+        return;
+      }
+      try {
+        await _export(target);
+      } catch (e) {
+        if (mounted) _toast('$e');
+      }
+    } finally {
+      _exporting = false;
+      _maybeDrainIncoming();
     }
   }
 
@@ -235,20 +616,47 @@ class _EditorPageState extends State<EditorPage> {
 
   static String _stem(Shot s) => s.name.replaceAll(RegExp(r'\.[^.]+$'), '');
 
+  /// Generates unique filenames within a single batch so identically stemmed
+  /// files (e.g. `IMG_001.jpg` and `IMG_001.png`) never overwrite each other.
+  static Map<Shot, String> _uniqueTargets(
+    List<Shot> shots,
+    String dir,
+    String ext,
+  ) {
+    final used = <String, int>{};
+    final out = <Shot, String>{};
+    for (final shot in shots) {
+      final base = '${_stem(shot)}-redacted';
+      final n = (used[base] ?? 0) + 1;
+      used[base] = n;
+      final fileName = n == 1 ? '$base.$ext' : '$base-$n.$ext';
+      out[shot] = '$dir/$fileName';
+    }
+    return out;
+  }
+
+  static Future<void> _deleteTempFiles(Iterable<String> paths) async {
+    for (final p in paths) {
+      try {
+        await File(p).delete();
+      } catch (_) {}
+    }
+  }
+
   Future<void> _export(ExportTarget target) async {
-    final shots = _s.shots;
-    final ext = widget.settings.exportFormat.extension;
-    String name(Shot s) => '${_stem(s)}-redacted.$ext';
-    // Where each shot is written: a temp dir on phones, a chosen file or
-    // folder on desktops.
+    final s = _editSession;
+    if (s == null) return;
+    final shots = s.shots;
+    final ext = _settings.exportFormat.extension;
+    final usesTempDir = _mobile || target == ExportTarget.copy;
     final Map<Shot, String> targets;
-    if (_mobile) {
+    if (usesTempDir) {
       final dir = await getTemporaryDirectory();
-      targets = {for (final shot in shots) shot: '${dir.path}/${name(shot)}'};
+      targets = _uniqueTargets(shots, dir.path, ext);
     } else if (shots.length == 1) {
       final shot = shots.single;
       final loc = await getSaveLocation(
-        suggestedName: name(shot),
+        suggestedName: '${_stem(shot)}-redacted.$ext',
         acceptedTypeGroups: [
           for (final f in ExportFormat.values)
             XTypeGroup(label: f.name.toUpperCase(), extensions: [f.extension]),
@@ -259,19 +667,23 @@ class _EditorPageState extends State<EditorPage> {
     } else {
       final dir = await getDirectoryPath(confirmButtonText: _l.exportHere);
       if (dir == null) return;
-      targets = {for (final shot in shots) shot: '$dir/${name(shot)}'};
+      targets = _uniqueTargets(shots, dir, ext);
     }
     final written = <Shot, String>{};
     for (final MapEntry(key: shot, value: out) in targets.entries) {
       if (!await _write(shot, out)) {
+        if (usesTempDir) await _deleteTempFiles(written.values);
         if (mounted && shots.length > 1) _toast(_l.exportStoppedAt(shot.name));
         return;
       }
       written[shot] = out;
     }
-    if (!mounted) return;
+    if (!mounted) {
+      if (usesTempDir) await _deleteTempFiles(written.values);
+      return;
+    }
     final editedShot = written.keys
-        .where((s) => FeedbackDraft(shot: s).rawDiffCount > 0)
+        .where((shot) => FeedbackDraft(shot: shot).rawDiffCount > 0)
         .firstOrNull;
     final feedbackAction = editedShot == null
         ? null
@@ -282,31 +694,46 @@ class _EditorPageState extends State<EditorPage> {
             },
           );
     switch (target) {
+      case ExportTarget.copy:
+        final outPath = written.values.first;
+        var ok = false;
+        try {
+          ok = await PlatformBridge.copyImageToClipboard(outPath);
+        } finally {
+          await _deleteTempFiles(written.values);
+        }
+        if (mounted) {
+          _toast(
+            ok ? _l.copiedToClipboard : _l.copyFailed,
+            action: ok ? feedbackAction : null,
+          );
+        }
       case ExportTarget.share:
         await SharePlus.instance.share(
           ShareParams(files: [for (final p in written.values) XFile(p)]),
         );
-      case ExportTarget.photos || ExportTarget.photosDeleteOriginals:
-        var saved = false;
+      case ExportTarget.photos:
         await _run(_l.saving, () async {
-          for (final p in written.values) {
-            await PhotoManager.editor.saveImageWithPath(
-              p,
-              title: p.split('/').last,
-            );
+          var savedCount = 0;
+          try {
+            for (final p in written.values) {
+              final ok = await PlatformBridge.saveImageToPhotos(p);
+              if (!ok) break;
+              savedCount++;
+            }
+          } finally {
+            await _deleteTempFiles(written.values);
           }
-          saved = true;
           if (mounted) {
-            _toast(
-              _l.savedToPhotos(written.length),
-              action: target == ExportTarget.photos ? feedbackAction : null,
-            );
+            if (savedCount == written.length) {
+              _toast(_l.savedToPhotos(savedCount), action: feedbackAction);
+            } else if (savedCount > 0) {
+              _toast('${_l.savedToPhotos(savedCount)} · ${_l.saveFailed}');
+            } else {
+              _toast(_l.saveFailed);
+            }
           }
         });
-        // Originals go only once every redacted copy is in the library.
-        if (saved && target == ExportTarget.photosDeleteOriginals && mounted) {
-          await _deleteOriginals(written.keys);
-        }
       case ExportTarget.files:
         _toast(
           written.length == 1
@@ -319,33 +746,13 @@ class _EditorPageState extends State<EditorPage> {
     }
   }
 
-  /// Moves the library originals of [shots] to Recently Deleted (iOS) or
-  /// the trash (Android), then leaves the editor. The user can decline the
-  /// system prompt; the editor then stays.
-  Future<void> _deleteOriginals(Iterable<Shot> shots) async {
-    final ids = [for (final s in shots) ?s.assetId];
-    if (ids.isEmpty) return;
-    final List<String> deleted;
-    try {
-      if (Platform.isAndroid) {
-        final assets = await Future.wait(ids.map(AssetEntity.fromId));
-        deleted = await PhotoManager.editor.android.moveToTrash([
-          for (final a in assets) ?a,
-        ]);
-      } else {
-        deleted = await PhotoManager.editor.deleteWithIds(ids);
-      }
-    } catch (e) {
-      if (mounted) _toast(_l.originalsNotDeleted('$e'));
-      return;
-    }
-    if (deleted.isNotEmpty && mounted) Navigator.of(context).maybePop();
-  }
-
   /// Redacts [shot] into [out] after the self-check. When the check finds
   /// readable areas the user redacts them too, looks at them, or overrides;
   /// returns whether the file was written.
   Future<bool> _write(Shot shot, String out, {bool force = false}) async {
+    final s = _editSession;
+    final model = _model;
+    if (s == null || model == null) return false;
     final chosen = shot.boxes.where((b) => b.selected).toList();
     final rects = [
       for (final b in chosen)
@@ -356,18 +763,18 @@ class _EditorPageState extends State<EditorPage> {
           bottom: b.rect.bottom,
         ),
     ];
-    final maxSide = widget.settings.exportMaxSide;
+    final maxSide = _settings.exportMaxSide;
     ExportOutcome? r;
     await _run(
-      _s.shots.length > 1
+      s.shots.length > 1
           ? _l.checkingImage(shot.name)
           : _l.checkingAndExporting,
       () async {
-        r = await widget.model.redactAndExport(
+        r = await model.redactAndExport(
           imagePath: shot.image.path,
           outPath: out,
           rects: rects,
-          fill: widget.settings.fill,
+          fill: _settings.fill,
           force: force,
           maxSide: maxSide == 0 ? null : maxSide,
         );
@@ -379,26 +786,19 @@ class _EditorPageState extends State<EditorPage> {
       if (_learnedShots.add(shot)) {
         await AdaptivePrefs.instance.recordExport(
           shot,
-          enabled: widget.settings.adaptivePreselect,
-          offClasses: widget.settings.offClasses,
+          enabled: _settings.adaptivePreselect,
+          offClasses: _settings.offClasses,
         );
-      }
-      if (shot.assetId case final id?) {
-        MarksStore.instance.mark(id, MarksStore.redacted);
       }
       return true;
     }
-    _s.index = _s.shots.indexOf(shot);
+    s.index = s.shots.indexOf(shot);
     final action = await _showCheck(shot, chosen, rects, res);
     if (!mounted) return false;
     switch (action) {
       case CheckAction.add || CheckAction.show:
-        // An unselected box already there is selected (add) or left as a
-        // suggestion (show); the rest are added, selected or as suggestions
-        // to tap. A selected box the area still shows around is too small,
-        // so the area is added as a box of its own.
         final add = action == CheckAction.add;
-        _s.record(shot);
+        s.record(shot);
         for (final r in res.surviving) {
           final b = EditBox.fromRegion(r, source: BoxSource.exportCheck);
           final same = shot.boxes
@@ -412,7 +812,7 @@ class _EditorPageState extends State<EditorPage> {
             }
           }
         }
-        _s.changed();
+        s.changed();
         return add && await _write(shot, out);
       case CheckAction.force:
         return _write(shot, out, force: true);
@@ -429,6 +829,8 @@ class _EditorPageState extends State<EditorPage> {
     List<PixelRect> rects,
     ExportOutcome res,
   ) async {
+    final s = _editSession;
+    if (s == null) return null;
     final areas = <CheckArea>[
       for (final r in res.surviving)
         () {
@@ -456,7 +858,7 @@ class _EditorPageState extends State<EditorPage> {
     final preview = await redactionPreview(
       imagePath: shot.image.path,
       rects: rects,
-      fill: widget.settings.fill,
+      fill: _settings.fill,
     );
     final codec = await ui.instantiateImageCodec(
       await shot.image.readAsBytes(),
@@ -475,7 +877,7 @@ class _EditorPageState extends State<EditorPage> {
         areas: areas,
         image: image,
         patches: patches,
-        index: _s.shots.length > 1 ? _s.shots.indexOf(shot) + 1 : null,
+        index: s.shots.length > 1 ? s.shots.indexOf(shot) + 1 : null,
         canAdd: res.surviving.isNotEmpty,
       );
     } finally {
@@ -489,20 +891,25 @@ class _EditorPageState extends State<EditorPage> {
   // --- layout -------------------------------------------------------------
 
   /// Heights of what floats over the image, without the safe area.
-  static const _topBar = 64.0, _toolBar = 68.0, _strip = BatchStrip.height;
+  static const _topBar = 60.0, _toolBar = 68.0, _strip = BatchStrip.height;
 
   @override
   Widget build(BuildContext context) {
+    final s = _editSession;
     final scheme = Theme.of(context).colorScheme;
     final inset = MediaQuery.paddingOf(context);
-    final shot = _s.shot;
-    final active = _s.active;
-    final selected = shot.boxes.where((b) => b.selected).length;
+    final shot = s?.shot;
+    final active = s?.active;
+    final selected = shot == null
+        ? 0
+        : shot.boxes.where((b) => b.selected).length;
     final idle = _busy == null;
-    final batch = _s.shots.length > 1;
+    final ready = idle && _model != null;
+    final failed = idle && _model == null && _standalone;
+    final batch = (s?.shots.length ?? 0) > 1;
     Widget round(Widget button) => Frosted(
       shape: const CircleBorder(),
-      child: SizedBox.square(dimension: 48, child: Center(child: button)),
+      child: SizedBox.square(dimension: 44, child: Center(child: button)),
     );
     return Scaffold(
       backgroundColor: scheme.surfaceContainerLowest,
@@ -510,22 +917,40 @@ class _EditorPageState extends State<EditorPage> {
         key: _viewKey,
         children: [
           Positioned.fill(
-            child: BoxEditor(
-              key: ValueKey(shot),
-              session: _s,
-              drawing: _drawing && !_merging,
-              fill: widget.settings.fill,
-              onLongPress: _boxMenu,
-              merging: _merging,
-              mergeFrom: _mergeFrom,
-              onMergePick: _mergePick,
-              fitPadding: EdgeInsets.fromLTRB(
-                12,
-                inset.top + _topBar,
-                12,
-                inset.bottom + _toolBar + (batch ? _strip : 0) + 8,
-              ),
-            ),
+            child: s != null && shot != null
+                ? BoxEditor(
+                    key: ValueKey(shot),
+                    session: s,
+                    drawing: _drawing && !_merging,
+                    fill: _settings.fill,
+                    onLongPress: _boxMenu,
+                    merging: _merging,
+                    mergeFrom: _mergeFrom,
+                    onMergePick: _mergePick,
+                    peekOriginal: _peeking,
+                    fitPadding: EdgeInsets.fromLTRB(
+                      12,
+                      inset.top + _topBar,
+                      12,
+                      inset.bottom + _toolBar + (batch ? _strip : 0) + 8,
+                    ),
+                  )
+                : Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: failed
+                          ? FilledButton.icon(
+                              onPressed: _loadAndDrain,
+                              icon: const Icon(Icons.refresh),
+                              label: Text(_l.retry),
+                            )
+                          : FilledButton.icon(
+                              onPressed: ready ? _pickMedia : null,
+                              icon: const Icon(Icons.photo_library_outlined),
+                              label: Text(_l.selectMedia),
+                            ),
+                    ),
+                  ),
           ),
           Positioned(
             left: 0,
@@ -541,68 +966,142 @@ class _EditorPageState extends State<EditorPage> {
                       children: [
                         round(
                           IconButton(
-                            tooltip: MaterialLocalizations.of(context)
-                                .backButtonTooltip,
-                            onPressed: () => Navigator.of(context).maybePop(),
-                            // The glyphs are drawn off their boxes' centres.
-                            icon: Transform.translate(
-                              offset: const Offset(-2, 0),
-                              child: const Icon(
-                                Icons.arrow_back_ios_new,
-                                size: 20,
-                              ),
+                            padding: EdgeInsets.zero,
+                            tooltip: _l.selectMedia,
+                            onPressed: ready ? _pickMedia : null,
+                            icon: const Icon(
+                              Icons.add_photo_alternate_outlined,
+                              size: 20,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 4),
                         Frosted(
                           child: Row(
                             children: [
                               IconButton(
+                                constraints: const BoxConstraints.tightFor(
+                                  width: 40,
+                                  height: 44,
+                                ),
+                                padding: EdgeInsets.zero,
                                 tooltip: _l.undo,
-                                icon: const Icon(Icons.undo),
-                                onPressed: _s.canUndo ? _s.undo : null,
+                                icon: const Icon(Icons.undo, size: 20),
+                                onPressed: s != null && s.canUndo
+                                    ? s.undo
+                                    : null,
                               ),
                               IconButton(
+                                constraints: const BoxConstraints.tightFor(
+                                  width: 40,
+                                  height: 44,
+                                ),
+                                padding: EdgeInsets.zero,
                                 tooltip: _l.redo,
-                                icon: const Icon(Icons.redo),
-                                onPressed: _s.canRedo ? _s.redo : null,
+                                icon: const Icon(Icons.redo, size: 20),
+                                onPressed: s != null && s.canRedo
+                                    ? s.redo
+                                    : null,
                               ),
                             ],
                           ),
                         ),
                         const Spacer(),
-                        Frosted(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 9,
-                            ),
-                            child: Text(
-                              _l.selectedOf(selected, shot.boxes.length),
-                              style: const TextStyle(
-                                fontFeatures: [ui.FontFeature.tabularFigures()],
+                        () {
+                          final enabled = shot != null;
+                          final button = Semantics(
+                            button: true,
+                            enabled: enabled,
+                            label: shot == null
+                                ? _l.peekOriginal
+                                : '${_l.peekOriginal}, ${_l.selectedOf(selected, shot.boxes.length)}',
+                            child: IgnorePointer(
+                              ignoring: !enabled,
+                              child: Listener(
+                                behavior: HitTestBehavior.opaque,
+                                onPointerDown: (e) {
+                                  _peekPointers.add(e.pointer);
+                                  if (!_peeking) {
+                                    setState(() => _peeking = true);
+                                  }
+                                },
+                                onPointerUp: (e) {
+                                  _peekPointers.remove(e.pointer);
+                                  if (_peekPointers.isEmpty && _peeking) {
+                                    setState(() => _peeking = false);
+                                  }
+                                },
+                                onPointerCancel: (e) {
+                                  _peekPointers.remove(e.pointer);
+                                  if (_peekPointers.isEmpty && _peeking) {
+                                    setState(() => _peeking = false);
+                                  }
+                                },
+                                child: SizedBox.square(
+                                  dimension: 44,
+                                  child: Center(
+                                    child: Icon(
+                                      _peeking
+                                          ? Icons.visibility
+                                          : Icons.visibility_outlined,
+                                      size: 20,
+                                      color: !enabled
+                                          ? scheme.onSurface.withValues(
+                                              alpha: .38,
+                                            )
+                                          : _peeking
+                                          ? scheme.primary
+                                          : null,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
+                          );
+                          return Badge.count(
+                            count: selected,
+                            isLabelVisible: enabled,
+                            offset: const Offset(-6, 4),
+                            backgroundColor: scheme.primary,
+                            textColor: scheme.onPrimary,
+                            child: Frosted(
+                              shape: const CircleBorder(),
+                              child: _mobile
+                                  ? button
+                                  : Tooltip(
+                                      message: _l.peekOriginal,
+                                      child: button,
+                                    ),
+                            ),
+                          );
+                        }(),
+                        const SizedBox(width: 4),
+                        round(
+                          IconButton(
+                            padding: EdgeInsets.zero,
+                            tooltip: _l.settings,
+                            onPressed: idle ? _openSettings : null,
+                            icon: const Icon(Icons.settings_outlined, size: 20),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 4),
                         IconButton.filled(
                           style: const ButtonStyle(
-                            fixedSize: WidgetStatePropertyAll(Size.square(48)),
+                            fixedSize: WidgetStatePropertyAll(Size.square(44)),
+                            padding: WidgetStatePropertyAll(EdgeInsets.zero),
                           ),
                           tooltip: _l.export,
-                          onPressed: idle ? _openExport : null,
+                          onPressed: idle && s != null ? _openExport : null,
                           icon: Transform.translate(
-                            offset: const Offset(0, -2),
-                            child: const Icon(Icons.ios_share, size: 20),
+                            offset: const Offset(0, -1),
+                            child: const Icon(Icons.ios_share, size: 19),
                           ),
                         ),
                       ],
                     ),
                   ),
                   if (!idle) const LinearProgressIndicator(minHeight: 2),
-                  if (shot.cameraPhoto)
+                  if (shot != null && shot.cameraPhoto)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Frosted(
@@ -615,7 +1114,7 @@ class _EditorPageState extends State<EditorPage> {
                         ),
                       ),
                     ),
-                  if (_merging)
+                  if (_merging && s != null)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
                       child: MergeHint(onCancel: () => _mergePick(null)),
@@ -632,11 +1131,11 @@ class _EditorPageState extends State<EditorPage> {
               top: false,
               child: Column(
                 children: [
-                  if (batch)
+                  if (batch && s != null)
                     BatchStrip(
-                      shots: _s.shots,
-                      index: _s.index,
-                      onSelect: (i) => _s.index = i,
+                      shots: s.shots,
+                      index: s.index,
+                      onSelect: (i) => s.index = i,
                     ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
@@ -650,12 +1149,12 @@ class _EditorPageState extends State<EditorPage> {
                               tooltip: _l.fillStyle,
                               onPressed: () => showFillSheet(
                                 context,
-                                widget.settings,
+                                _settings,
                                 () => setState(() {}),
                               ),
                               icon: FillSwatch(
-                                style: widget.settings.fillStyle,
-                                color: widget.settings.fillColor,
+                                style: _settings.fillStyle,
+                                color: _settings.fillColor,
                                 size: 24,
                               ),
                             ),
@@ -672,27 +1171,32 @@ class _EditorPageState extends State<EditorPage> {
                                   ToolButton(
                                     icon: Icons.highlight_alt,
                                     label: _l.modeDraw,
-                                    selected: _drawing && !_merging,
-                                    onTap: () => setState(() {
-                                      _drawing = _merging || !_drawing;
-                                      _merging = false;
-                                      _mergeFrom = null;
-                                    }),
+                                    selected:
+                                        s != null && _drawing && !_merging,
+                                    onTap: s == null
+                                        ? null
+                                        : () => setState(() {
+                                            _drawing = _merging || !_drawing;
+                                            _merging = false;
+                                            _mergeFrom = null;
+                                          }),
                                   ),
                                   ToolButton(
                                     icon: Icons.filter_none,
                                     label: _l.similar,
-                                    onTap: active == null || !idle
+                                    onTap: s == null || active == null || !idle
                                         ? null
                                         : () => _findSimilar(active),
                                   ),
                                   ToolButton(
                                     icon: Icons.join_inner,
                                     label: _l.merge,
-                                    selected: _merging,
-                                    onTap: () => _merging
-                                        ? _mergePick(null)
-                                        : _startMerge(active),
+                                    selected: s != null && _merging,
+                                    onTap: s == null
+                                        ? null
+                                        : () => _merging
+                                              ? _mergePick(null)
+                                              : _startMerge(active),
                                   ),
                                   ToolButton(
                                     icon: Icons.flag_outlined,
@@ -707,6 +1211,7 @@ class _EditorPageState extends State<EditorPage> {
                         const SizedBox(width: 8),
                         Badge.count(
                           count: selected,
+                          isLabelVisible: s != null,
                           // Inside the button's top right, on its circle.
                           offset: const Offset(-10, 6),
                           backgroundColor: scheme.primary,
@@ -717,7 +1222,9 @@ class _EditorPageState extends State<EditorPage> {
                               dimension: 52,
                               child: IconButton(
                                 tooltip: _l.regionsTooltip,
-                                onPressed: () => showRegionSheet(context, _s),
+                                onPressed: s == null
+                                    ? null
+                                    : () => showRegionSheet(context, s),
                                 icon: const Icon(Icons.tune),
                               ),
                             ),

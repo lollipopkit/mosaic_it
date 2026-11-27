@@ -35,6 +35,8 @@ android {
     // The APK ships arm64-v8a alone, the ABI of the LiteRT libraries below
     // (Flutter sets its own abiFilters per build type).
     packaging { jniLibs { excludes += listOf("lib/armeabi-v7a/**", "lib/x86_64/**") } }
+    // Keep bundled .tflite weights uncompressed in the APK for fast extraction.
+    androidResources { noCompress += listOf("tflite", "onnx") }
 
     val releaseSigningVars = mapOf(
         "UNSEEN_KEYSTORE" to providers.environmentVariable("UNSEEN_KEYSTORE").orNull,
@@ -111,4 +113,16 @@ val litertLibs by tasks.registering(Sync::class) {
     into(litertJni)
 }
 android.sourceSets.getByName("main").jniLibs.srcDir(litertJni.get().asFile)
-tasks.named("preBuild") { dependsOn(litertLibs) }
+
+// Bundle the pinned LiteRT detector (.tflite + .json sidecar) from models/manifest.toml
+// into APK assets so the app works completely offline without committing weights to git.
+val bundledModelAssets = layout.buildDirectory.dir("unseen-model/assets")
+val bundleModel by tasks.registering(Exec::class) {
+    val dest = bundledModelAssets.get().dir("models").asFile
+    outputs.dir(bundledModelAssets)
+    inputs.file(rootProject.file("../../models/manifest.toml"))
+    inputs.file(rootProject.file("../tool/bundle-model.sh"))
+    commandLine("bash", rootProject.file("../tool/bundle-model.sh").absolutePath, "litert", dest.absolutePath)
+}
+android.sourceSets.getByName("main").assets.srcDir(bundledModelAssets.get().asFile)
+tasks.named("preBuild") { dependsOn(litertLibs, bundleModel) }

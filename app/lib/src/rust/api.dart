@@ -21,23 +21,6 @@ Future<List<PreviewPatch>> redactionPreview({
   fill: fill,
 );
 
-/// The newest release this app can run in a downloaded `manifest`, if it is
-/// newer than the model at `installed`. Fails unless the manifest carries the
-/// publisher's signature; an installed model that is not a listed release of
-/// this platform's variant (`litert` on Android, else `tiled`) is the user's
-/// own and gets no update.
-Future<ModelUpdate?> modelUpdate({
-  required List<int> manifest,
-  String? installed,
-}) => RustLib.instance.api.crateApiModelUpdate(
-  manifest: manifest,
-  installed: installed,
-);
-
-/// Hex BLAKE3 of a file's content.
-Future<String> fileBlake3({required String path}) =>
-    RustLib.instance.api.crateApiFileBlake3(path: path);
-
 /// Regions that look like `rect` of `image_path`, searched in `target_path`
 /// (same scale assumed) or, without one, in the same image excluding `rect`.
 Future<List<PixelRect>> findSimilarRegions({
@@ -73,7 +56,8 @@ abstract class Session implements RustOpaqueInterface {
   /// Redacts `rects`, runs the export self-check (skipped when `force` is
   /// set) and writes `out_path` (format from its extension, no metadata).
   /// `max_side` scales the written image down so its longer side is at most
-  /// that many pixels; the check runs at full size.
+  /// that many pixels; `jpeg_quality` (1..=100) overrides the default JPEG
+  /// quality when writing `.jpg`/`.jpeg`. The check runs at full size.
   Future<ExportOutcome> redactAndExport({
     required String imagePath,
     required String outPath,
@@ -81,6 +65,7 @@ abstract class Session implements RustOpaqueInterface {
     required Fill fill,
     required bool force,
     int? maxSide,
+    int? jpegQuality,
   });
 
   /// Classes detected but not pre-selected, and skipped by the export check.
@@ -355,48 +340,6 @@ class ModelInfo {
           domain == other.domain &&
           verified == other.verified &&
           selectThresholds == other.selectThresholds;
-}
-
-/// A published release newer than the installed model.
-class ModelUpdate {
-  final String version;
-
-  /// File name to install the model under; the sidecar is `<file>.json`.
-  final String file;
-  final String modelUrl;
-  final String sidecarUrl;
-  final String blake3;
-  final String sidecarBlake3;
-
-  const ModelUpdate({
-    required this.version,
-    required this.file,
-    required this.modelUrl,
-    required this.sidecarUrl,
-    required this.blake3,
-    required this.sidecarBlake3,
-  });
-
-  @override
-  int get hashCode =>
-      version.hashCode ^
-      file.hashCode ^
-      modelUrl.hashCode ^
-      sidecarUrl.hashCode ^
-      blake3.hashCode ^
-      sidecarBlake3.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is ModelUpdate &&
-          runtimeType == other.runtimeType &&
-          version == other.version &&
-          file == other.file &&
-          modelUrl == other.modelUrl &&
-          sidecarUrl == other.sidecarUrl &&
-          blake3 == other.blake3 &&
-          sidecarBlake3 == other.sidecarBlake3;
 }
 
 /// xyxy in image pixels.

@@ -101,13 +101,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FrameCheck dco_decode_box_autoadd_frame_check(dynamic raw);
 
   @protected
-  ModelUpdate dco_decode_box_autoadd_model_update(dynamic raw);
-
-  @protected
   PixelRect dco_decode_box_autoadd_pixel_rect(dynamic raw);
 
   @protected
   int dco_decode_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_8(dynamic raw);
 
   @protected
   VideoExportOptions dco_decode_box_autoadd_video_export_options(dynamic raw);
@@ -158,9 +158,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint32List dco_decode_list_prim_u_32_strict(dynamic raw);
 
   @protected
-  List<int> dco_decode_list_prim_u_8_loose(dynamic raw);
-
-  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
@@ -182,9 +179,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ModelInfo dco_decode_model_info(dynamic raw);
 
   @protected
-  ModelUpdate dco_decode_model_update(dynamic raw);
-
-  @protected
   String? dco_decode_opt_String(dynamic raw);
 
   @protected
@@ -194,10 +188,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FrameCheck? dco_decode_opt_box_autoadd_frame_check(dynamic raw);
 
   @protected
-  ModelUpdate? dco_decode_opt_box_autoadd_model_update(dynamic raw);
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
 
   @protected
-  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+  int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
 
   @protected
   PixelRect dco_decode_pixel_rect(dynamic raw);
@@ -322,13 +316,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   FrameCheck sse_decode_box_autoadd_frame_check(SseDeserializer deserializer);
 
   @protected
-  ModelUpdate sse_decode_box_autoadd_model_update(SseDeserializer deserializer);
-
-  @protected
   PixelRect sse_decode_box_autoadd_pixel_rect(SseDeserializer deserializer);
 
   @protected
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
   VideoExportOptions sse_decode_box_autoadd_video_export_options(
@@ -383,9 +377,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint32List sse_decode_list_prim_u_32_strict(SseDeserializer deserializer);
 
   @protected
-  List<int> sse_decode_list_prim_u_8_loose(SseDeserializer deserializer);
-
-  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
@@ -409,9 +400,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ModelInfo sse_decode_model_info(SseDeserializer deserializer);
 
   @protected
-  ModelUpdate sse_decode_model_update(SseDeserializer deserializer);
-
-  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
 
   @protected
@@ -425,12 +413,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  ModelUpdate? sse_decode_opt_box_autoadd_model_update(
-    SseDeserializer deserializer,
-  );
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
 
   @protected
-  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+  int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
   PixelRect sse_decode_pixel_rect(SseDeserializer deserializer);
@@ -574,12 +560,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_box_autoadd_model_update(
-    ModelUpdate self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_box_autoadd_pixel_rect(
     PixelRect self,
     SseSerializer serializer,
@@ -587,6 +567,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_video_export_options(
@@ -655,9 +638,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_list_prim_u_8_loose(List<int> self, SseSerializer serializer);
-
-  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
@@ -688,9 +668,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_model_info(ModelInfo self, SseSerializer serializer);
 
   @protected
-  void sse_encode_model_update(ModelUpdate self, SseSerializer serializer);
-
-  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
 
   @protected
@@ -706,13 +683,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_opt_box_autoadd_model_update(
-    ModelUpdate? self,
-    SseSerializer serializer,
-  );
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
 
   @protected
-  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+  void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
 
   @protected
   void sse_encode_pixel_rect(PixelRect self, SseSerializer serializer);

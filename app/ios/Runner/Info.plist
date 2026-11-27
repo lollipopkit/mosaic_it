@@ -2,12 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Show your screenshots and photos so you can redact them. Images stay on this device.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Scan QR codes. MosaicIt does not take or keep photos.</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Unlock MosaicIt with Face ID.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Save redacted images back to your Photos library.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -32,8 +28,19 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
-	<key>UIFileSharingEnabled</key>
-	<true/>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Image</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.image</string>
+			</array>
+		</dict>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

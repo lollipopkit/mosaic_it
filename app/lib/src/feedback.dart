@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
-import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'boxes.dart';
@@ -10,14 +10,20 @@ import 'boxes.dart';
 /// App version included in feedback payloads (kept in sync with pubspec.yaml).
 const feedbackAppVersion = '1.0.0+1';
 
-/// Default Cloudflare Worker endpoint for anonymous detection feedback.
-const defaultFeedbackEndpoint = String.fromEnvironment(
-  'UNSEEN_FEEDBACK_URL',
-  defaultValue: 'https://unseen-feedback.lollipopkit.workers.dev/v1/feedback',
+/// Web feedback page opened in the system browser (the app itself never makes
+/// network requests). Annotations and optional redacted JPEG bytes are passed
+/// via the URL `#fragment`, which never hits HTTP GET logs.
+const defaultFeedbackWebUrl = String.fromEnvironment(
+  'UNSEEN_FEEDBACK_WEB_URL',
+  defaultValue: 'https://mosaic.lollipopkit.com/feedback',
 );
 
-/// Maximum longer side in pixels of feedback screenshots uploaded on-device.
+/// Maximum longer side in pixels of feedback screenshots prepared on-device.
 const feedbackMaxImageSide = 1280;
+
+/// Maximum raw JPEG bytes embedded in the URL `#i=` fragment (base64url is
+/// ~128 KiB, well inside Android Binder and iOS/macOS URL launch limits).
+const feedbackMaxInlineImageBytes = 96 * 1024;
 
 /// Maximum note length accepted by the feedback worker.
 const feedbackMaxNoteLength = 500;
@@ -51,21 +57,6 @@ enum FeedbackTag {
   final String wireValue;
 }
 
-class FeedbackReceipt {
-  const FeedbackReceipt({required this.id, required this.receivedAt});
-
-  final String id;
-  final String receivedAt;
-}
-
-class FeedbackException implements Exception {
-  const FeedbackException(this.message);
-  final String message;
-
-  @override
-  String toString() => message;
-}
-
 String currentFeedbackPlatform() {
   if (Platform.isIOS) return 'ios';
   if (Platform.isAndroid) return 'android';
@@ -73,6 +64,44 @@ String currentFeedbackPlatform() {
   if (Platform.isLinux) return 'linux';
   if (Platform.isWindows) return 'windows';
   return 'linux';
+}
+
+String _b64UrlNoPad(List<int> bytes) =>
+    base64Url.encode(bytes).replaceAll('=', '');
+
+/// Builds the browser handoff URI (`#v=1&d=...[&i=...][&m=1]`) so the offline
+/// app can hand pre-filled annotations and an optional redacted JPEG to the
+/// web feedback page without any app-side networking.
+Uri buildFeedbackWebUri({
+  required Map<String, dynamic> payload,
+  Uint8List? imageBytes,
+  bool imageDeferred = false,
+  String baseUrl = defaultFeedbackWebUrl,
+}) {
+  final compressed = ZLibCodec(raw: true)
+      .encode(utf8.encode(jsonEncode(payload)));
+  final parts = <String>['v=1', 'd=${_b64UrlNoPad(compressed)}'];
+  if (imageBytes != null && imageBytes.isNotEmpty) {
+    parts.add('i=${_b64UrlNoPad(imageBytes)}');
+  } else if (imageDeferred) {
+    parts.add('m=1');
+  }
+  return Uri.parse(baseUrl).replace(fragment: parts.join('&'));
+}
+
+/// Decodes the `d=` field produced by [buildFeedbackWebUri] (used in tests).
+Map<String, dynamic> decodeFeedbackWebPayload(Uri uri) {
+  final params = Uri.splitQueryString(uri.fragment);
+  final raw = params['d'];
+  if (raw == null || raw.isEmpty) {
+    throw const FormatException('Missing d parameter in feedback fragment');
+  }
+  final padded = base64Url.normalize(raw);
+  final bytes = base64Url.decode(padded);
+  final jsonBytes = params['v'] == '1'
+      ? ZLibCodec(raw: true).decode(bytes)
+      : bytes;
+  return jsonDecode(utf8.decode(jsonBytes)) as Map<String, dynamic>;
 }
 
 String _capLen(String s, int maxLen) =>
@@ -386,85 +415,4 @@ class FeedbackDraft {
     version: version,
     uploadedSize: uploadedSize,
   );
-}
-
-/// Uploads anonymous feedback payloads (and optional redacted screenshots) to
-/// the Cloudflare Worker endpoint.
-class FeedbackClient {
-  FeedbackClient({Dio? dio, this.endpoint = defaultFeedbackEndpoint})
-    : _ownsDio = dio == null,
-      _dio =
-          dio ??
-          Dio(
-            BaseOptions(
-              connectTimeout: const Duration(seconds: 15),
-              sendTimeout: const Duration(seconds: 30),
-              receiveTimeout: const Duration(seconds: 20),
-            ),
-          );
-
-  final bool _ownsDio;
-  final Dio _dio;
-  final String endpoint;
-
-  void close() {
-    if (_ownsDio) _dio.close();
-  }
-
-  static Map<String, dynamic>? _tryDecodeMap(dynamic data) {
-    if (data is Map<String, dynamic>) return data;
-    if (data is Map) {
-      return {for (final e in data.entries) e.key.toString(): e.value};
-    }
-    if (data is String && data.isNotEmpty) {
-      try {
-        final decoded = jsonDecode(data);
-        if (decoded is Map<String, dynamic>) return decoded;
-      } on FormatException {
-        return null;
-      }
-    }
-    return null;
-  }
-
-  Future<FeedbackReceipt> submit({
-    required Map<String, dynamic> payload,
-    File? imageFile,
-  }) async {
-    try {
-      final Response<dynamic> resp;
-      if (imageFile != null) {
-        final name = imageFile.uri.pathSegments.last;
-        final form = FormData.fromMap({
-          'payload': jsonEncode(payload),
-          'image': await MultipartFile.fromFile(imageFile.path, filename: name),
-        });
-        resp = await _dio.post<dynamic>(endpoint, data: form);
-      } else {
-        resp = await _dio.post<dynamic>(
-          endpoint,
-          data: payload,
-          options: Options(contentType: Headers.jsonContentType),
-        );
-      }
-
-      final status = resp.statusCode ?? 0;
-      final map = _tryDecodeMap(resp.data);
-
-      if (status >= 200 && status < 300 && map != null && map['id'] is String) {
-        return FeedbackReceipt(
-          id: map['id'] as String,
-          receivedAt: (map['received_at'] as String?) ?? '',
-        );
-      }
-      final err = map?['error']?.toString() ?? 'HTTP $status';
-      throw FeedbackException(err);
-    } on DioException catch (e) {
-      final map = _tryDecodeMap(e.response?.data);
-      if (map?['error'] != null) {
-        throw FeedbackException(map!['error'].toString());
-      }
-      throw FeedbackException(e.message ?? e.type.name);
-    }
-  }
 }

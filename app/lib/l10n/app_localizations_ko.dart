@@ -99,19 +99,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get regionsTooltip => '영역';
 
   @override
-  String get notCalibrated => '모델이 보정되지 않았습니다: 사전 선택에 고정 임계값이 사용됩니다.';
-
-  @override
-  String calibratedUnverified(String domain) {
-    return '검증되지 않은 데이터($domain)로 보정됨: 재현율 보증이 아직 적용되지 않습니다.';
-  }
-
-  @override
-  String calibratedFor(String domain) {
-    return '$domain 이미지에 대해 보정됨. 다른 유형의 이미지는 보증 범위 밖입니다.';
-  }
-
-  @override
   String get cameraPhoto =>
       '이것은 카메라 사진입니다. 감지기는 스크린샷용으로 만들어졌으므로 여기의 박스는 신뢰할 수 없습니다.';
 
@@ -297,60 +284,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get pickClass => '클래스 선택';
 
   @override
-  String get filterScreenshots => '스크린샷';
-
-  @override
-  String get filterAll => '모두';
-
-  @override
-  String get filterVideos => '동영상';
-
-  @override
-  String get albums => '앨범';
-
-  @override
-  String get limitedAccess => 'MosaicIt은 일부 사진만 볼 수 있습니다';
-
-  @override
-  String get manage => '관리';
-
-  @override
-  String selectedImages(int count) {
-    return '$count개 선택됨';
-  }
-
-  @override
-  String redactImages(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count개 이미지 마스킹',
-      one: '1개 이미지 마스킹',
-      zero: '0개 이미지 마스킹',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get badgeRedacted => '마스킹됨';
-
-  @override
-  String get photosDenied =>
-      'MosaicIt은 여기에 사진을 표시하려면 사진 접근 권한이 필요합니다. 사진은 이 기기를 절대 나가지 않습니다.';
-
-  @override
-  String get openSettings => '설정 열기';
-
-  @override
-  String get openFiles => '파일 열기';
-
-  @override
-  String get noPhotos => '여기에는 사진이 없습니다';
-
-  @override
-  String get loading => '로딩 중…';
-
-  @override
   String get appearance => '모양';
 
   @override
@@ -358,18 +291,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get appIcon => '앱 아이콘';
-
-  @override
-  String get aspectRatioGrid => '원본 비율 격자';
-
-  @override
-  String get modelDownloadFailed => '모델을 다운로드할 수 없습니다';
-
-  @override
-  String get retry => '다시 시도';
-
-  @override
-  String get autoUpdateModel => '모델 자동 업데이트';
 
   @override
   String get threshold => '임계값';
@@ -475,15 +396,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get saveAs => 'Save…';
 
   @override
-  String get saveAndDeleteOriginals => 'Save and delete originals';
-
-  @override
-  String get originalsToRecentlyDeleted => 'Originals go to Recently Deleted';
-
-  @override
-  String get originalsToTrash => 'Originals go to the trash';
-
-  @override
   String get exportFormat => 'Format';
 
   @override
@@ -506,11 +418,6 @@ class AppLocalizationsKo extends AppLocalizations {
       one: 'Saved 1 image to Photos',
     );
     return '$_temp0';
-  }
-
-  @override
-  String originalsNotDeleted(String error) {
-    return 'The originals were kept: $error';
   }
 
   @override
@@ -542,28 +449,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get reasonFillShowsThrough => 'fill shows through';
 
   @override
-  String get introTitle => 'Choose screenshots to redact';
-
-  @override
-  String get introBody =>
-      'MosaicIt lists your screenshots here so you can pick the ones to redact. Detection runs on this device, and images never leave it.';
-
-  @override
-  String get allowPhotoAccess => 'Allow photo access';
-
-  @override
-  String get photosOffTitle => 'Photo access is off';
-
-  @override
   String get openSource => 'Open source';
-
-  @override
-  String get downloadingDetector => 'Downloading the detector';
-
-  @override
-  String percent(int value) {
-    return '$value%';
-  }
 
   @override
   String get adaptivePreselectTitle => 'Local adaptive pre-selection';
@@ -596,15 +482,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get feedbackAction => 'Report';
-
-  @override
-  String get feedbackSubmit => 'Submit';
-
-  @override
-  String get feedbackDone => 'Done';
-
-  @override
-  String get feedbackSentTitle => 'Feedback sent';
 
   @override
   String get feedbackAttachScreenshot => 'Attach screenshot';
@@ -667,4 +544,79 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get feedbackBoxPreference => 'Keep visible';
+
+  @override
+  String get introOfflineTitle => '네트워크 기능 없음';
+
+  @override
+  String get introOfflineBody =>
+      'MosaicIt에는 네트워크 코드가 없으며 네트워크 권한도 요청하지 않습니다. 감지 모델이 앱에 내장되어 있어 이미지와 동영상이 기기 밖으로 전송되지 않습니다.';
+
+  @override
+  String get introNoNetPermTitle => '네트워크 권한 없음';
+
+  @override
+  String get introBundledModelTitle => '내장 온디바이스 모델';
+
+  @override
+  String introBundledModelBody(String version) {
+    return 'unseen-det $version · 기기 내장';
+  }
+
+  @override
+  String get resetBundledModel => '내장 모델로 복원';
+
+  @override
+  String get reviewIntro => '소개 다시 보기';
+
+  @override
+  String get feedbackOpenWeb => '브라우저에서 제출';
+
+  @override
+  String get introNoNetPermBodyIos => '네트워크 요청 없음 · 기기 내 처리';
+
+  @override
+  String get introNoNetPermBodyAndroid => 'INTERNET 권한 미선언';
+
+  @override
+  String get introNoNetPermBodyDesktop => '샌드박스에 네트워크 권한 없음';
+
+  @override
+  String get customModel => '사용자 지정 모델';
+
+  @override
+  String modelClassCount(int count) {
+    return '$count개 클래스';
+  }
+
+  @override
+  String get copyImage => '이미지 복사';
+
+  @override
+  String get copiedToClipboard => '클립보드에 복사됨';
+
+  @override
+  String get copyFailed => '이미지를 복사할 수 없음';
+
+  @override
+  String get peekOriginal => '길게 눌러 원본 비교';
+
+  @override
+  String get selectMedia => '사진 또는 동영상 선택';
+
+  @override
+  String get saveFailed => '사진에 저장하지 못했습니다';
+
+  @override
+  String get retry => '다시 시도';
+
+  @override
+  String get iosWirelessPromptTitle => '무선 데이터 안내';
+
+  @override
+  String get iosWirelessPromptBody =>
+      '시스템 사진 선택기를 열 때 iCloud 썸네일로 인해 iOS 무선 데이터 허용 창이 뜰 수 있습니다. MosaicIt은 네트워크를 사용하지 않으므로 ‘허용 안 함’을 선택하세요.';
+
+  @override
+  String get continueAction => '계속';
 }

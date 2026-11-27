@@ -1,7 +1,6 @@
 import 'dart:io';
 
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'rust/api.dart';
@@ -10,15 +9,28 @@ import 'rust/api.dart';
 /// Android, ONNX elsewhere.
 final modelExtensions = [Platform.isAndroid ? '.tflite' : '.onnx'];
 
+/// Fallback version label when `bundled.stamp` is absent (e.g. unit tests).
+const defaultBundledModelVersion = '0.5.0';
+
 bool _isModel(String path) => modelExtensions.any(path.endsWith);
 
-/// Keeps one detector model (a [modelExtensions] file plus its `.json` sidecar) in the
-/// app's support directory: a release downloaded from [_manifest], or files
-/// the user picked (copied in, as the sandbox only grants access to those).
+/// Keeps the active detector model (a [modelExtensions] file plus its `.json`
+/// sidecar) completely offline: either the bundled model shipped inside the
+/// app package, or a local model manually imported by the user.
 class ModelStore {
-  /// The signed list of releases (models/manifest.toml, models/publish.sh).
-  static const _manifest =
-      'https://pub.lolli.tech/models/unseen/manifest.signed';
+  static const _androidChannel = MethodChannel(
+    'com.lollipopkit.unseen/bundled_model',
+  );
+
+  static String? _cachedBundledVersion;
+  static Future<File?>? _bundledInFlight;
+  static Future<Session?>? _preloaded;
+  static int _preloadGen = 0;
+
+  /// Version string read from `bundled.stamp` next to the bundled model
+  /// (falling back to [defaultBundledModelVersion] before extraction or in tests).
+  static String get bundledModelVersion =>
+      _cachedBundledVersion ?? defaultBundledModelVersion;
 
   static Future<Directory> _dir() async {
     final d = Directory(
@@ -27,35 +39,139 @@ class ModelStore {
     return d.create(recursive: true);
   }
 
-  /// A downloaded release waits in `staged/<version>/` until the next
-  /// [load]: the files of a model in use are never replaced.
-  static Future<Directory> _staged() async =>
-      Directory('${(await _dir()).path}/staged').create();
+  static File? _modelIn(Directory d) {
+    if (!d.existsSync()) return null;
+    for (final f in d.listSync().whereType<File>()) {
+      if (_isModel(f.path) && File('${f.path}.json').existsSync()) return f;
+    }
+    return null;
+  }
 
-  static File? _modelIn(Directory d) =>
-      d.listSync().whereType<File>().where((f) => _isModel(f.path)).firstOrNull;
+  static void _readStampNear(File model) {
+    final stamp = File('${model.parent.path}/bundled.stamp');
+    if (!stamp.existsSync()) return;
+    try {
+      final firstLine = stamp.readAsLinesSync().firstOrNull?.trim();
+      if (firstLine != null && firstLine.isNotEmpty) {
+        _cachedBundledVersion = firstLine;
+      }
+    } catch (_) {}
+  }
 
-  /// The staged release: its model is written last, so finding one means the
-  /// release is complete.
-  static Future<File?> _stagedModel() async => (await _staged())
-      .listSync()
-      .whereType<Directory>()
-      .map(_modelIn)
-      .nonNulls
-      .firstOrNull;
+  /// A custom model imported manually by the user (overrides [bundled]).
+  static Future<File?> custom() async => _modelIn(await _dir());
 
-  /// Raised by [import]: a download that started before it must not replace
-  /// what the user picked.
-  static int _imports = 0;
+  /// Whether a user-imported custom model is currently active.
+  static Future<bool> hasCustomModel() async => await custom() != null;
 
-  /// The stored model, if any.
-  static Future<File?> current() async => _modelIn(await _dir());
+  /// Invalidates any in-flight or completed preloaded session, waiting for
+  /// active file reads to finish and disposing the native session to avoid leaks.
+  static Future<void> _invalidatePreload() async {
+    _preloadGen++;
+    final pending = _preloaded;
+    _preloaded = null;
+    if (pending != null) {
+      try {
+        (await pending)?.dispose();
+      } catch (_) {}
+    }
+  }
 
-  /// Copies a model and its sidecar, picked together by the user, replacing
-  /// the stored model. The sidecar is `<model>.json`, or the only
-  /// `.json` picked. Picking files rather than a folder works on every
-  /// platform (iOS has no folder picker) and under the macOS sandbox.
-  static Future<File> import(List<String> paths) async {
+  /// Removes any user-imported custom model so [load] falls back to [bundled].
+  static Future<void> clearCustom() async {
+    await _invalidatePreload();
+    final d = await _dir();
+    for (final f in d.listSync().whereType<File>()) {
+      await f.delete();
+    }
+  }
+
+  /// Resolves the model bundled inside the app package (zero networking).
+  ///
+  /// - iOS / macOS: opened directly from the read-only app bundle.
+  /// - Android: streamed once from APK `assets/models/` into app support.
+  static Future<File?> bundled() {
+    return _bundledInFlight ??= () async {
+      try {
+        return await _resolveBundled();
+      } finally {
+        _bundledInFlight = null;
+      }
+    }();
+  }
+
+  static Future<File?> _resolveBundled() async {
+    if (Platform.isAndroid) {
+      final dest = '${(await _dir()).path}/bundled';
+      final path = await _androidChannel.invokeMethod<String>('extract', {
+        'dir': dest,
+      });
+      if (path == null) return null;
+      final f = File(path);
+      if (f.existsSync() && File('${f.path}.json').existsSync()) {
+        _readStampNear(f);
+        return f;
+      }
+      return null;
+    }
+    final exeDir = File(Platform.resolvedExecutable).parent;
+    final candidates = <Directory>[
+      if (Platform.isMacOS) Directory('${exeDir.parent.path}/Resources/models'),
+      if (Platform.isIOS) Directory('${exeDir.path}/models'),
+      Directory('${exeDir.path}/data/flutter_assets/models'),
+      Directory('${exeDir.path}/models'),
+    ];
+    for (final dir in candidates) {
+      if (_modelIn(dir) case final found?) {
+        _readStampNear(found);
+        return found;
+      }
+    }
+    return null;
+  }
+
+  /// Reads the bundled version label from `bundled.stamp` when available.
+  static Future<String> resolveBundledVersion() async {
+    if (_cachedBundledVersion != null) return _cachedBundledVersion!;
+    try {
+      await bundled();
+    } catch (_) {}
+    return bundledModelVersion;
+  }
+
+  /// The active stored model (custom override first, otherwise bundled).
+  static Future<File?> current() async => await custom() ?? await bundled();
+
+  /// Starts loading the active model in the background (e.g. while the user
+  /// reads the first-launch IntroPage) so [takePreloadedOrLoad] finishes immediately.
+  static void preload() {
+    if (_preloaded != null) return;
+    final gen = _preloadGen;
+    _preloaded = load().then((s) {
+      if (gen != _preloadGen) {
+        s?.dispose();
+        return null;
+      }
+      return s;
+    }, onError: (_) => null);
+  }
+
+  /// Returns an already-preloaded session if available, otherwise calls [load].
+  static Future<Session?> takePreloadedOrLoad() async {
+    final pending = _preloaded;
+    _preloaded = null;
+    if (pending != null) {
+      final s = await pending;
+      if (s != null) return s;
+    }
+    return load();
+  }
+
+  /// Copies a model and its sidecar, picked together by the user, validates
+  /// that the runtime can open it, and only then replaces any previous custom
+  /// model so a corrupt import never breaks the active installation.
+  static Future<Session> importAndOpen(List<String> paths) async {
+    await _invalidatePreload();
     final (model, sidecar) = pickModelFiles(paths);
     // Pickers may rename what they copy (Android's file_selector gives a
     // file without a registered MIME type another extension), so the format
@@ -70,109 +186,36 @@ class ModelStore {
     final dot = file.indexOf('.');
     final name = '${dot > 0 ? file.substring(0, dot) : file}$ext';
     final d = await _dir();
-    _imports++;
-    for (final f in d.listSync()) {
-      await f.delete(recursive: true);
-    }
-    final dst = await File(model).copy('${d.path}/$name');
-    await File(sidecar).copy('${dst.path}.json');
-    return dst;
-  }
-
-  /// The stored model, after a staged release took its place; null when
-  /// there is none yet ([update] downloads one).
-  static Future<Session?> load() async {
-    await _applyStaged();
-    final f = await current();
-    return f == null ? null : open(f);
-  }
-
-  /// Downloads the newest release into the staging directory when the stored
-  /// model is an older release or there is none; [load] then uses it. False
-  /// when nothing newer that this app can run is published. A model the user
-  /// imported is not such a release and is left alone.
-  static Future<bool> update({ValueChanged<double>? onProgress}) async {
-    final staged = await _staged(), imports = _imports;
-    final dio = Dio(
-      BaseOptions(
-        connectTimeout: const Duration(seconds: 30),
-        // Between chunks: a stalled download fails, a slow one goes on.
-        receiveTimeout: const Duration(seconds: 30),
-      ),
-    );
+    final stage = await Directory(
+      '${d.path}/.import-${DateTime.now().microsecondsSinceEpoch}',
+    ).create(recursive: true);
     try {
-      final manifest = await dio.get<List<int>>(
-        _manifest,
-        options: Options(responseType: ResponseType.bytes),
-      );
-      final u = await modelUpdate(
-        manifest: manifest.data!,
-        installed: (await _stagedModel() ?? await current())?.path,
-      );
-      if (u == null) return false;
-      final dir = await Directory('${staged.path}/${u.version}').create();
-      final model = File('${dir.path}/${u.file}');
-      final sidecar = File('${model.path}.json');
-      final part = File('${model.path}.part');
-      await _download(dio, u.sidecarUrl, sidecar, u.sidecarBlake3);
-      await _download(dio, u.modelUrl, part, u.blake3, onProgress);
-      if (imports != _imports) {
-        await dir.delete(recursive: true);
-        return false;
+      final stagedModel = await File(model).copy('${stage.path}/$name');
+      final stagedSidecar = await File(sidecar)
+          .copy('${stagedModel.path}.json');
+      // Validate before touching the active custom model directory.
+      await open(stagedModel);
+      for (final f in d.listSync().whereType<File>()) {
+        await f.delete();
       }
-      // Renamed last: only then is the staged release complete.
-      await part.rename(model.path);
-      for (final other in staged.listSync()) {
-        if (other.path != dir.path) await other.delete(recursive: true);
-      }
-      return true;
+      final dst = await stagedModel.rename('${d.path}/$name');
+      await stagedSidecar.rename('${dst.path}.json');
+      return await open(dst);
     } finally {
-      dio.close();
+      if (stage.existsSync()) {
+        await stage.delete(recursive: true);
+      }
     }
   }
 
-  /// Saves [url] as [to] if its content has the expected BLAKE3.
-  static Future<void> _download(
-    Dio dio,
-    String url,
-    File to,
-    String blake3, [
-    ValueChanged<double>? onProgress,
-  ]) async {
-    await dio.download(
-      url,
-      to.path,
-      onReceiveProgress: (got, total) {
-        if (total > 0) onProgress?.call(got / total);
-      },
-    );
-    if (await fileBlake3(path: to.path) != blake3) {
-      await to.delete();
-      throw HttpException(
-        'content does not match the manifest',
-        uri: Uri.parse(url),
-      );
+  /// Loads the active model (custom override, falling back to bundled).
+  static Future<Session?> load() async {
+    final customFile = await custom();
+    if (customFile != null) {
+      return open(customFile);
     }
-  }
-
-  /// Makes the staged release the stored model. Every step can be repeated,
-  /// so an interrupted move finishes at the next launch.
-  static Future<void> _applyStaged() async {
-    final model = await _stagedModel();
-    if (model == null) return;
-    final d = await _dir();
-    String name(File f) => f.path.split(Platform.pathSeparator).last;
-    final sidecar = File('${model.path}.json');
-    final keep = {name(model), name(sidecar)};
-    for (final f in d.listSync().whereType<File>()) {
-      if (!keep.contains(name(f))) await f.delete();
-    }
-    // Already moved if an earlier run was interrupted here.
-    if (sidecar.existsSync()) {
-      await sidecar.rename('${d.path}/${name(sidecar)}');
-    }
-    await model.rename('${d.path}/${name(model)}');
-    await (await _staged()).delete(recursive: true);
+    final bundledFile = await bundled();
+    return bundledFile == null ? null : open(bundledFile);
   }
 
   /// Loads [model], keeping compiled hardware models in the app's cache

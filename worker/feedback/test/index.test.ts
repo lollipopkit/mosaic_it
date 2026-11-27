@@ -68,6 +68,50 @@ test('health endpoint returns 200', async () => {
   assert.deepEqual(await res.json(), { ok: true });
 });
 
+test('GET / and /feedback serve web feedback UI with strict CSP and no-referrer', async () => {
+  const { env } = makeEnv();
+  for (const path of ['/', '/index.html', '/feedback', '/feedback/', '/feedback/index.html']) {
+    const res = await worker.fetch(new Request(`https://fb.test${path}`), env);
+    assert.equal(res.status, 200, `GET ${path} should return 200`);
+    assert.match(res.headers.get('Content-Type') ?? '', /^text\/html/);
+    assert.equal(res.headers.get('Referrer-Policy'), 'no-referrer');
+    const csp = res.headers.get('Content-Security-Policy') ?? '';
+    assert.match(csp, /default-src 'none'/);
+    assert.match(csp, /connect-src 'self'/);
+    const html = await res.text();
+    assert.match(html, /DecompressionStream\('deflate-raw'\)/);
+    assert.match(html, /\/v1\/feedback/);
+    const head = await worker.fetch(new Request(`https://fb.test${path}`, { method: 'HEAD' }), env);
+    assert.equal(head.status, 200, `HEAD ${path} should return 200`);
+    assert.equal(await head.text(), '');
+  }
+});
+
+test('accepts standalone web platform text feedback', async () => {
+  const { env, stored } = makeEnv();
+  const res = await worker.fetch(
+    new Request('https://fb.test/v1/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        schema: 'unseen.feedback.v1',
+        app_version: 'web',
+        platform: 'web',
+        model_id: 'web',
+        privacy_mode: 'text',
+        tags: ['other'],
+        note: 'Web submission',
+        image: null,
+        diffs: [],
+        excluded_preference_count: 0,
+      }),
+    }),
+    env,
+  );
+  assert.equal(res.status, 201);
+  assert.equal(stored.size, 1);
+});
+
 test('accepts masked multipart feedback and writes image + meta.json to R2', async () => {
   const { env, stored } = makeEnv();
   const form = new FormData();
