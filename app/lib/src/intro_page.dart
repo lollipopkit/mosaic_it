@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:fl_lib/fl_lib.dart' show IntroPage, IntroPageArgs;
+import 'package:fl_lib/fl_lib.dart'
+    show IntroPage, IntroPageArgs, SheetScaffold, showResizableSheet;
 import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -20,25 +21,15 @@ String platformNoNetPermBody(AppLocalizations l) {
   return l.introNoNetPermBodyIos;
 }
 
-/// On China-mainland iOS devices, shows a one-time notice before the first
-/// system photo picker open so users know to choose "Don't Allow" on the iOS
-/// wireless-data prompt triggered by out-of-process iCloud thumbnails.
-Future<bool> confirmFirstPickerIfRestricted(BuildContext context) async {
-  if (!Platform.isIOS) return true;
-  final seen = SettingStore.instance.pickerNoticeSeen;
-  if (seen.get()) return true;
-  final restricted = await PlatformBridge.isWirelessDataRestricted();
-  if (!restricted) {
-    await seen.set(true);
-    return context.mounted;
-  }
-  if (!context.mounted) return false;
+/// Bottom sheet explaining that the China-mainland iOS wireless-data prompt
+/// comes from out-of-process iCloud thumbnails in `PHPicker` and advising
+/// "Don't Allow".
+Future<bool> showWirelessDataNoticeSheet(BuildContext context) async {
   final l = AppLocalizations.of(context);
-  final go = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
+  final go = await showResizableSheet<bool>(
+    context,
+    builder: (ctx) => SheetScaffold(
       title: Text(l.iosWirelessPromptTitle),
-      content: Text(l.iosWirelessPromptBody),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
@@ -49,9 +40,30 @@ Future<bool> confirmFirstPickerIfRestricted(BuildContext context) async {
           child: Text(l.continueAction),
         ),
       ],
+      child: Text(
+        l.iosWirelessPromptBody,
+        style: const TextStyle(height: 1.5),
+      ),
     ),
   );
-  if (go == true) {
+  return go == true;
+}
+
+/// On China-mainland iOS devices, shows a one-time bottom sheet before the
+/// first system photo picker open so users know to choose "Don't Allow" on the
+/// iOS wireless-data prompt triggered by out-of-process iCloud thumbnails.
+Future<bool> confirmFirstPickerIfRestricted(BuildContext context) async {
+  if (!Platform.isIOS) return true;
+  final seen = SettingStore.instance.pickerNoticeSeen;
+  if (seen.get()) return true;
+  final restricted = await PlatformBridge.isWirelessDataRestricted();
+  if (!restricted) {
+    await seen.set(true);
+    return context.mounted;
+  }
+  if (!context.mounted) return false;
+  final go = await showWirelessDataNoticeSheet(context);
+  if (go) {
     await seen.set(true);
     return context.mounted;
   }

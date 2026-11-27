@@ -68,21 +68,23 @@ test('health endpoint returns 200', async () => {
   assert.deepEqual(await res.json(), { ok: true });
 });
 
-test('GET / serves web feedback UI with strict CSP and no-referrer', async () => {
+test('GET / and /feedback serve web feedback UI with strict CSP and no-referrer', async () => {
   const { env } = makeEnv();
-  const res = await worker.fetch(new Request('https://fb.test/'), env);
-  assert.equal(res.status, 200);
-  assert.match(res.headers.get('Content-Type') ?? '', /^text\/html/);
-  assert.equal(res.headers.get('Referrer-Policy'), 'no-referrer');
-  const csp = res.headers.get('Content-Security-Policy') ?? '';
-  assert.match(csp, /default-src 'none'/);
-  assert.match(csp, /connect-src 'self'/);
-  const html = await res.text();
-  assert.match(html, /DecompressionStream\('deflate-raw'\)/);
-  assert.match(html, /\/v1\/feedback/);
-  const head = await worker.fetch(new Request('https://fb.test/', { method: 'HEAD' }), env);
-  assert.equal(head.status, 200);
-  assert.equal(await head.text(), '');
+  for (const path of ['/', '/index.html', '/feedback', '/feedback/', '/feedback/index.html']) {
+    const res = await worker.fetch(new Request(`https://fb.test${path}`), env);
+    assert.equal(res.status, 200, `GET ${path} should return 200`);
+    assert.match(res.headers.get('Content-Type') ?? '', /^text\/html/);
+    assert.equal(res.headers.get('Referrer-Policy'), 'no-referrer');
+    const csp = res.headers.get('Content-Security-Policy') ?? '';
+    assert.match(csp, /default-src 'none'/);
+    assert.match(csp, /connect-src 'self'/);
+    const html = await res.text();
+    assert.match(html, /DecompressionStream\('deflate-raw'\)/);
+    assert.match(html, /\/v1\/feedback/);
+    const head = await worker.fetch(new Request(`https://fb.test${path}`, { method: 'HEAD' }), env);
+    assert.equal(head.status, 200, `HEAD ${path} should return 200`);
+    assert.equal(await head.text(), '');
+  }
 });
 
 test('accepts standalone web platform text feedback', async () => {

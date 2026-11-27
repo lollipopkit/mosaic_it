@@ -60,6 +60,18 @@ export const FEEDBACK_WEB_HTML = `<!doctype html>
   }
   .wrap { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .head-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .home-link {
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .home-link:hover { color: var(--text); border-color: var(--primary); }
   h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.2px; }
   .lang-btn {
     border: 1px solid var(--border);
@@ -70,6 +82,8 @@ export const FEEDBACK_WEB_HTML = `<!doctype html>
     padding: 5px 11px;
     border-radius: 999px;
     cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .card {
     background: var(--card);
@@ -222,7 +236,10 @@ export const FEEDBACK_WEB_HTML = `<!doctype html>
 <body>
 <div class="wrap">
   <header>
-    <h1 id="hTitle">MosaicIt 反馈</h1>
+    <div class="head-left">
+      <a class="home-link" id="btnHome" href="https://mosaic.lollipopkit.com/">← 官网</a>
+      <h1 id="hTitle">MosaicIt 反馈</h1>
+    </div>
     <button class="lang-btn" id="btnLang" type="button">EN</button>
   </header>
 
@@ -281,6 +298,7 @@ const VALID_MODES = ['masked', 'full', 'text'];
 const VALID_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const COPY = {
   zh: {
+    home: '← 官网',
     title: 'MosaicIt 检测反馈',
     lang: 'EN',
     prefilled: '已从 MosaicIt 载入标注与截图，核对后直接提交即可。',
@@ -310,6 +328,7 @@ const COPY = {
     modeNames: { masked: '脱敏图', full: '原图', text: '仅文字' },
   },
   en: {
+    home: '← Home',
     title: 'MosaicIt Feedback',
     lang: '中文',
     prefilled: 'Loaded annotations and screenshot from MosaicIt. Review and submit.',
@@ -665,6 +684,7 @@ function buildFinalPayload(uploadSize) {
 function render() {
   const t = COPY[state.lang];
   document.documentElement.lang = state.lang === 'zh' ? 'zh-CN' : 'en';
+  document.getElementById('btnHome').textContent = t.home;
   document.getElementById('hTitle').textContent = t.title;
   document.getElementById('btnLang').textContent = t.lang;
   document.getElementById('dropText').textContent = t.drop;

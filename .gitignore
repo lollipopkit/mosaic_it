@@ -8,3 +8,4 @@
 models/manifest.toml.signed
 .wrangler/
 node_modules/
+website/dist/

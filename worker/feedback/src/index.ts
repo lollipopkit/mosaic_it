@@ -318,7 +318,14 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const isGetOrHead = request.method === 'GET' || request.method === 'HEAD';
-    if (isGetOrHead && (url.pathname === '/' || url.pathname === '/index.html')) {
+    if (
+      isGetOrHead &&
+      (url.pathname === '/' ||
+        url.pathname === '/index.html' ||
+        url.pathname === '/feedback' ||
+        url.pathname === '/feedback/' ||
+        url.pathname === '/feedback/index.html')
+    ) {
       return new Response(request.method === 'HEAD' ? null : FEEDBACK_WEB_HTML, {
         status: 200,
         headers: HTML_HEADERS,

@@ -15,7 +15,7 @@ const feedbackAppVersion = '1.0.0+1';
 /// via the URL `#fragment`, which never hits HTTP GET logs.
 const defaultFeedbackWebUrl = String.fromEnvironment(
   'UNSEEN_FEEDBACK_WEB_URL',
-  defaultValue: 'https://unseen-feedback.lollipopkit.workers.dev/',
+  defaultValue: 'https://mosaic.lollipopkit.com/feedback',
 );
 
 /// Maximum longer side in pixels of feedback screenshots prepared on-device.

@@ -1,6 +1,14 @@
 name = "unseen-feedback"
 main = "src/index.ts"
 compatibility_date = "2026-01-01"
+workers_dev = true
+
+routes = [
+  { pattern = "mosaic.lollipopkit.com/feedback", zone_name = "lollipopkit.com" },
+  { pattern = "mosaic.lollipopkit.com/feedback/*", zone_name = "lollipopkit.com" },
+  { pattern = "mosaic.lollipopkit.com/v1/feedback", zone_name = "lollipopkit.com" },
+  { pattern = "mosaic.lollipopkit.com/health", zone_name = "lollipopkit.com" },
+]
 
 [vars]
 MAX_IMAGE_BYTES = "4194304"
