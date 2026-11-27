@@ -40,10 +40,7 @@ Future<bool> showWirelessDataNoticeSheet(BuildContext context) async {
           child: Text(l.continueAction),
         ),
       ],
-      child: Text(
-        l.iosWirelessPromptBody,
-        style: const TextStyle(height: 1.5),
-      ),
+      child: Text(l.iosWirelessPromptBody, style: const TextStyle(height: 1.5)),
     ),
   );
   return go == true;
