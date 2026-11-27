@@ -39,7 +39,7 @@ UNSEEN_LITERT=<wheel>/ai_edge_litert/libLiteRt.dylib target/release/unseen calib
 ```
 
 `<calibration set>` is a directory with `coco.json` and its images. This
-writes per-class thresholds into each `<model>.onnx.json` sidecar. Pass
+writes per-class thresholds into each `<file>.json` sidecar. Pass
 `--verified` only for human-verified real data; without it no class is
 presented as guaranteed.
 
@@ -61,18 +61,19 @@ update [model.md](model.md).
 
 ## 4. Publish
 
-The app ships without a model: it downloads the newest tiled release from
-`https://pub.lolli.tech/models/unseen/` on first launch and, unless the user
+The app ships without a model: it downloads the newest release for its platform
+(`litert` on Android, `tiled` elsewhere) from `https://pub.lolli.tech/models/unseen/`
+on first launch and, unless the user
 turned that off, a newer one when it appears (used from the next launch).
 It only installs what `manifest.signed` there lists (this repository's
 `models/manifest.toml` under the publisher's Ed25519 signature, checked
 against `unseen-core`'s `PUBLIC_KEY`).
 
-Set the tiled entry's `url` to `https://pub.lolli.tech/models/unseen/X.Y.Z`,
-commit, then:
+Set each published entry's `url` (both `tiled` and `litert` for a `pt2` release)
+to `https://pub.lolli.tech/models/unseen/X.Y.Z`, commit, then:
 
 ```sh
-op run --env-file models/publish.env -- models/publish.sh X.Y.Z <dir with unseen-det-tile.onnx and its .json>
+op run --env-file models/publish.env -- models/publish.sh X.Y.Z <dir with unseen-det-tile.onnx, unseen-det.tflite, and their .json sidecars>
 ```
 
 It checks the files against the manifest, uploads them, signs the manifest
@@ -84,5 +85,5 @@ and uploads it last. Apps move to the highest version they can run:
   releases outside `MIN_FORMAT..=FORMAT` and replace an installed release outside
   that range when a runnable one is published.
 - To withdraw a release, publish a higher version; apps never go back.
-- A model the user imported by hand (anything but a listed tiled release) is
-  left alone.
+- A model the user imported by hand (anything but a listed release of the
+  platform's variant) is left alone.
