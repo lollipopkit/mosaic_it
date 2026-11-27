@@ -602,7 +602,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get peekOriginal => '길게 눌러 원본 비교';
 
   @override
-  String get selectMedia => '사진 또는 동영상 선택';
+  String get selectMedia => '사진 선택';
 
   @override
   String get saveFailed => '사진에 저장하지 못했습니다';

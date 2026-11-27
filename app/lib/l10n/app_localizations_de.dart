@@ -619,7 +619,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get peekOriginal => 'Gedrückt halten für Original';
 
   @override
-  String get selectMedia => 'Fotos oder Video auswählen';
+  String get selectMedia => 'Fotos auswählen';
 
   @override
   String get saveFailed => 'Speichern in Fotos fehlgeschlagen';

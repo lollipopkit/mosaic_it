@@ -575,9 +575,9 @@
   "copiedToClipboard": "Copied to clipboard",
   "copyFailed": "Could not copy image",
   "peekOriginal": "Hold to compare original",
-  "selectMedia": "Select photos or video",
+  "selectMedia": "Select photos",
   "@selectMedia": {
-    "description": "Button in the editor to open the system media picker for images or a video."
+    "description": "Button in the editor to open the system photo picker for images."
   },
   "saveFailed": "Could not save to Photos",
   "@saveFailed": {

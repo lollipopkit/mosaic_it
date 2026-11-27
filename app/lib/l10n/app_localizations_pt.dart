@@ -606,7 +606,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get peekOriginal => 'Segure para ver o original';
 
   @override
-  String get selectMedia => 'Selecionar fotos ou vídeo';
+  String get selectMedia => 'Selecionar fotos';
 
   @override
   String get saveFailed => 'Não foi possível salvar em Fotos';
@@ -1042,7 +1042,7 @@ class AppLocalizationsPtPt extends AppLocalizationsPt {
   String get peekOriginal => 'Segure para ver o original';
 
   @override
-  String get selectMedia => 'Selecionar fotos ou vídeo';
+  String get selectMedia => 'Selecionar fotos';
 
   @override
   String get saveFailed => 'Não foi possível guardar em Fotografias';

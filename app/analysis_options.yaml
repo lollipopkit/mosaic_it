@@ -22,6 +22,8 @@ analyzer:
     # TODO: remove once gen-l10n stops emitting the deprecated
     # flutter_localizations delegates (Flutter 3.47 moved them to material_ui).
     - lib/l10n/app_localizations.dart
+    - windows/**
+    - linux/**
 
 linter:
   # The lint rules applied to this project can be customized in the

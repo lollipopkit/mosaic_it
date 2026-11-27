@@ -1136,10 +1136,10 @@ abstract class AppLocalizations {
   /// **'Hold to compare original'**
   String get peekOriginal;
 
-  /// Button in the editor to open the system media picker for images or a video.
+  /// Button in the editor to open the system photo picker for images.
   ///
   /// In en, this message translates to:
-  /// **'Select photos or video'**
+  /// **'Select photos'**
   String get selectMedia;
 
   /// Toast shown when saving a redacted image to the system photo library fails.

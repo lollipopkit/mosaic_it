@@ -616,7 +616,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get peekOriginal => 'Удерживайте для просмотра оригинала';
 
   @override
-  String get selectMedia => 'Выбрать фото или видео';
+  String get selectMedia => 'Выбрать фото';
 
   @override
   String get saveFailed => 'Не удалось сохранить в Фото';

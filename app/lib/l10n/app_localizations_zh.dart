@@ -593,7 +593,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get peekOriginal => '按住查看原图';
 
   @override
-  String get selectMedia => '选择照片或视频';
+  String get selectMedia => '选择图片';
 
   @override
   String get saveFailed => '保存到相册失败';
@@ -1109,7 +1109,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get peekOriginal => '按住檢視原圖';
 
   @override
-  String get selectMedia => '選擇照片或影片';
+  String get selectMedia => '選擇圖片';
 
   @override
   String get saveFailed => '儲存到相簿失敗';

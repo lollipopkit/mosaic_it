@@ -114,7 +114,7 @@
   "copiedToClipboard": "クリップボードにコピーしました",
   "copyFailed": "画像をコピーできませんでした",
   "peekOriginal": "長押しで元の画像を表示",
-  "selectMedia": "写真または動画を選択",
+  "selectMedia": "写真を選択",
   "saveFailed": "写真に保存できませんでした",
   "retry": "再試行",
   "iosWirelessPromptTitle": "ワイヤレスデータの確認について",

@@ -614,7 +614,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get peekOriginal => 'Hold to compare original';
 
   @override
-  String get selectMedia => 'Select photos or video';
+  String get selectMedia => 'Select photos';
 
   @override
   String get saveFailed => 'Could not save to Photos';

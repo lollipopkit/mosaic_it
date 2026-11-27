@@ -621,7 +621,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get peekOriginal => 'Tieni premuto per vedere l’originale';
 
   @override
-  String get selectMedia => 'Seleziona foto o video';
+  String get selectMedia => 'Seleziona foto';
 
   @override
   String get saveFailed => 'Impossibile salvare in Foto';

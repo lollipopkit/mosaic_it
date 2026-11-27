@@ -602,7 +602,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get peekOriginal => '長押しで元の画像を表示';
 
   @override
-  String get selectMedia => '写真または動画を選択';
+  String get selectMedia => '写真を選択';
 
   @override
   String get saveFailed => '写真に保存できませんでした';

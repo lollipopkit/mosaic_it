@@ -146,7 +146,7 @@ const en: Copy = {
     lang: 'en',
     title: 'MosaicIt — On-device privacy redaction',
     description:
-      'Detect and redact private information in screenshots, photos, and videos completely offline. No OCR, no network requests, and no photo-library read permissions.',
+      'Detect and redact private information in screenshots and photos completely offline. No OCR, no network requests, and no photo-library read permissions.',
   },
   nav: {
     features: 'Features',
@@ -222,10 +222,10 @@ const en: Copy = {
           'Before saving or sharing, MosaicIt can re-run the detector on the redacted output to surface any remaining unmasked regions.',
       },
       {
-        tag: 'Video',
-        title: 'Frame Tracking & Video Redaction',
+        tag: 'Batch & Adaptive',
+        title: 'Batch Redaction & Local Learning',
         description:
-          'Detect and track sensitive regions across video frames and export redacted clips locally using the Rust core.',
+          'Open multiple screenshots at once, run Find Similar across the batch, and let on-device preference learning adapt thresholds to your choices.',
       },
       {
         tag: 'Direct Editor',
@@ -265,9 +265,9 @@ const en: Copy = {
     tableColDetail: 'Implementation',
     rows: [
       {
-        area: 'Image & video processing',
+        area: 'Image processing',
         detail:
-          'Detection, tracking, EXIF orientation handling, and pixel redaction execute locally in Rust (unseen-core) via FFI.',
+          'Detection, EXIF orientation handling, and pixel redaction execute locally in Rust (unseen-core) via FFI.',
       },
       {
         area: 'Redaction irreversibility',
@@ -300,8 +300,8 @@ const en: Copy = {
       ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Zero release permissions' },
-      linux: { name: 'Linux', meta: 'unseen CLI (Rust)' },
-      windows: { name: 'Windows', meta: 'unseen CLI (Rust)' },
+      linux: { name: 'Linux', meta: 'Desktop app (tar.gz) & unseen CLI' },
+      windows: { name: 'Windows', meta: 'Desktop app (ZIP) & unseen CLI' },
     },
   },
   cta: {
@@ -357,7 +357,7 @@ const zhCN: Copy = {
     lang: 'zh-CN',
     title: 'MosaicIt（码住）— 本地离线隐私打码工具',
     description:
-      '全程离线检测并遮挡截图、照片与视频中的隐私信息。无需 OCR、不包含任何网络请求代码、不申请相册读取权限。',
+      '全程离线检测并遮挡截图与照片中的隐私信息。无需 OCR、不包含任何网络请求代码、不申请相册读取权限。',
   },
   nav: {
     features: '功能',
@@ -372,7 +372,7 @@ const zhCN: Copy = {
     titlePrefix: '自动打码隐私信息，',
     titleSuffix: '全程离线不上传。',
     subtitle:
-      'MosaicIt 在本地直接识别截图、照片与视频中的姓名、手机号、地址、金额、证件号、二维码与人脸——无需 OCR、不包含联网代码，也不申请读取相册权限。',
+      'MosaicIt 在本地直接识别截图与照片中的姓名、手机号、地址、金额、证件号、二维码与人脸——无需 OCR、不包含联网代码，也不申请读取相册权限。',
     primaryAction: '下载 MosaicIt',
     feedbackAction: '提交检测反馈',
     githubAction: 'GitHub',
@@ -432,10 +432,10 @@ const zhCN: Copy = {
           '保存或分享前自动对已打码图像重新运行检测器，提示可能遗漏的敏感区域。',
       },
       {
-        tag: '视频打码',
-        title: '跨帧跟踪与本地导出',
+        tag: '批量与自适应',
+        title: '批量打码与本地偏好学习',
         description:
-          '在视频帧间跟踪敏感区域并由 Rust 核心在本地完成视频重编码导出。',
+          '一次导入多张截图并支持跨图查找相似区域，同时在本地根据你的勾选习惯自动微调各类别阈值。',
       },
       {
         tag: '直达编辑器',
@@ -474,8 +474,8 @@ const zhCN: Copy = {
     tableColDetail: '实现方式',
     rows: [
       {
-        area: '图像与视频处理',
-        detail: '检测、跟踪、EXIF 方向校正与像素覆写全部在本地 Rust（unseen-core）经 FFI 执行。',
+        area: '图像处理',
+        detail: '检测、EXIF 方向校正与像素覆写全部在本地 Rust（unseen-core）经 FFI 执行。',
       },
       {
         area: '打码不可逆性',
@@ -506,8 +506,8 @@ const zhCN: Copy = {
       ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Release 零权限清单' },
-      linux: { name: 'Linux', meta: 'unseen CLI（Rust 命令行）' },
-      windows: { name: 'Windows', meta: 'unseen CLI（Rust 命令行）' },
+      linux: { name: 'Linux', meta: '桌面应用（tar.gz）与 unseen CLI' },
+      windows: { name: 'Windows', meta: '桌面应用（ZIP）与 unseen CLI' },
     },
   },
   cta: {
@@ -560,7 +560,7 @@ const zhTW: Copy = {
     lang: 'zh-TW',
     title: 'MosaicIt（碼住）— 本機離線隱私打碼工具',
     description:
-      '全程離線偵測並遮蔽截圖、照片與影片中的隱私資訊。無需 OCR、不含網路請求程式碼，也不申請相簿讀取權限。',
+      '全程離線偵測並遮蔽截圖與照片中的隱私資訊。無需 OCR、不含網路請求程式碼，也不申請相簿讀取權限。',
   },
   nav: {
     features: '功能',
@@ -575,7 +575,7 @@ const zhTW: Copy = {
     titlePrefix: '自動打碼隱私資訊，',
     titleSuffix: '全程離線不上傳。',
     subtitle:
-      'MosaicIt 在本機直接偵測截圖、照片與影片中的姓名、電話、地址、金額、證件號碼、QR 碼與人臉——無需 OCR、不含連網程式碼，也不申請讀取相簿權限。',
+      'MosaicIt 在本機直接偵測截圖與照片中的姓名、電話、地址、金額、證件號碼、QR 碼與人臉——無需 OCR、不含連網程式碼，也不申請讀取相簿權限。',
     primaryAction: '下載 MosaicIt',
     feedbackAction: '提交偵測回饋',
     githubAction: 'GitHub',
@@ -635,9 +635,9 @@ const zhTW: Copy = {
         description: '儲存或分享前自動對已打碼影像重新執行偵測器，提示可能遺漏的敏感區域。',
       },
       {
-        tag: '影片打碼',
-        title: '跨影格追蹤與本機匯出',
-        description: '在影片影格間追蹤敏感區域，並由 Rust 核心在本機完成重新編碼匯出。',
+        tag: '批次與自適應',
+        title: '批次打碼與本機偏好學習',
+        description: '一次匯入多張截圖並支援跨圖尋找相似區域，同時在本機依你的勾選習慣自動微調各類別門檻。',
       },
       {
         tag: '直達編輯器',
@@ -675,8 +675,8 @@ const zhTW: Copy = {
     tableColDetail: '實作方式',
     rows: [
       {
-        area: '影像與影片處理',
-        detail: '偵測、追蹤、EXIF 方向校正與像素覆寫全部在本機 Rust（unseen-core）經 FFI 執行。',
+        area: '影像處理',
+        detail: '偵測、EXIF 方向校正與像素覆寫全部在本機 Rust（unseen-core）經 FFI 執行。',
       },
       {
         area: '打碼不可逆性',
@@ -707,8 +707,8 @@ const zhTW: Copy = {
       ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Release 零權限清單' },
-      linux: { name: 'Linux', meta: 'unseen CLI（Rust 命令列）' },
-      windows: { name: 'Windows', meta: 'unseen CLI（Rust 命令列）' },
+      linux: { name: 'Linux', meta: '桌面應用程式（tar.gz）與 unseen CLI' },
+      windows: { name: 'Windows', meta: '桌面應用程式（ZIP）與 unseen CLI' },
     },
   },
   cta: {
@@ -760,7 +760,7 @@ const ja: Copy = {
     lang: 'ja',
     title: 'MosaicIt — 完全オフラインのプライバシー自動マスキング',
     description:
-      'スクリーンショット・写真・動画内の個人情報をオンデバイスで検出して遮蔽。OCR 不要、ネットワーク通信なし、写真ライブラリ読み取り権限なし。',
+      'スクリーンショットや写真内の個人情報をオンデバイスで検出して遮蔽。OCR 不要、ネットワーク通信なし、写真ライブラリ読み取り権限なし。',
   },
   nav: {
     features: '機能',
@@ -834,9 +834,9 @@ const ja: Copy = {
         description: '保存・共有前に遮蔽済み画像へ再度検出器を実行し、マスク漏れを確認できます。',
       },
       {
-        tag: '動画対応',
-        title: 'フレーム追跡とローカル書き出し',
-        description: '動画フレーム間で機密領域を追跡し、Rust コアでローカルに遮蔽済み動画を書き出します。',
+        tag: '一括処理・適応学習',
+        title: '複数画像の一括遮蔽とローカル学習',
+        description: '複数枚のスクリーンショットをまとめて開き、類似領域の一括検索や選択履歴に応じたローカルしきい値調整を行います。',
       },
       {
         tag: '直接エディタ起動',
@@ -874,8 +874,8 @@ const ja: Copy = {
     tableColDetail: '実装内容',
     rows: [
       {
-        area: '画像・動画処理',
-        detail: '検出・追跡・EXIF 回転補正・ピクセル上書きはすべてローカルの Rust（unseen-core）経由で実行。',
+        area: '画像処理',
+        detail: '検出・EXIF 回転補正・ピクセル上書きはすべてローカルの Rust（unseen-core）経由で実行。',
       },
       {
         area: '遮蔽の不可逆性',
@@ -906,8 +906,8 @@ const ja: Copy = {
       ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · リリース権限ゼロ' },
-      linux: { name: 'Linux', meta: 'unseen CLI（Rust）' },
-      windows: { name: 'Windows', meta: 'unseen CLI（Rust）' },
+      linux: { name: 'Linux', meta: 'デスクトップアプリ（tar.gz）・unseen CLI' },
+      windows: { name: 'Windows', meta: 'デスクトップアプリ（ZIP）・unseen CLI' },
     },
   },
   cta: {
