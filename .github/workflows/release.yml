@@ -1,28 +1,49 @@
-# Builds and publishes MosaicIt releases on admin-pushed `v*` tags:
+# Builds and publishes MosaicIt releases on admin-pushed `v1.0.<build>` tags
+# (and supports manual `workflow_dispatch` test builds or selective job runs):
+# - Versioning (ServerBox convention):
+#   - Auto-generated from git commit count via `app/tool/bump-version.sh`:
+#     `1.0.<build>+<build>` in `app/pubspec.yaml`, `BuildData.build` in
+#     `app/lib/data/res/build_data.dart`, `1.0.<build>` in `Cargo.toml`,
+#     and release tag `v1.0.<build>`.
 # - Apps:
 #   - Android arm64 signed APK (`MosaicIt_<tag>_arm64.apk`) via 1Password (`MosaicIt CI` vault)
-#   - macOS arm64 unsigned DMG (`MosaicIt_<tag>_NoSign_arm64.dmg`)
 #   - iOS arm64 unsigned IPA (`MosaicIt_<tag>_NoSign.ipa`)
-#   - Linux amd64 portable app (`MosaicIt_<tag>_linux_amd64.tar.gz`)
-#   - Windows amd64 portable app (`MosaicIt_<tag>_windows_amd64.zip`)
+#   - macOS arm64 unsigned DMG (`MosaicIt_<tag>_NoSign_arm64.dmg`)
+#   - Linux amd64 AppImage (`MosaicIt_<tag>_amd64.AppImage`, ubuntu-latest)
+#   - Linux amd64 legacy AppImage (`MosaicIt_<tag>_legacy_amd64.AppImage`, ubuntu-22.04)
+#   - Linux amd64 Debian package (`MosaicIt_<tag>_amd64.deb`, ubuntu-22.04)
+#   - Linux x86_64 RPM package (`MosaicIt_<tag>_x86_64.rpm`, ubuntu-22.04)
+#   - Linux amd64 portable tarball (`MosaicIt_<tag>_linux_amd64.tar.gz`, ubuntu-22.04)
+#   - Windows amd64 Inno Setup installer (`MosaicIt_<tag>_windows_amd64.exe`)
+#   - Windows amd64 portable archive (`MosaicIt_<tag>_windows_amd64.zip`)
 # - CLI (`unseen`):
 #   - Linux amd64 (`unseen_<tag>_linux_amd64.tar.gz`)
 #   - macOS arm64 (`unseen_<tag>_macos_arm64.tar.gz`, with CoreML)
 #   - Windows amd64 (`unseen_<tag>_windows_amd64.zip`)
 #
 # Security model:
-# - Triggered only by `v*` tags (protected by repository Tag Ruleset: admins only).
+# - Tag releases require `v*` tags (protected by repository Tag Ruleset: admins only).
 # - `OP_SERVICE_ACCOUNT_TOKEN` lives only in the `release` environment (restricted
 #   to `v*` tags) and is scoped read-only to the dedicated `MosaicIt CI` vault.
-# - Only the `android` job attaches `environment: release`; all other build jobs
-#   and `publish` cannot access the 1Password token.
-# - `tool/android-signing.sh` strips `OP_SERVICE_ACCOUNT_TOKEN` before spawning the
-#   build subprocess tree, and `flutter pub get` runs before the token is injected.
+# - Only the `android` job attaches `environment: release` on tag builds; all
+#   other build jobs and `publish` cannot access the 1Password token.
 # - Only the `publish` job receives `contents: write`.
 
 name: Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Publish GitHub Release from the selected v1.0.<build> tag"
+        required: false
+        type: boolean
+        default: false
+      jobs:
+        description: "Comma-separated jobs to run: android,ios,macos,linux,windows,cli (empty = all)"
+        required: false
+        type: string
+        default: ""
   push:
     tags:
       - "v*"
@@ -31,61 +52,145 @@ permissions:
   contents: read
 
 env:
+  APP_NAME: "MosaicIt"
   B3SUM_VERSION: "1.8.8"
   B3SUM_LINUX_X64_SHA256: "cf7a7a515dc55ffde63b65dad87c00dd5ea0a29c9edf2b6a58acbb37e9d161c3"
   B3SUM_WINDOWS_X64_SHA256: "9919f06ad1de83de7ad268da83dd2879b9ea8e943deaf451e7da30d37d62ebbb"
 
 jobs:
   check:
-    name: Validate release tag
+    name: Validate release metadata
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
+      selected: ${{ steps.selection.outputs.selected }}
+      buildNumber: ${{ steps.meta.outputs.build }}
+      version: ${{ steps.meta.outputs.version }}
       tag: ${{ steps.meta.outputs.tag }}
-      prerelease: ${{ steps.meta.outputs.prerelease }}
+      isRelease: ${{ steps.meta.outputs.release }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
-      - name: Verify tag matches app/pubspec.yaml
-        id: meta
+      - name: Require tagged releases
+        if: inputs.release == true && github.ref_type != 'tag'
         shell: bash
         run: |
+          echo "::error::Release builds must run from a v1.0.<build> tag."
+          echo "Run app/tool/bump-version.sh, commit, and push the matching v1.0.<build> tag."
+          exit 1
+      - name: Check job selection
+        id: selection
+        shell: bash
+        env:
+          REQUESTED: ${{ inputs.jobs }}
+          IS_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
+          IS_RELEASE: ${{ inputs.release }}
+        run: |
           set -euo pipefail
-          tag="${GITHUB_REF_NAME}"
-          if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
-            echo "::error::Tag ${tag} is not a valid SemVer release tag"
-            exit 1
-          fi
-          pub_name="$(sed -n -E 's/^version:[[:space:]]*([^+]+)\+[0-9]+$/\1/p' app/pubspec.yaml | head -n 1)"
-          if [[ -z "$pub_name" ]]; then
-            echo "::error::Could not read version from app/pubspec.yaml"
-            exit 1
-          fi
-          expected="v${pub_name}"
-          if [[ "$tag" != "$expected" ]]; then
-            echo "::error::Tag ${tag} does not match app/pubspec.yaml version (${expected})"
-            exit 1
-          fi
-          if [[ "$tag" == *-* ]]; then
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          known="android ios macos linux windows cli"
+          if [[ "$IS_DISPATCH" != "true" || -z "${REQUESTED//[[:space:]]/}" ]]; then
+            selected="$known"
           else
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            if [[ "$IS_RELEASE" == "true" ]]; then
+              echo "::error::Cannot narrow job selection when publishing a release; leave jobs empty."
+              exit 1
+            fi
+            selected=""
+            bad=()
+            IFS=',' read -ra requested <<< "$REQUESTED"
+            for raw in "${requested[@]:-}"; do
+              name="${raw#"${raw%%[![:space:]]*}"}"
+              name="${name%"${name##*[![:space:]]}"}"
+              [[ -z "$name" ]] && continue
+              if [[ " $known " != *" $name "* ]]; then
+                bad+=("$name")
+                continue
+              fi
+              selected="$selected $name"
+            done
+            if (( ${#bad[@]} )); then
+              echo "::error::Unknown job(s): ${bad[*]}. Valid names: $known"
+              exit 1
+            fi
+            if [[ -z "${selected//[[:space:]]/}" ]]; then
+              echo "::error::No jobs selected. Leave the field empty to run all jobs."
+              exit 1
+            fi
           fi
+          canonical=",$(echo "$selected" | tr -s '[:space:]' ',' | sed 's/^,//;s/,$//'),"
+          echo "selected=$canonical" >> "$GITHUB_OUTPUT"
+          echo "Running:$selected"
+      - name: Resolve and validate commit-count version
+        id: meta
+        shell: bash
+        env:
+          IS_DISPATCH: ${{ github.event_name == 'workflow_dispatch' }}
+          WANTS_RELEASE: ${{ inputs.release }}
+        run: |
+          set -euo pipefail
+          commit_count="$(git rev-list --count HEAD)"
+          build_data="$(sed -n -E 's/.*static const int build = ([0-9]+);/\1/p' app/lib/data/res/build_data.dart | head -n 1)"
+          pub_ver="$(sed -n -E 's/^version:[[:space:]]*([^+]+)\+([0-9]+)$/\1+\2/p' app/pubspec.yaml | head -n 1)"
+          cargo_ver="$(python3 -c 'import tomllib, pathlib; print(tomllib.loads(pathlib.Path("Cargo.toml").read_text())["workspace"]["package"]["version"])')"
+
+          if [[ -z "$build_data" ]]; then
+            echo "::error::BuildData.build not found in app/lib/data/res/build_data.dart"
+            exit 1
+          fi
+
+          release=false
+          if [[ "$WANTS_RELEASE" == "true" ]]; then
+            release=true
+          elif [[ "$IS_DISPATCH" != "true" && "$GITHUB_REF_TYPE" == "tag" ]]; then
+            release=true
+          fi
+
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            expected_tag="v1.0.${build_data}"
+            if [[ "$GITHUB_REF_NAME" != "$expected_tag" ]]; then
+              echo "::error::Tag ${GITHUB_REF_NAME} does not match BuildData.build (${expected_tag}). Run app/tool/bump-version.sh first."
+              exit 1
+            fi
+            if [[ "$pub_ver" != "1.0.${build_data}+${build_data}" ]]; then
+              echo "::error::app/pubspec.yaml version must be 1.0.${build_data}+${build_data}; got ${pub_ver}"
+              exit 1
+            fi
+            if [[ "$cargo_ver" != "1.0.${build_data}" ]]; then
+              echo "::error::Cargo.toml workspace version must be 1.0.${build_data}; got ${cargo_ver}"
+              exit 1
+            fi
+            if [[ "$build_data" != "$commit_count" ]]; then
+              echo "::notice::BuildData.build (${build_data}) differs from git commit count (${commit_count})."
+            fi
+            build="$build_data"
+          else
+            # Non-tag manual dispatch builds automatically use the live commit count.
+            build="$commit_count"
+          fi
+
+          version="1.0.${build}"
+          tag="v${version}"
+          echo "build=${build}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "release=${release}" >> "$GITHUB_OUTPUT"
+          echo "Resolved version=${version}+${build} tag=${tag} release=${release} (git commits=${commit_count})"
 
   android:
     name: Build Android app (arm64)
+    if: needs.check.outputs.isRelease == 'true' || contains(needs.check.outputs.selected, ',android,')
     needs: check
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    # Only `v*` tags (admin-only ruleset) can deploy to `release` and read
-    # `OP_SERVICE_ACCOUNT_TOKEN` (scoped read-only to vault `MosaicIt CI`).
-    environment: release
+    environment: ${{ github.ref_type == 'tag' && 'release' || '' }}
     permissions:
       contents: read
     env:
+      BUILD_NUMBER: ${{ needs.check.outputs.buildNumber }}
+      VERSION: ${{ needs.check.outputs.version }}
       TAG: ${{ needs.check.outputs.tag }}
       EXPECTED_CERT_SHA256: "a2da0498d4901b980ecef0f6ce3b720e775dd1f44236455e1095e5e6389f1164"
     steps:
@@ -128,35 +233,48 @@ jobs:
       - name: Fetch Flutter dependencies
         working-directory: app
         shell: bash
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
       - name: Install 1Password CLI
+        if: github.ref_type == 'tag'
         uses: 1password/install-cli-action@1a3160d5e9de1ae0803eaa08a88746f5ae3daa50 # v4.1.0
         with:
           version: 2.42.0
-      - name: Build signed Android arm64 APK
+      - name: Build Android arm64 APK
         working-directory: app
         shell: bash
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
           set -euo pipefail
-          tool/android-signing.sh flutter build apk --release --target-platform android-arm64
+          args=(
+            flutter build apk --release
+            --target-platform android-arm64
+            "--build-name=${VERSION}"
+            "--build-number=${BUILD_NUMBER}"
+          )
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            tool/android-signing.sh "${args[@]}"
+          else
+            "${args[@]}"
+          fi
       - name: Verify APK signature, bundled model, and zero permissions
         working-directory: app
         shell: bash
         run: |
           set -euo pipefail
           apk="build/app/outputs/flutter-apk/app-release.apk"
-          out="build/app/outputs/flutter-apk/MosaicIt_${TAG}_arm64.apk"
+          out="build/app/outputs/flutter-apk/${APP_NAME}_${TAG}_arm64.apk"
           mv "$apk" "$out"
 
           bt_dir="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)"
-          certs="$("$bt_dir/apksigner" verify --print-certs "$out")"
-          echo "$certs"
-          grep -qF "certificate SHA-256 digest: ${EXPECTED_CERT_SHA256}" <<< "$certs" || {
-            echo "::error::APK was not signed with the expected release certificate"
-            exit 1
-          }
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            certs="$("$bt_dir/apksigner" verify --print-certs "$out")"
+            echo "$certs"
+            grep -qF "certificate SHA-256 digest: ${EXPECTED_CERT_SHA256}" <<< "$certs" || {
+              echo "::error::APK was not signed with the expected release certificate"
+              exit 1
+            }
+          fi
 
           entries="$(zipinfo -1 "$out")"
           for required in \
@@ -181,18 +299,28 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: release-android
-          path: app/build/app/outputs/flutter-apk/MosaicIt_${{ needs.check.outputs.tag }}_arm64.apk
+          path: app/build/app/outputs/flutter-apk/${{ env.APP_NAME }}_${{ needs.check.outputs.tag }}_arm64.apk
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
+      - name: Upload Android native debug symbols
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: symbols-${{ needs.check.outputs.tag }}-${{ github.run_number }}-android-arm64
+          path: app/build/app/outputs/native-debug-symbols/release/native-debug-symbols.zip
+          if-no-files-found: ignore
+          retention-days: 90
 
   macos:
     name: Build macOS app unsigned (arm64)
+    if: needs.check.outputs.isRelease == 'true' || contains(needs.check.outputs.selected, ',macos,')
     needs: check
     runs-on: macos-latest
     timeout-minutes: 45
     permissions:
       contents: read
     env:
+      BUILD_NUMBER: ${{ needs.check.outputs.buildNumber }}
+      VERSION: ${{ needs.check.outputs.version }}
       TAG: ${{ needs.check.outputs.tag }}
     steps:
       - name: Checkout
@@ -224,8 +352,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          flutter pub get
-          flutter build macos --release
+          flutter pub get --enforce-lockfile
+          flutter build macos --release \
+            --build-name="${VERSION}" \
+            --build-number="${BUILD_NUMBER}"
       - name: Verify architecture, bundled model, and package DMG
         working-directory: app
         shell: bash
@@ -261,23 +391,33 @@ jobs:
             -srcfolder "$stage" \
             -ov \
             -format UDZO \
-            "build/release/MosaicIt_${TAG}_NoSign_arm64.dmg"
+            "build/release/${APP_NAME}_${TAG}_NoSign_arm64.dmg"
       - name: Upload macOS artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: release-macos
-          path: app/build/release/MosaicIt_${{ needs.check.outputs.tag }}_NoSign_arm64.dmg
+          path: app/build/release/${{ env.APP_NAME }}_${{ needs.check.outputs.tag }}_NoSign_arm64.dmg
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
+      - name: Upload macOS dSYMs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: symbols-${{ needs.check.outputs.tag }}-${{ github.run_number }}-macos-arm64
+          path: app/build/macos/Build/Products/Release/**/*.dSYM
+          if-no-files-found: ignore
+          retention-days: 90
 
   ios:
     name: Build iOS app unsigned (arm64)
+    if: needs.check.outputs.isRelease == 'true' || contains(needs.check.outputs.selected, ',ios,')
     needs: check
     runs-on: macos-latest
     timeout-minutes: 45
     permissions:
       contents: read
     env:
+      BUILD_NUMBER: ${{ needs.check.outputs.buildNumber }}
+      VERSION: ${{ needs.check.outputs.version }}
       TAG: ${{ needs.check.outputs.tag }}
     steps:
       - name: Checkout
@@ -298,8 +438,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          flutter pub get
-          flutter build ios --release --no-codesign
+          flutter pub get --enforce-lockfile
+          flutter build ios --release --no-codesign \
+            --build-name="${VERSION}" \
+            --build-number="${BUILD_NUMBER}"
 
           app_path="build/ios/iphoneos/Runner.app"
           test -f "$app_path/models/unseen-det-tile.onnx"
@@ -315,24 +457,48 @@ jobs:
           trap 'rm -rf "$stage"' EXIT
           mkdir -p "$stage/Payload" build/release
           ditto "$app_path" "$stage/Payload/Runner.app"
-          out="$PWD/build/release/MosaicIt_${TAG}_NoSign.ipa"
+          out="$PWD/build/release/${APP_NAME}_${TAG}_NoSign.ipa"
           (cd "$stage" && zip -qry "$out" Payload)
       - name: Upload iOS artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: release-ios
-          path: app/build/release/MosaicIt_${{ needs.check.outputs.tag }}_NoSign.ipa
+          path: app/build/release/${{ env.APP_NAME }}_${{ needs.check.outputs.tag }}_NoSign.ipa
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
+      - name: Upload iOS dSYMs
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: symbols-${{ needs.check.outputs.tag }}-${{ github.run_number }}-ios
+          path: app/build/ios/Release-iphoneos/**/*.dSYM
+          if-no-files-found: ignore
+          retention-days: 90
 
   linux:
-    name: Build Linux app (amd64)
+    name: Build Linux app (${{ matrix.runs_on }})
+    if: needs.check.outputs.isRelease == 'true' || contains(needs.check.outputs.selected, ',linux,')
     needs: check
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runs_on: ubuntu-latest
+            release_suffix: ""
+            artifact_suffix: ""
+            package_native: false
+          - runs_on: ubuntu-22.04
+            release_suffix: "_legacy"
+            artifact_suffix: "-legacy"
+            # Built on ubuntu-22.04 (glibc 2.35) so .deb, .rpm, and portable
+            # tarball run across Ubuntu 22.04+, Debian 12+, Fedora, and openSUSE.
+            package_native: true
+    runs-on: ${{ matrix.runs_on }}
     timeout-minutes: 45
     permissions:
       contents: read
     env:
+      BUILD_NUMBER: ${{ needs.check.outputs.buildNumber }}
+      VERSION: ${{ needs.check.outputs.version }}
       TAG: ${{ needs.check.outputs.tag }}
     steps:
       - name: Checkout
@@ -352,7 +518,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             clang cmake ninja-build pkg-config \
-            libgtk-3-dev liblzma-dev libsecret-1-dev
+            libgtk-3-dev liblzma-dev libsecret-1-dev \
+            desktop-file-utils
 
           mkdir -p "$HOME/.local/bin"
           curl -fsSL \
@@ -366,8 +533,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          flutter pub get
-          flutter build linux --release
+          flutter pub get --enforce-lockfile
+          flutter build linux --release \
+            --build-name="${VERSION}" \
+            --build-number="${BUILD_NUMBER}"
 
           bundle="build/linux/x64/release/bundle"
           tool/bundle-model.sh tiled "$bundle/models"
@@ -376,28 +545,44 @@ jobs:
           test -f "$bundle/models/unseen-det-tile.onnx"
           test -f "$bundle/models/unseen-det-tile.onnx.json"
           test -f "$bundle/lib/libunseen_ffi.so"
-
-          stage="$(mktemp -d)"
-          trap 'rm -rf "$stage"' EXIT
-          mkdir -p "$stage/MosaicIt" build/release
-          cp -a "$bundle/." "$stage/MosaicIt/"
-          tar -C "$stage" -czf "build/release/MosaicIt_${TAG}_linux_amd64.tar.gz" MosaicIt
-      - name: Upload Linux artifact
+      - name: Package AppImage
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          app/tool/package-linux-appimage.sh \
+            --bundle app/build/linux/x64/release/bundle \
+            --output "dist/${APP_NAME}_${TAG}${{ matrix.release_suffix }}_amd64.AppImage"
+      - name: Package deb, rpm, and portable tarball
+        if: matrix.package_native
+        shell: bash
+        run: |
+          set -euo pipefail
+          app/tool/install-nfpm.sh "$RUNNER_TEMP/nfpm-bin"
+          PATH="$RUNNER_TEMP/nfpm-bin:$PATH" app/tool/package-linux-native.sh \
+            --bundle app/build/linux/x64/release/bundle \
+            --version "${VERSION}" \
+            --app-name "${APP_NAME}" \
+            --out dist
+      - name: Upload Linux artifacts
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: release-linux
-          path: app/build/release/MosaicIt_${{ needs.check.outputs.tag }}_linux_amd64.tar.gz
+          name: release-linux${{ matrix.artifact_suffix }}
+          path: dist/*
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
 
   windows:
     name: Build Windows app (amd64)
+    if: needs.check.outputs.isRelease == 'true' || contains(needs.check.outputs.selected, ',windows,')
     needs: check
     runs-on: windows-latest
     timeout-minutes: 45
     permissions:
       contents: read
     env:
+      BUILD_NUMBER: ${{ needs.check.outputs.buildNumber }}
+      VERSION: ${{ needs.check.outputs.version }}
       TAG: ${{ needs.check.outputs.tag }}
     steps:
       - name: Checkout
@@ -426,8 +611,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          flutter pub get
-          flutter build windows --release
+          flutter pub get --enforce-lockfile
+          flutter build windows --release \
+            --build-name="${VERSION}" \
+            --build-number="${BUILD_NUMBER}"
 
           bundle="build/windows/x64/runner/Release"
           tool/bundle-model.sh tiled "$bundle/models"
@@ -437,27 +624,52 @@ jobs:
           test -f "$bundle/models/unseen-det-tile.onnx.json"
           test -f "$bundle/unseen_ffi.dll"
           test -f "$bundle/DirectML.dll"
-      - name: Package Windows ZIP
+      - name: Package Windows portable ZIP and Inno Setup installer
         working-directory: app
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          New-Item -ItemType Directory -Force -Path build/release | Out-Null
+          New-Item -ItemType Directory -Force -Path build\release | Out-Null
+          $bundle = (Resolve-Path "build\windows\x64\runner\Release").Path
+          $outDir = (Resolve-Path "build\release").Path
+
+          # 1. Portable ZIP (single top-level folder).
           $stage = Join-Path $env:RUNNER_TEMP "mosaicit-win-stage"
           if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
-          New-Item -ItemType Directory -Force -Path "$stage\MosaicIt" | Out-Null
-          Copy-Item -Recurse -Force "build\windows\x64\runner\Release\*" "$stage\MosaicIt\"
-          Compress-Archive -Path "$stage\MosaicIt" -DestinationPath "build\release\MosaicIt_$($env:TAG)_windows_amd64.zip" -Force
-      - name: Upload Windows artifact
+          New-Item -ItemType Directory -Force -Path "$stage\$($env:APP_NAME)" | Out-Null
+          Copy-Item -Recurse -Force "$bundle\*" "$stage\$($env:APP_NAME)\"
+          Compress-Archive -Path "$stage\$($env:APP_NAME)" -DestinationPath "$outDir\$($env:APP_NAME)_$($env:TAG)_windows_amd64.zip" -Force
+
+          # 2. Inno Setup 6 installer (.exe), matching ServerBox conventions.
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path -PathType Leaf $iscc)) {
+            throw "Inno Setup 6 compiler not found at $iscc"
+          }
+          & $iscc /Q `
+            "/DAppName=$($env:APP_NAME)" `
+            "/DAppVersion=$($env:VERSION)" `
+            "/DSourceDir=$bundle" `
+            "/DOutputDir=$outDir" `
+            "/DOutputBaseFilename=$($env:APP_NAME)_$($env:TAG)_windows_amd64" `
+            "windows\installer.iss"
+          if ($LASTEXITCODE -ne 0) { throw "ISCC.exe exited with code $LASTEXITCODE" }
+
+          if (-not (Test-Path -PathType Leaf "$outDir\$($env:APP_NAME)_$($env:TAG)_windows_amd64.exe")) {
+            throw "Missing expected Windows installer .exe"
+          }
+      - name: Upload Windows artifacts
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: release-windows
-          path: app/build/release/MosaicIt_${{ needs.check.outputs.tag }}_windows_amd64.zip
+          path: |
+            app/build/release/${{ env.APP_NAME }}_${{ needs.check.outputs.tag }}_windows_amd64.exe
+            app/build/release/${{ env.APP_NAME }}_${{ needs.check.outputs.tag }}_windows_amd64.zip
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
 
   cli:
     name: Build CLI (${{ matrix.target }})
+    if: needs.check.outputs.isRelease == 'true' || contains(needs.check.outputs.selected, ',cli,')
     needs: check
     strategy:
       fail-fast: false
@@ -536,10 +748,11 @@ jobs:
           name: release-cli-${{ matrix.target }}
           path: build/release/unseen_${{ needs.check.outputs.tag }}_${{ matrix.target }}.${{ matrix.archive }}
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 14
 
   publish:
     name: Publish GitHub Release
+    if: needs.check.outputs.isRelease == 'true'
     needs: [check, android, macos, ios, linux, windows, cli]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -565,24 +778,44 @@ jobs:
           echo "${B3SUM_LINUX_X64_SHA256}  $HOME/.local/bin/b3sum" | sha256sum -c -
           chmod 0755 "$HOME/.local/bin/b3sum"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - name: Verify expected assets and write checksums
+      - name: Verify expected assets, prune extras, and write checksums
         working-directory: assets
         shell: bash
         run: |
           set -euo pipefail
           expected=(
-            "MosaicIt_${TAG}_arm64.apk"
-            "MosaicIt_${TAG}_NoSign_arm64.dmg"
-            "MosaicIt_${TAG}_NoSign.ipa"
-            "MosaicIt_${TAG}_linux_amd64.tar.gz"
-            "MosaicIt_${TAG}_windows_amd64.zip"
+            "${APP_NAME}_${TAG}_arm64.apk"
+            "${APP_NAME}_${TAG}_NoSign.ipa"
+            "${APP_NAME}_${TAG}_NoSign_arm64.dmg"
+            "${APP_NAME}_${TAG}_amd64.AppImage"
+            "${APP_NAME}_${TAG}_legacy_amd64.AppImage"
+            "${APP_NAME}_${TAG}_amd64.deb"
+            "${APP_NAME}_${TAG}_x86_64.rpm"
+            "${APP_NAME}_${TAG}_linux_amd64.tar.gz"
+            "${APP_NAME}_${TAG}_windows_amd64.exe"
+            "${APP_NAME}_${TAG}_windows_amd64.zip"
             "unseen_${TAG}_linux_amd64.tar.gz"
             "unseen_${TAG}_macos_arm64.tar.gz"
             "unseen_${TAG}_windows_amd64.zip"
           )
+
+          missing=()
           for f in "${expected[@]}"; do
-            test -f "$f" || { echo "::error::Missing asset: $f"; exit 1; }
+            [[ -f "$f" ]] || missing+=("$f")
           done
+          if (( ${#missing[@]} )); then
+            echo "::error::Release is incomplete, missing: ${missing[*]}"
+            exit 1
+          fi
+
+          while IFS= read -r -d '' path; do
+            name="${path#./}"
+            keep=false
+            for want in "${expected[@]}"; do
+              if [[ "$name" == "$want" ]]; then keep=true; break; fi
+            done
+            if [[ "$keep" == false ]]; then rm -rf "$path"; fi
+          done < <(find . -depth -mindepth 1 -print0)
 
           b3sum -- "${expected[@]}" > BLAKE3SUMS
           sha256sum -- "${expected[@]}" > SHA256SUMS
@@ -594,7 +827,6 @@ jobs:
         with:
           tag_name: ${{ env.TAG }}
           draft: true
-          prerelease: ${{ needs.check.outputs.prerelease == 'true' }}
           generate_release_notes: true
           fail_on_unmatched_files: true
           files: assets/*
@@ -605,9 +837,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_ID: ${{ steps.stage.outputs.id }}
-          MAKE_LATEST: ${{ needs.check.outputs.prerelease != 'true' && 'true' || 'false' }}
         run: |
           set -euo pipefail
           gh api --method PATCH "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID:?missing release id}" \
             -F draft=false \
-            -f make_latest="$MAKE_LATEST" >/dev/null
+            -f make_latest="true" >/dev/null

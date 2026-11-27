@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=MosaicIt
+GenericName=On-Device Privacy Redaction
+Comment=Detect and redact sensitive details in screenshots on-device
+Exec=mosaicit %U
+Icon=com.lollipopkit.unseen
+Terminal=false
+Categories=Graphics;Utility;
+Keywords=privacy;mosaic;blur;redact;screenshot;
+StartupNotify=true
+StartupWMClass=com.lollipopkit.unseen

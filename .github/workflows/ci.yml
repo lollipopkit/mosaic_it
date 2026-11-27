@@ -131,6 +131,35 @@ jobs:
           print("Zero-network policy verified.")
           PY
       - run: dart run license_checker check-licenses -c license_config.yaml -i
+      - name: Verify version metadata and Linux packaging metadata
+        working-directory: .
+        run: |
+          set -euo pipefail
+          build_data="$(sed -n -E 's/.*static const int build = ([0-9]+);/\1/p' app/lib/data/res/build_data.dart | head -n 1)"
+          pub_ver="$(sed -n -E 's/^version:[[:space:]]*([^+]+)\+([0-9]+)$/\1+\2/p' app/pubspec.yaml | head -n 1)"
+          cargo_ver="$(python3 -c 'import tomllib, pathlib; print(tomllib.loads(pathlib.Path("Cargo.toml").read_text())["workspace"]["package"]["version"])')"
+          test -n "$build_data"
+          test "$pub_ver" = "1.0.${build_data}+${build_data}"
+          test "$cargo_ver" = "1.0.${build_data}"
+
+          sudo apt-get update && sudo apt-get install -y desktop-file-utils appstream
+          desktop-file-validate app/linux/packaging/com.lollipopkit.unseen.desktop
+
+          stage="$(mktemp -d)"
+          trap 'rm -rf "$stage"' EXIT
+          mkdir -p "$stage/bundle/lib" "$stage/bundle/models" "$stage/bundle/data" "$stage/out"
+          printf '#!/bin/sh\nexit 0\n' > "$stage/bundle/mosaicit"
+          chmod +x "$stage/bundle/mosaicit"
+          touch "$stage/bundle/lib/libflutter_linux_gtk.so" \
+            "$stage/bundle/lib/libunseen_ffi.so" \
+            "$stage/bundle/models/unseen-det-tile.onnx" \
+            "$stage/bundle/models/unseen-det-tile.onnx.json" \
+            "$stage/bundle/data/icudtl.dat"
+          app/tool/install-nfpm.sh "$stage/nfpm-bin"
+          PATH="$stage/nfpm-bin:$PATH" app/tool/package-linux-native.sh \
+            --bundle "$stage/bundle" \
+            --version "1.0.${build_data}" \
+            --out "$stage/out"
       - run: dart format --output=none --set-exit-if-changed lib test hook
       - run: flutter analyze
       # test/ffi_test.dart skips itself without a model.

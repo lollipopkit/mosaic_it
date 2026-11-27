@@ -42,6 +42,13 @@ void main() {
           ),
         );
   }
+  // 512px PNG icon for Linux desktop packaging (AppImage, .deb, .rpm, tarball).
+  Directory('assets').createSync(recursive: true);
+  File('assets/app_icon.png').writeAsBytesSync(
+    encodePng(
+      copyResize(mac, width: 512, interpolation: Interpolation.average),
+    ),
+  );
 
   _expect('ios/Runner.xcodeproj/project.pbxproj', _iosName);
   _expect(
