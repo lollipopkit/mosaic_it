@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import worker, { detectImageFormat, validatePayload, type Env } from '../src/index.ts';
+import worker, { detectImageFormat, validatePayload, verifyTurnstileToken, type Env } from '../src/index.ts';
 
 const PNG_BYTES = new Uint8Array([
   0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
@@ -270,4 +270,208 @@ test('enforces bounded streaming body cap without Content-Length header', async 
   });
   const res = await worker.fetch(req, env);
   assert.equal(res.status, 413);
+});
+
+test('Turnstile enabled: HTML includes widget script and CSP allows challenges.cloudflare.com', async () => {
+  const { env } = makeEnv();
+  env.TURNSTILE_SITE_KEY = '0x4AAAAAATestSiteKey';
+  env.TURNSTILE_SECRET_KEY = '0x4AAAAAATestSecret';
+
+  const res = await worker.fetch(new Request('https://fb.test/feedback'), env);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get('Referrer-Policy'), 'strict-origin-when-cross-origin');
+  const csp = res.headers.get('Content-Security-Policy') ?? '';
+  assert.match(csp, /script-src 'unsafe-inline' https:\/\/challenges\.cloudflare\.com/);
+  assert.match(csp, /frame-src https:\/\/challenges\.cloudflare\.com/);
+  const html = await res.text();
+  assert.match(html, /https:\/\/challenges\.cloudflare\.com\/turnstile\/v0\/api\.js\?render=explicit&onload=onTurnstileLoad/);
+  assert.match(html, /const TURNSTILE_SITE_KEY = "0x4AAAAAATestSiteKey"/);
+  assert.match(html, /id="turnstileSlot"/);
+});
+
+test('Turnstile enforces valid token, hostname check, fail-closed config, and upstream errors', async () => {
+  const makeJsonReq = (token?: string) =>
+    new Request('https://fb.test/v1/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'CF-Connecting-IP': '203.0.113.9',
+        ...(token !== undefined ? { 'X-Turnstile-Token': token } : {}),
+      },
+      body: JSON.stringify({
+        schema: 'unseen.feedback.v1',
+        app_version: 'web',
+        platform: 'web',
+        model_id: 'web',
+        privacy_mode: 'text',
+        tags: ['other'],
+        note: 'Turnstile test',
+        image: null,
+        diffs: [],
+        excluded_preference_count: 0,
+      }),
+    });
+
+  // Misconfigured (site key without secret key) fails closed with 500
+  const { env: badCfg } = makeEnv();
+  badCfg.TURNSTILE_SITE_KEY = '0x4AAAAAATestSiteKey';
+  const rMis = await worker.fetch(makeJsonReq('tok'), badCfg);
+  assert.equal(rMis.status, 500);
+
+  // Missing token -> 403 without calling siteverify or touching R2
+  let verifyCalls = 0;
+  const { env, stored } = makeEnv();
+  env.TURNSTILE_SITE_KEY = '0x4AAAAAATestSiteKey';
+  env.TURNSTILE_SECRET_KEY = '0x4AAAAAATestSecret';
+  env.TURNSTILE_ALLOWED_HOSTNAMES = 'mosaic.lollipopkit.com,unseen-feedback.lollipopkit.workers.dev';
+  env.TURNSTILE_FETCH = (async (_url, init) => {
+    verifyCalls++;
+    const body = new URLSearchParams(String(init?.body ?? ''));
+    const tok = body.get('response');
+    assert.equal(body.get('secret'), '0x4AAAAAATestSecret');
+    assert.equal(body.get('remoteip'), '203.0.113.9');
+    if (tok === 'good-token') {
+      return new Response(JSON.stringify({ success: true, hostname: 'mosaic.lollipopkit.com' }), { status: 200 });
+    }
+    if (tok === 'wrong-host') {
+      return new Response(JSON.stringify({ success: true, hostname: 'evil.example.com' }), { status: 200 });
+    }
+    if (tok === 'upstream-500') {
+      return new Response('err', { status: 500 });
+    }
+    return new Response(JSON.stringify({ success: false, 'error-codes': ['invalid-input-response'] }), { status: 200 });
+  }) as typeof fetch;
+
+  const rMissing = await worker.fetch(makeJsonReq(), env);
+  assert.equal(rMissing.status, 403);
+  assert.equal(verifyCalls, 0);
+  assert.equal(stored.size, 0);
+
+  // Invalid token -> 403
+  const rBad = await worker.fetch(makeJsonReq('bad-token'), env);
+  assert.equal(rBad.status, 403);
+  assert.equal(verifyCalls, 1);
+  assert.equal(stored.size, 0);
+
+  // Hostname mismatch -> 403
+  const rHost = await worker.fetch(makeJsonReq('wrong-host'), env);
+  assert.equal(rHost.status, 403);
+  assert.equal(stored.size, 0);
+
+  // Upstream failure -> 502 fail-closed
+  const rDown = await worker.fetch(makeJsonReq('upstream-500'), env);
+  assert.equal(rDown.status, 502);
+  assert.equal(stored.size, 0);
+
+  // Valid token + allowed hostname -> 201 and stored in R2
+  const rOk = await worker.fetch(makeJsonReq('good-token'), env);
+  assert.equal(rOk.status, 201);
+  assert.equal(stored.size, 1);
+});
+
+test('Turnstile edge cases: malformed tokens, upstream null/throw, default hostname, XSS sitekey, rate-limit order, multipart', async () => {
+  const makeJsonReq = (token?: string) =>
+    new Request('https://fb.test/v1/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token !== undefined ? { 'X-Turnstile-Token': token } : {}),
+      },
+      body: JSON.stringify({
+        schema: 'unseen.feedback.v1',
+        app_version: 'web',
+        platform: 'web',
+        model_id: 'web',
+        privacy_mode: 'text',
+        tags: ['other'],
+        note: 'Edge test',
+        image: null,
+        diffs: [],
+        excluded_preference_count: 0,
+      }),
+    });
+
+  // Malformed sitekey does not relax CSP/Referrer-Policy on GET and fails closed (500) on POST
+  const { env: xssEnv } = makeEnv();
+  xssEnv.TURNSTILE_SITE_KEY = '"><script>alert(1)</script>';
+  xssEnv.TURNSTILE_SECRET_KEY = '0x4AAAAAATestSecret';
+  const rGetBadKey = await worker.fetch(new Request('https://fb.test/feedback'), xssEnv);
+  assert.equal(rGetBadKey.status, 200);
+  assert.equal(rGetBadKey.headers.get('Referrer-Policy'), 'no-referrer');
+  assert.doesNotMatch(rGetBadKey.headers.get('Content-Security-Policy') ?? '', /challenges\.cloudflare\.com/);
+  assert.doesNotMatch(await rGetBadKey.text(), /alert\(1\)/);
+  const rPostBadKey = await worker.fetch(makeJsonReq('tok'), xssEnv);
+  assert.equal(rPostBadKey.status, 500);
+
+  // Rate limit runs before Turnstile verification
+  let verifyCalls = 0;
+  const { env: limEnv } = makeEnv(false);
+  limEnv.TURNSTILE_SECRET_KEY = '0x4AAAAAATestSecret';
+  limEnv.TURNSTILE_FETCH = (async () => {
+    verifyCalls++;
+    return new Response(JSON.stringify({ success: true, hostname: 'fb.test' }), { status: 200 });
+  }) as typeof fetch;
+  assert.equal((await worker.fetch(makeJsonReq('tok'), limEnv)).status, 429);
+  assert.equal(verifyCalls, 0);
+
+  // Secret-only config enforces Turnstile and defaults allowed hostname to request hostname (case-insensitive)
+  const { env, stored } = makeEnv();
+  env.TURNSTILE_SECRET_KEY = '0x4AAAAAATestSecret';
+  env.TURNSTILE_FETCH = (async (_url, init) => {
+    verifyCalls++;
+    const tok = new URLSearchParams(String(init?.body ?? '')).get('response');
+    if (tok === 'throw') throw new Error('network down');
+    if (tok === 'non-json') return new Response('<html>err</html>', { status: 200 });
+    if (tok === 'json-null') return new Response('null', { status: 200 });
+    if (tok === 'no-host') return new Response(JSON.stringify({ success: true }), { status: 200 });
+    if (tok === 'upper-host') return new Response(JSON.stringify({ success: true, hostname: 'FB.TEST' }), { status: 200 });
+    return new Response(JSON.stringify({ success: true, hostname: 'fb.test' }), { status: 200 });
+  }) as typeof fetch;
+
+  // Whitespace, oversized (>2048), and control chars rejected locally without calling siteverify
+  assert.equal((await worker.fetch(makeJsonReq('   '), env)).status, 403);
+  assert.equal((await worker.fetch(makeJsonReq('a'.repeat(2049)), env)).status, 403);
+  const ctrlRes = await verifyTurnstileToken({
+    token: 'tok\r\nbad',
+    secret: '0x4AAAAAATestSecret',
+    remoteIp: null,
+    allowedHostnames: ['fb.test'],
+    fetchFn: env.TURNSTILE_FETCH,
+  });
+  assert.deepEqual(ctrlRes, { ok: false, status: 403, error: 'invalid turnstile token' });
+  const nulRes = await verifyTurnstileToken({
+    token: 'tok\0bad',
+    secret: '0x4AAAAAATestSecret',
+    remoteIp: null,
+    allowedHostnames: ['fb.test'],
+    fetchFn: env.TURNSTILE_FETCH,
+  });
+  assert.deepEqual(nulRes, { ok: false, status: 403, error: 'invalid turnstile token' });
+  assert.equal(verifyCalls, 0);
+
+  // Upstream throw / non-JSON / JSON null -> 502 fail-closed
+  assert.equal((await worker.fetch(makeJsonReq('throw'), env)).status, 502);
+  assert.equal((await worker.fetch(makeJsonReq('non-json'), env)).status, 502);
+  assert.equal((await worker.fetch(makeJsonReq('json-null'), env)).status, 502);
+
+  // Missing hostname fails default hostname check -> 403
+  assert.equal((await worker.fetch(makeJsonReq('no-host'), env)).status, 403);
+
+  // Case-insensitive default hostname match succeeds -> 201
+  assert.equal((await worker.fetch(makeJsonReq('upper-host'), env)).status, 201);
+
+  // Multipart upload with X-Turnstile-Token succeeds -> 201
+  const form = new FormData();
+  form.set('payload', JSON.stringify(validMaskedPayload()));
+  form.set('image', new Blob([PNG_BYTES], { type: 'image/png' }), 'shot.png');
+  const rMulti = await worker.fetch(
+    new Request('https://fb.test/v1/feedback', {
+      method: 'POST',
+      headers: { 'X-Turnstile-Token': 'ok-multipart' },
+      body: form,
+    }),
+    env,
+  );
+  assert.equal(rMulti.status, 201);
+  assert.equal(stored.size, 3);
 });

@@ -4,12 +4,28 @@
 // Immediately strips location.hash via history.replaceState so screenshot
 // data never lingers in browser history.
 
-export const FEEDBACK_WEB_HTML = `<!doctype html>
+export function normalizeTurnstileSiteKey(raw?: string): string {
+  if (typeof raw !== 'string') return '';
+  const trimmed = raw.trim();
+  return /^[0-9A-Za-z_-]{1,128}$/.test(trimmed) ? trimmed : '';
+}
+
+export function renderFeedbackWebHtml(turnstileSiteKey?: string): string {
+  const cleanSiteKey = normalizeTurnstileSiteKey(turnstileSiteKey);
+  const referrerPolicy = cleanSiteKey ? 'strict-origin-when-cross-origin' : 'no-referrer';
+  const turnstileSlot = cleanSiteKey
+    ? '<div id="turnstileWrap" class="turnstile-wrap"><div id="turnstileSlot"></div></div>'
+    : '';
+  const turnstileScript = cleanSiteKey
+    ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" async defer onerror="onTurnstileScriptError()"></script>'
+    : '';
+
+  return `<!doctype html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="referrer" content="no-referrer">
+<meta name="referrer" content="${referrerPolicy}">
 <title>MosaicIt Feedback</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -229,6 +245,12 @@ export const FEEDBACK_WEB_HTML = `<!doctype html>
     background: var(--card-hi);
     user-select: all;
   }
+  .turnstile-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 65px;
+  }
   .hidden { display: none !important; }
   input[type="file"] { display: none; }
 </style>
@@ -288,11 +310,14 @@ export const FEEDBACK_WEB_HTML = `<!doctype html>
       <div class="counter" id="noteCount">0 / 500</div>
     </div>
 
+    ${turnstileSlot}
+    <div id="submitErr" class="banner err hidden"></div>
     <button class="btn primary" id="btnSubmit" type="submit"></button>
   </form>
 </div>
 
 <script>
+const TURNSTILE_SITE_KEY = ${JSON.stringify(cleanSiteKey)};
 const TAG_IDS = ['missed', 'false_positive', 'box_drift', 'wrong_class', 'other'];
 const VALID_MODES = ['masked', 'full', 'text'];
 const VALID_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -319,6 +344,9 @@ const COPY = {
     newBtn: '提交另一条',
     needContent: '请至少选择标签、填写说明或附带一张图片。',
     needImgForMode: '当前模式包含标注框，请先选择或粘贴对应截图，或点击“改为仅文字提交”。',
+    needTurnstile: '请先完成人机验证。',
+    turnstileExpired: '人机验证已过期，请重新验证。',
+    turnstileError: '人机验证加载失败，请刷新页面或检查网络后重试。',
     noClipboardImg: '剪贴板中没有图片',
     tags: { missed: '漏检', false_positive: '误检', box_drift: '框偏移', wrong_class: '分类错误', other: '其他' },
     legendMasked: n => '已遮挡 ' + n,
@@ -349,6 +377,9 @@ const COPY = {
     newBtn: 'Submit another',
     needContent: 'Select a tag, enter a note, or attach an image.',
     needImgForMode: 'Annotations are attached; pick/paste the screenshot or click "Switch to text-only".',
+    needTurnstile: 'Please complete the verification challenge first.',
+    turnstileExpired: 'Verification expired. Please verify again.',
+    turnstileError: 'Verification failed to load. Refresh or check your network and try again.',
     noClipboardImg: 'No image found in clipboard',
     tags: { missed: 'Missed', false_positive: 'False positive', box_drift: 'Box drift', wrong_class: 'Wrong class', other: 'Other' },
     legendMasked: n => 'Masked ' + n,
@@ -374,6 +405,9 @@ const state = {
   note: '',
   banner: null,           // { kind, key?, text? }
   submitting: false,
+  turnstileToken: '',
+  turnstileWidgetId: null,
+  turnstileFailed: false,
 };
 
 function isValidBbox(b) {
@@ -435,23 +469,111 @@ async function inflateRaw(bytes) {
   return await new Response(stream).text();
 }
 
-function setBannerKey(kind, key) {
-  state.banner = key ? { kind, key } : null;
+function setBannerKey(kind, key, slot = 'top') {
+  state.banner = key ? { kind, key, slot } : null;
   renderBanner();
 }
 
-function setBannerText(kind, text) {
-  state.banner = text ? { kind, text } : null;
+function setBannerText(kind, text, slot = 'submit') {
+  state.banner = text ? { kind, text, slot } : null;
   renderBanner();
 }
 
 function renderBanner() {
-  const el = document.getElementById('statusBanner');
-  if (!state.banner) { el.className = 'banner hidden'; el.textContent = ''; return; }
+  const topEl = document.getElementById('statusBanner');
+  const subEl = document.getElementById('submitErr');
+  topEl.className = 'banner hidden';
+  topEl.textContent = '';
+  subEl.className = 'banner err hidden';
+  subEl.textContent = '';
+  if (!state.banner) return;
   const t = COPY[state.lang];
-  el.className = 'banner ' + state.banner.kind;
-  el.textContent = state.banner.key ? (t[state.banner.key] || '') : (state.banner.text || '');
+  const msg = state.banner.key ? (t[state.banner.key] || '') : (state.banner.text || '');
+  if (!msg) return;
+  const target = state.banner.slot === 'submit' ? subEl : topEl;
+  target.className = 'banner ' + state.banner.kind;
+  target.textContent = msg;
 }
+
+function isFormVisible() {
+  const form = document.getElementById('fbForm');
+  return !!(form && !form.classList.contains('hidden'));
+}
+
+function unmountTurnstile() {
+  state.turnstileToken = '';
+  state.turnstileFailed = false;
+  if (window.turnstile && state.turnstileWidgetId !== null) {
+    try { window.turnstile.remove(state.turnstileWidgetId); } catch (_) {}
+  }
+  state.turnstileWidgetId = null;
+}
+
+function mountTurnstile() {
+  if (!TURNSTILE_SITE_KEY || !window.turnstile || state.turnstileWidgetId !== null) return;
+  if (!isFormVisible()) return;
+  const slot = document.getElementById('turnstileSlot');
+  if (!slot) return;
+  try {
+    const id = window.turnstile.render(slot, {
+      sitekey: TURNSTILE_SITE_KEY,
+      theme: 'auto',
+      language: state.lang === 'zh' ? 'zh-cn' : 'en',
+      callback: token => {
+        state.turnstileToken = token || '';
+        state.turnstileFailed = false;
+        if (state.banner && (state.banner.key === 'needTurnstile' || state.banner.key === 'turnstileExpired' || state.banner.key === 'turnstileError')) {
+          setBannerKey('', '');
+        }
+      },
+      'expired-callback': () => {
+        state.turnstileToken = '';
+        if (isFormVisible()) setBannerKey('info', 'turnstileExpired', 'submit');
+      },
+      'timeout-callback': () => {
+        state.turnstileToken = '';
+        if (isFormVisible()) setBannerKey('info', 'turnstileExpired', 'submit');
+      },
+      'error-callback': () => {
+        state.turnstileToken = '';
+        state.turnstileFailed = true;
+        if (isFormVisible()) setBannerKey('err', 'turnstileError', 'submit');
+      },
+    });
+    if (id != null) {
+      state.turnstileWidgetId = id;
+      state.turnstileFailed = false;
+    } else {
+      state.turnstileFailed = true;
+      setBannerKey('err', 'turnstileError', 'submit');
+    }
+  } catch (_) {
+    state.turnstileWidgetId = null;
+    state.turnstileFailed = true;
+    setBannerKey('err', 'turnstileError', 'submit');
+  }
+}
+
+function resetTurnstile() {
+  state.turnstileToken = '';
+  state.turnstileFailed = false;
+  if (window.turnstile && state.turnstileWidgetId !== null) {
+    try { window.turnstile.reset(state.turnstileWidgetId); } catch (_) {}
+  }
+}
+
+function remountTurnstile() {
+  if (!TURNSTILE_SITE_KEY || !window.turnstile) return;
+  unmountTurnstile();
+  mountTurnstile();
+}
+
+window.onTurnstileLoad = mountTurnstile;
+window.onTurnstileScriptError = () => {
+  state.turnstileToken = '';
+  state.turnstileFailed = true;
+  if (isFormVisible()) setBannerKey('err', 'turnstileError', 'submit');
+};
 
 function loadBlobAsImage(blob) {
   return new Promise((resolve, reject) => {
@@ -838,6 +960,7 @@ async function handleUserImage(blob) {
 // Event wiring
 document.getElementById('btnLang').onclick = () => {
   state.lang = state.lang === 'zh' ? 'en' : 'zh';
+  remountTurnstile();
   render();
 };
 document.getElementById('noteInput').addEventListener('input', e => {
@@ -936,23 +1059,29 @@ document.getElementById('btnNew').onclick = () => {
   document.getElementById('fbForm').classList.remove('hidden');
   setBannerKey('', '');
   render();
+  mountTurnstile();
 };
 
 document.getElementById('fbForm').addEventListener('submit', async e => {
   e.preventDefault();
   if (state.submitting) return;
   if (!state.imgEl && state.handoff && state.handoff.privacy_mode !== 'text') {
-    setBannerKey('err', 'needImgForMode');
+    setBannerKey('err', 'needImgForMode', 'submit');
     return;
   }
   if (!state.imgEl && state.tags.size === 0 && !state.note.trim()) {
-    setBannerKey('err', 'needContent');
+    setBannerKey('err', 'needContent', 'submit');
+    return;
+  }
+  if (TURNSTILE_SITE_KEY && !state.turnstileToken) {
+    setBannerKey('err', state.turnstileFailed ? 'turnstileError' : 'needTurnstile', 'submit');
     return;
   }
   state.submitting = true;
   setBannerKey('', '');
   render();
   try {
+    const authHeaders = TURNSTILE_SITE_KEY ? { 'X-Turnstile-Token': state.turnstileToken } : {};
     let resp;
     if (state.imgEl) {
       const blob = await exportUploadBlob();
@@ -961,12 +1090,12 @@ document.getElementById('fbForm').addEventListener('submit', async e => {
       const form = new FormData();
       form.set('payload', JSON.stringify(payload));
       form.set('image', blob, 'screenshot.jpg');
-      resp = await fetch('/v1/feedback', { method: 'POST', body: form });
+      resp = await fetch('/v1/feedback', { method: 'POST', headers: authHeaders, body: form });
     } else {
       const payload = buildFinalPayload(null);
       resp = await fetch('/v1/feedback', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify(payload),
       });
     }
@@ -974,20 +1103,27 @@ document.getElementById('fbForm').addEventListener('submit', async e => {
     if (!resp.ok || !body.id) {
       throw new Error(body.error || ('HTTP ' + resp.status));
     }
+    unmountTurnstile();
     document.getElementById('receiptId').textContent = body.id;
     document.getElementById('fbForm').classList.add('hidden');
     document.getElementById('receiptCard').classList.remove('hidden');
     setBannerKey('', '');
   } catch (err) {
-    setBannerText('err', String(err && err.message ? err.message : err));
+    resetTurnstile();
+    setBannerText('err', String(err && err.message ? err.message : err), 'submit');
   } finally {
     state.submitting = false;
     render();
   }
 });
 
-initFromHash().finally(() => render());
+initFromHash().finally(() => {
+  render();
+  mountTurnstile();
+});
 </script>
+${turnstileScript}
 </body>
 </html>
 `;
+}

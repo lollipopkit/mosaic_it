@@ -1,4 +1,4 @@
-import { FEEDBACK_WEB_HTML } from './web.ts';
+import { normalizeTurnstileSiteKey, renderFeedbackWebHtml } from './web.ts';
 
 export interface R2PutOptions {
   httpMetadata?: { contentType?: string };
@@ -18,7 +18,15 @@ export interface Env {
   RATE_LIMITER?: RateLimiterLike;
   MAX_IMAGE_BYTES?: string;
   MAX_PAYLOAD_BYTES?: string;
+  TURNSTILE_SITE_KEY?: string;
+  TURNSTILE_SECRET_KEY?: string;
+  TURNSTILE_ALLOWED_HOSTNAMES?: string;
+  /** Optional fetch override for unit tests. */
+  TURNSTILE_FETCH?: typeof fetch;
 }
+
+const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+const MAX_TURNSTILE_TOKEN_LEN = 2048;
 
 const VALID_MODES = new Set(['masked', 'full', 'text']);
 const VALID_PLATFORMS = new Set(['ios', 'android', 'macos', 'linux', 'windows', 'web']);
@@ -63,14 +71,86 @@ const SECURITY_HEADERS: Record<string, string> = {
   'X-Content-Type-Options': 'nosniff',
 };
 
-const HTML_HEADERS: Record<string, string> = {
-  'Content-Type': 'text/html; charset=utf-8',
-  'Cache-Control': 'public, max-age=300',
-  'X-Content-Type-Options': 'nosniff',
-  'Referrer-Policy': 'no-referrer',
-  'Content-Security-Policy':
-    "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src blob: data:; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'",
-};
+function htmlHeaders(turnstileEnabled: boolean): Record<string, string> {
+  const csp = turnstileEnabled
+    ? "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; img-src blob: data:; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'"
+    : "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src blob: data:; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'";
+  return {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Cache-Control': 'public, max-age=60',
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': turnstileEnabled ? 'strict-origin-when-cross-origin' : 'no-referrer',
+    'Content-Security-Policy': csp,
+  };
+}
+
+export type TurnstileResult = { ok: true } | { ok: false; status: number; error: string };
+
+export async function verifyTurnstileToken(opts: {
+  token: string | null;
+  secret: string;
+  remoteIp: string | null;
+  allowedHostnames: string[];
+  fetchFn?: typeof fetch;
+}): Promise<TurnstileResult> {
+  const token = (opts.token ?? '').trim();
+  if (!token) {
+    return { ok: false, status: 403, error: 'turnstile token required' };
+  }
+  if (token.length > MAX_TURNSTILE_TOKEN_LEN || /[\r\n\0]/.test(token)) {
+    return { ok: false, status: 403, error: 'invalid turnstile token' };
+  }
+
+  const form = new URLSearchParams();
+  form.set('secret', opts.secret);
+  form.set('response', token);
+  form.set('idempotency_key', crypto.randomUUID());
+  if (opts.remoteIp) {
+    form.set('remoteip', opts.remoteIp);
+  }
+
+  const fetchFn = opts.fetchFn ?? fetch;
+  let resp: Response;
+  try {
+    resp = await fetchFn(TURNSTILE_VERIFY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: form.toString(),
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch {
+    return { ok: false, status: 502, error: 'turnstile verification unavailable' };
+  }
+
+  if (!resp.ok) {
+    await resp.body?.cancel().catch(() => {});
+    return { ok: false, status: 502, error: 'turnstile verification unavailable' };
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = await resp.json();
+  } catch {
+    return { ok: false, status: 502, error: 'turnstile verification unavailable' };
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return { ok: false, status: 502, error: 'turnstile verification unavailable' };
+  }
+  const data = parsed as { success?: unknown; hostname?: unknown };
+
+  if (data.success !== true) {
+    return { ok: false, status: 403, error: 'turnstile verification failed' };
+  }
+
+  if (opts.allowedHostnames.length > 0) {
+    const host = typeof data.hostname === 'string' ? data.hostname.toLowerCase() : '';
+    if (!host || !opts.allowedHostnames.includes(host)) {
+      return { ok: false, status: 403, error: 'turnstile hostname mismatch' };
+    }
+  }
+
+  return { ok: true };
+}
 
 function jsonResponse(body: Record<string, unknown>, status: number): Response {
   return new Response(JSON.stringify(body), { status, headers: SECURITY_HEADERS });
@@ -317,6 +397,9 @@ async function readBoundedBody(request: Request, maxBytes: number): Promise<Uint
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const rawSiteKey = (env.TURNSTILE_SITE_KEY ?? '').trim();
+    const siteKey = normalizeTurnstileSiteKey(rawSiteKey);
+    const secretKey = (env.TURNSTILE_SECRET_KEY ?? '').trim();
     const isGetOrHead = request.method === 'GET' || request.method === 'HEAD';
     if (
       isGetOrHead &&
@@ -326,9 +409,9 @@ export default {
         url.pathname === '/feedback/' ||
         url.pathname === '/feedback/index.html')
     ) {
-      return new Response(request.method === 'HEAD' ? null : FEEDBACK_WEB_HTML, {
+      return new Response(request.method === 'HEAD' ? null : renderFeedbackWebHtml(siteKey), {
         status: 200,
-        headers: HTML_HEADERS,
+        headers: htmlHeaders(siteKey.length > 0),
       });
     }
     if (isGetOrHead && url.pathname === '/health') {
@@ -345,6 +428,29 @@ export default {
       const { success } = await env.RATE_LIMITER.limit({ key: ip });
       if (!success) {
         return jsonResponse({ error: 'rate limit exceeded' }, 429);
+      }
+    }
+
+    if ((rawSiteKey && !siteKey) || (siteKey && !secretKey)) {
+      return jsonResponse({ error: 'turnstile misconfigured' }, 500);
+    }
+    if (secretKey) {
+      const configuredHostnames = (env.TURNSTILE_ALLOWED_HOSTNAMES ?? '')
+        .split(',')
+        .map((h) => h.trim().toLowerCase())
+        .filter(Boolean);
+      const allowedHostnames = configuredHostnames.length > 0
+        ? configuredHostnames
+        : [url.hostname.toLowerCase()];
+      const verified = await verifyTurnstileToken({
+        token: request.headers.get('X-Turnstile-Token'),
+        secret: secretKey,
+        remoteIp: request.headers.get('CF-Connecting-IP'),
+        allowedHostnames,
+        fetchFn: env.TURNSTILE_FETCH,
+      });
+      if (!verified.ok) {
+        return jsonResponse({ error: verified.error }, verified.status);
       }
     }
 
