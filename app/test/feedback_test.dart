@@ -133,16 +133,17 @@ void main() {
 
   test('auto-masks adaptive-promoted review boxes and exportCheck boxes in masked mode', () {
     // Adaptive-promoted review box: initialSelected=false, shownSelected=true, selected=true
-    final promoted = EditBox(
-      rect: const Rect.fromLTWH(10, 20, 100, 40),
-      className: 'person_name',
-      score: 0.48,
-      selected: false,
-      review: true,
-      source: BoxSource.detector,
-    )
-      ..selected = true
-      ..shownSelected = true;
+    final promoted =
+        EditBox(
+            rect: const Rect.fromLTWH(10, 20, 100, 40),
+            className: 'person_name',
+            score: 0.48,
+            selected: false,
+            review: true,
+            source: BoxSource.detector,
+          )
+          ..selected = true
+          ..shownSelected = true;
 
     // exportCheck box added during export check
     final checkBox = EditBox(
@@ -204,63 +205,66 @@ void main() {
     );
   });
 
-  test('FeedbackClient posts multipart/JSON and wraps non-JSON errors cleanly', () async {
-    late String capturedContentType;
-    late dynamic capturedData;
-    final dio = Dio()
-      ..httpClientAdapter = _StubAdapter((opts) async {
-        capturedContentType = opts.contentType ?? '';
-        capturedData = opts.data;
-        if (opts.path.endsWith('/html-error')) {
+  test(
+    'FeedbackClient posts multipart/JSON and wraps non-JSON errors cleanly',
+    () async {
+      late String capturedContentType;
+      late dynamic capturedData;
+      final dio = Dio()
+        ..httpClientAdapter = _StubAdapter((opts) async {
+          capturedContentType = opts.contentType ?? '';
+          capturedData = opts.data;
+          if (opts.path.endsWith('/html-error')) {
+            return ResponseBody.fromString(
+              '<html>502 Bad Gateway</html>',
+              502,
+              headers: {
+                Headers.contentTypeHeader: ['text/html'],
+              },
+            );
+          }
           return ResponseBody.fromString(
-            '<html>502 Bad Gateway</html>',
-            502,
+            jsonEncode({
+              'id': 'FB-20261126-abcdef123456',
+              'received_at': '2026-11-26T04:00:00Z',
+            }),
+            201,
             headers: {
-              Headers.contentTypeHeader: ['text/html'],
+              Headers.contentTypeHeader: [Headers.jsonContentType],
             },
           );
-        }
-        return ResponseBody.fromString(
-          jsonEncode({
-            'id': 'FB-20261126-abcdef123456',
-            'received_at': '2026-11-26T04:00:00Z',
-          }),
-          201,
-          headers: {
-            Headers.contentTypeHeader: [Headers.jsonContentType],
-          },
-        );
-      });
+        });
 
-    final client = FeedbackClient(
-      dio: dio,
-      endpoint: 'https://example.test/v1/feedback',
-    );
+      final client = FeedbackClient(
+        dio: dio,
+        endpoint: 'https://example.test/v1/feedback',
+      );
 
-    final draft = FeedbackDraft(shot: sampleShot());
-    final r1 = await client.submit(
-      payload: draft.buildPayload(modelId: 'test', platform: 'ios'),
-      imageFile: png,
-    );
-    expect(r1.id, 'FB-20261126-abcdef123456');
-    expect(capturedData, isA<FormData>());
+      final draft = FeedbackDraft(shot: sampleShot());
+      final r1 = await client.submit(
+        payload: draft.buildPayload(modelId: 'test', platform: 'ios'),
+        imageFile: png,
+      );
+      expect(r1.id, 'FB-20261126-abcdef123456');
+      expect(capturedData, isA<FormData>());
 
-    final textDraft = FeedbackDraft(note: 'Test');
-    final r2 = await client.submit(
-      payload: textDraft.buildPayload(modelId: 'none', platform: 'ios'),
-    );
-    expect(r2.id, 'FB-20261126-abcdef123456');
-    expect(capturedContentType, contains('application/json'));
-
-    final badClient = FeedbackClient(
-      dio: dio,
-      endpoint: 'https://example.test/html-error',
-    );
-    await expectLater(
-      badClient.submit(
+      final textDraft = FeedbackDraft(note: 'Test');
+      final r2 = await client.submit(
         payload: textDraft.buildPayload(modelId: 'none', platform: 'ios'),
-      ),
-      throwsA(isA<FeedbackException>()),
-    );
-  });
+      );
+      expect(r2.id, 'FB-20261126-abcdef123456');
+      expect(capturedContentType, contains('application/json'));
+
+      final badClient = FeedbackClient(
+        dio: dio,
+        endpoint: 'https://example.test/html-error',
+      );
+      await expectLater(
+        badClient.submit(
+          payload: textDraft.buildPayload(modelId: 'none', platform: 'ios'),
+        ),
+        throwsA(isA<FeedbackException>()),
+      );
+    },
+  );
 }

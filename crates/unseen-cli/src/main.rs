@@ -543,11 +543,8 @@ fn main() -> Result<()> {
             for frame in input.frames()? {
                 let (img, _) = frame?;
                 if keys.push(n, &img) {
-                    let (dets, cands) = det.detect_next(
-                        prev.as_ref().map(|(i, c)| (i, c)),
-                        &img,
-                        &DetectOptions::default(),
-                    )?;
+                    let (dets, cands) =
+                        det.detect_next(prev.as_ref().map(|(i, c)| (i, c)), &img, &DetectOptions::default())?;
                     let dets = dets
                         .into_iter()
                         .map(|d| {

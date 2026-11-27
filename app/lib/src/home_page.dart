@@ -472,11 +472,8 @@ class _HomePageState extends State<HomePage> {
               if (!_mobile)
                 PopupMenuItem(value: _openFiles, child: Text(_l.openFiles)),
               PopupMenuItem(
-                value: () => showFeedbackSheet(
-                  context,
-                  model: _session,
-                  info: _info,
-                ),
+                value: () =>
+                    showFeedbackSheet(context, model: _session, info: _info),
                 child: Text(_l.feedbackMenu),
               ),
             ],

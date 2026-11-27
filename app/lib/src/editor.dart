@@ -581,10 +581,7 @@ class _BoxPainter extends CustomPainter {
       final c = classColor(b.className);
       if (b.selected) {
         canvas.drawRRect(
-          RRect.fromRectAndRadius(
-            b.rect.inflate(px),
-            Radius.circular(3 * px),
-          ),
+          RRect.fromRectAndRadius(b.rect.inflate(px), Radius.circular(3 * px)),
           Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = 1.5 * px

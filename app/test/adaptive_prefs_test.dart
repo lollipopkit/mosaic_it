@@ -120,112 +120,121 @@ void main() {
     expect(prefs.offsets['person_name'], closeTo(-0.04, 1e-4));
   });
 
-  test('aggregates per initialClass per export and ignores reclass mutation', () async {
-    final prefs = AdaptivePrefs();
-    // 10 unchecked avatars in one screenshot -> at most 1 step (+0.02),
-    // even if one box was reclassed to 'manual'.
-    final boxes = [
-      for (var i = 0; i < 10; i++)
-        det('avatar', 0.80, selected: true)
-          ..selected = false
-          ..className = i == 0 ? 'manual' : 'avatar',
-    ];
-    await prefs.recordExport(
-      Shot(dummy, const Size(400, 400), boxes),
-      enabled: true,
-      offClasses: const {},
-    );
-    expect(prefs.offsets.keys, ['avatar']);
-    expect(prefs.offsets['avatar'], closeTo(AdaptivePrefs.stepUncheck, 1e-4));
-  });
-
-  test('respects offClasses, disabled flag, clamping, positive decay, and reset', () async {
-    var stored = '{}';
-    final prefs = AdaptivePrefs(
-      read: () => stored,
-      write: (v) async => stored = v,
-    );
-
-    // offClasses are never updated.
-    final face = det('face', 0.80, selected: false, suggested: true);
-    face.selected = true;
-    final offShot = Shot(dummy, const Size(400, 400), [face]);
-    expect(
+  test(
+    'aggregates per initialClass per export and ignores reclass mutation',
+    () async {
+      final prefs = AdaptivePrefs();
+      // 10 unchecked avatars in one screenshot -> at most 1 step (+0.02),
+      // even if one box was reclassed to 'manual'.
+      final boxes = [
+        for (var i = 0; i < 10; i++)
+          det('avatar', 0.80, selected: true)
+            ..selected = false
+            ..className = i == 0 ? 'manual' : 'avatar',
+      ];
       await prefs.recordExport(
-        offShot,
-        enabled: true,
-        offClasses: const {'face'},
-      ),
-      isFalse,
-    );
-    expect(prefs.offsets, isEmpty);
-
-    // Clamp at maxDelta (+0.20).
-    for (var i = 0; i < 20; i++) {
-      final b = det('phone', 0.55, selected: true)..selected = false;
-      await prefs.recordExport(
-        Shot(dummy, const Size(400, 400), [b]),
+        Shot(dummy, const Size(400, 400), boxes),
         enabled: true,
         offClasses: const {},
       );
-    }
-    expect(prefs.offsets['phone'], closeTo(AdaptivePrefs.maxDelta, 1e-4));
+      expect(prefs.offsets.keys, ['avatar']);
+      expect(prefs.offsets['avatar'], closeTo(AdaptivePrefs.stepUncheck, 1e-4));
+    },
+  );
 
-    // Keeping pre-selected boxes decays positive offset once per export.
-    final kept = [
-      det('phone', 0.90, selected: true),
-      det('phone', 0.92, selected: true),
-      det('phone', 0.95, selected: true),
-    ];
-    await prefs.recordExport(
-      Shot(dummy, const Size(400, 400), kept),
-      enabled: true,
-      offClasses: const {},
-    );
-    expect(
-      prefs.offsets['phone'],
-      closeTo(AdaptivePrefs.maxDelta * AdaptivePrefs.keepDecay, 1e-4),
-    );
+  test(
+    'respects offClasses, disabled flag, clamping, positive decay, and reset',
+    () async {
+      var stored = '{}';
+      final prefs = AdaptivePrefs(
+        read: () => stored,
+        write: (v) async => stored = v,
+      );
 
-    // When disabled, apply restores raw model selection.
-    final b = det('phone', 0.55, selected: true);
-    prefs.apply(
-      Shot(dummy, const Size(400, 400), [b]),
-      enabled: false,
-      offClasses: const {},
-      baseThresholds: const {'phone': 0.50},
-    );
-    expect(b.selected, isTrue);
+      // offClasses are never updated.
+      final face = det('face', 0.80, selected: false, suggested: true);
+      face.selected = true;
+      final offShot = Shot(dummy, const Size(400, 400), [face]);
+      expect(
+        await prefs.recordExport(
+          offShot,
+          enabled: true,
+          offClasses: const {'face'},
+        ),
+        isFalse,
+      );
+      expect(prefs.offsets, isEmpty);
 
-    // Reset clears everything.
-    await prefs.reset();
-    expect(prefs.offsets, isEmpty);
-    expect(stored, '{}');
-  });
+      // Clamp at maxDelta (+0.20).
+      for (var i = 0; i < 20; i++) {
+        final b = det('phone', 0.55, selected: true)..selected = false;
+        await prefs.recordExport(
+          Shot(dummy, const Size(400, 400), [b]),
+          enabled: true,
+          offClasses: const {},
+        );
+      }
+      expect(prefs.offsets['phone'], closeTo(AdaptivePrefs.maxDelta, 1e-4));
 
-  test('scales base threshold by ThresholdPreset including built-in face=0.70', () {
-    final prefs = AdaptivePrefs(read: () => '{"phone": 0.10, "face": 0.08}');
-    // High preset: phone 0.50 * 4/3 = 0.6667; + 0.10 = 0.7667.
-    final phone = det('phone', 0.72, selected: true);
-    // Medium preset with face=0.70 from ModelInfo.selectThresholds: 0.70 + 0.08 = 0.78.
-    final face = det('face', 0.75, selected: true);
+      // Keeping pre-selected boxes decays positive offset once per export.
+      final kept = [
+        det('phone', 0.90, selected: true),
+        det('phone', 0.92, selected: true),
+        det('phone', 0.95, selected: true),
+      ];
+      await prefs.recordExport(
+        Shot(dummy, const Size(400, 400), kept),
+        enabled: true,
+        offClasses: const {},
+      );
+      expect(
+        prefs.offsets['phone'],
+        closeTo(AdaptivePrefs.maxDelta * AdaptivePrefs.keepDecay, 1e-4),
+      );
 
-    prefs.apply(
-      Shot(dummy, const Size(400, 400), [phone]),
-      enabled: true,
-      offClasses: const {},
-      preset: ThresholdPreset.high,
-      baseThresholds: const {'phone': 0.50, 'face': 0.70},
-    );
-    expect(phone.selected, isFalse);
+      // When disabled, apply restores raw model selection.
+      final b = det('phone', 0.55, selected: true);
+      prefs.apply(
+        Shot(dummy, const Size(400, 400), [b]),
+        enabled: false,
+        offClasses: const {},
+        baseThresholds: const {'phone': 0.50},
+      );
+      expect(b.selected, isTrue);
 
-    prefs.apply(
-      Shot(dummy, const Size(400, 400), [face]),
-      enabled: true,
-      offClasses: const {},
-      preset: ThresholdPreset.medium,
-      baseThresholds: const {'phone': 0.50, 'face': 0.70},
-    );
-    expect(face.selected, isFalse);
-  });
+      // Reset clears everything.
+      await prefs.reset();
+      expect(prefs.offsets, isEmpty);
+      expect(stored, '{}');
+    },
+  );
+
+  test(
+    'scales base threshold by ThresholdPreset including built-in face=0.70',
+    () {
+      final prefs = AdaptivePrefs(read: () => '{"phone": 0.10, "face": 0.08}');
+      // High preset: phone 0.50 * 4/3 = 0.6667; + 0.10 = 0.7667.
+      final phone = det('phone', 0.72, selected: true);
+      // Medium preset with face=0.70 from ModelInfo.selectThresholds: 0.70 + 0.08 = 0.78.
+      final face = det('face', 0.75, selected: true);
+
+      prefs.apply(
+        Shot(dummy, const Size(400, 400), [phone]),
+        enabled: true,
+        offClasses: const {},
+        preset: ThresholdPreset.high,
+        baseThresholds: const {'phone': 0.50, 'face': 0.70},
+      );
+      expect(phone.selected, isFalse);
+
+      prefs.apply(
+        Shot(dummy, const Size(400, 400), [face]),
+        enabled: true,
+        offClasses: const {},
+        preset: ThresholdPreset.medium,
+        baseThresholds: const {'phone': 0.50, 'face': 0.70},
+      );
+      expect(face.selected, isFalse);
+    },
+  );
 }

@@ -312,11 +312,7 @@ class _Cell extends StatelessWidget {
               ),
             ),
           if (mark == MarksStore.redacted)
-            Positioned(
-              left: 4,
-              bottom: 4,
-              child: _Tag(t.badgeRedacted),
-            ),
+            Positioned(left: 4, bottom: 4, child: _Tag(t.badgeRedacted)),
           if (asset.type == AssetType.video)
             Positioned(
               right: 4,

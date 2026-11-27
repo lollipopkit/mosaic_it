@@ -192,7 +192,11 @@ class _FeedbackSheetState extends State<_FeedbackSheet> {
           imagePath: imgFile.path,
           outPath: outPath,
           rects: rects,
-          fill: Fill(style: FillStyle.solid, color: 0x000000, seed: BigInt.zero),
+          fill: Fill(
+            style: FillStyle.solid,
+            color: 0x000000,
+            seed: BigInt.zero,
+          ),
           force: true,
           maxSide: feedbackMaxImageSide,
         );
@@ -439,7 +443,10 @@ class _PreviewLegend extends StatelessWidget {
         if (fpCount > 0)
           pill(_FeedbackColors.fpConfirmed, l.feedbackCountFp(fpCount)),
         if (prefCount > 0)
-          pill(_FeedbackColors.preference, l.feedbackCountPreference(prefCount)),
+          pill(
+            _FeedbackColors.preference,
+            l.feedbackCountPreference(prefCount),
+          ),
       ],
     );
   }

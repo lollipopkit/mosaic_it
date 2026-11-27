@@ -89,9 +89,8 @@ class _EditorPageState extends State<EditorPage> {
   });
 
   void _toast(String text, {SnackBarAction? action}) =>
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(text), action: action));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(text), action: action));
 
   Future<void> _run(String label, Future<void> Function() f) async {
     setState(() => _busy = label);

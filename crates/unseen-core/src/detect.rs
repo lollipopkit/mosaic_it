@@ -1090,8 +1090,7 @@ mod tests {
             // Each cut leaves at least half the overlap on both sides.
             let (prev_end, next_top) = ((w[0].0 + 1280) as f32, w[1].0 as f32);
             assert!(
-                w[0].2 - next_top >= TILE_OVERLAP_X as f32 / 2.0
-                    && prev_end - w[0].2 >= TILE_OVERLAP_X as f32 / 2.0
+                w[0].2 - next_top >= TILE_OVERLAP_X as f32 / 2.0 && prev_end - w[0].2 >= TILE_OVERLAP_X as f32 / 2.0
             );
         }
         // Vertical overlap is smaller, so tall axes need fewer tiles.
@@ -1101,8 +1100,7 @@ mod tests {
             assert_eq!(w[0].2, w[1].1);
             let (prev_end, next_top) = ((w[0].0 + 1280) as f32, w[1].0 as f32);
             assert!(
-                w[0].2 - next_top >= TILE_OVERLAP_Y as f32 / 2.0
-                    && prev_end - w[0].2 >= TILE_OVERLAP_Y as f32 / 2.0
+                w[0].2 - next_top >= TILE_OVERLAP_Y as f32 / 2.0 && prev_end - w[0].2 >= TILE_OVERLAP_Y as f32 / 2.0
             );
         }
     }

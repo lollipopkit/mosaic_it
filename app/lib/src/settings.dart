@@ -213,9 +213,8 @@ class _SettingsPageState extends State<SettingsPage> {
     await AdaptivePrefs.instance.reset();
     if (!mounted) return;
     setState(() {});
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(t.adaptiveResetDone)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(t.adaptiveResetDone)));
   }
 
   String _styleName(AppLocalizations t) => switch (widget.settings.fillStyle) {
