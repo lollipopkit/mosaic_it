@@ -27,42 +27,8 @@ export const fr: Copy = {
     feedbackAction: 'Retour en ligne',
     githubAction: 'GitHub',
   },
-  demo: {
-    ariaLabel: 'Aperçu interactif du masquage avec MosaicIt',
-    peekLabel: 'Maintenir pour voir l’original',
-    resetLabel: 'Réinitialiser les masques',
-    receiptTitle: 'Reçu de virement',
-    recipientLabel: 'Bénéficiaire',
-    recipientValue: 'Camille Laurent',
-    phoneLabel: 'Téléphone',
-    phoneValue: '+33 6 39 98 14 20',
-    addressLabel: 'Adresse',
-    addressValue: '42 rue des Érables, Apt 8B',
-    amountLabel: 'Montant',
-    amountValue: '2 480,00 €',
-    cardLabel: 'Compte',
-    cardValue: '6222 **** **** 4821',
-    qrLabel: 'QR du reçu',
-    styles: {
-      solid: 'Couleur unie',
-      surround: 'Couleur de fond',
-      blocks: 'Mosaïque grise',
-      tinted: 'Mosaïque colorée',
-      noise: 'Bruit',
-    },
-    classes: {
-      person_name: 'Nom',
-      phone: 'Téléphone',
-      address: 'Adresse',
-      finance: 'Montant',
-      bank_card: 'Carte bancaire',
-      qr: 'Code QR',
-    },
-  },
   features: {
     title: 'Conçu pour un masquage rapide et vérifiable.',
-    subtitle:
-      'Ouvrez une image, vérifiez les zones détectées, ajustez si besoin et exportez en quelques secondes.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -102,12 +68,9 @@ export const fr: Copy = {
       },
     ],
     classesTitle: '19 classes prises en charge',
-    classesNote: '18 classes issues du modèle intégré unseen-det 0.5.0 plus la détection de visages par YuNet.',
   },
   privacy: {
     title: 'Zéro réseau. Zéro accès en lecture à vos photos.',
-    subtitle:
-      'Chaque engagement de confidentialité est garanti par la compilation et les permissions système, pas seulement par une politique écrite.',
     factors: [
       {
         tag: 'Binaire hors ligne',
@@ -149,7 +112,6 @@ export const fr: Copy = {
   },
   download: {
     title: 'Natif sur mobile et ordinateur.',
-    subtitle: 'Téléchargez les versions précompilées sur GitHub ou compilez directement depuis les sources.',
     currentBadge: 'Plateforme actuelle',
     releasesAction: 'Versions GitHub',
     sourceAction: 'Compiler depuis les sources',
@@ -158,7 +120,7 @@ export const fr: Copy = {
     copy: 'Copier',
     copied: 'Copié',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Zéro permission en release' },
       linux: { name: 'Linux', meta: 'App bureau (tar.gz) & unseen CLI' },
@@ -167,15 +129,12 @@ export const fr: Copy = {
   },
   cta: {
     title: 'Open source sous AGPL-3.0.',
-    subtitle:
-      'Auditez le code, récupérez la dernière version ou signalez les détections manquées sur la page de retours.',
     feedbackAction: 'Ouvrir les retours web',
     releasesAction: 'Versions GitHub',
     githubAction: 'Voir le code source',
   },
   more: {
     title: 'Plus d’apps par lollipopkit.',
-    subtitle: 'D’autres applications natives conçues avec la même exigence technique.',
     apps: [
       {
         title: 'ServerBox',

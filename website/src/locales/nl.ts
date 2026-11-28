@@ -27,42 +27,8 @@ export const nl: Copy = {
     feedbackAction: 'Webfeedback',
     githubAction: 'GitHub',
   },
-  demo: {
-    ariaLabel: 'Interactieve voorvertoning van MosaicIt-afscherming',
-    peekLabel: 'Ingedrukt houden voor origineel',
-    resetLabel: 'Maskers herstellen',
-    receiptTitle: 'Overboekingsbewijs',
-    recipientLabel: 'Ontvanger',
-    recipientValue: 'Bram de Vries',
-    phoneLabel: 'Telefoon',
-    phoneValue: '+31 6 0000 8920',
-    addressLabel: 'Adres',
-    addressValue: 'Esdoornlaan 42, 1012 AB Amsterdam',
-    amountLabel: 'Bedrag',
-    amountValue: '€ 2.480,00',
-    cardLabel: 'Rekening',
-    cardValue: '6222 **** **** 4821',
-    qrLabel: 'Bewijs-QR',
-    styles: {
-      solid: 'Effen kleur',
-      surround: 'Achtergrondkleur',
-      blocks: 'Grijs mozaïek',
-      tinted: 'Kleurenmozaïek',
-      noise: 'Ruis',
-    },
-    classes: {
-      person_name: 'Naam',
-      phone: 'Telefoon',
-      address: 'Adres',
-      finance: 'Bedrag',
-      bank_card: 'Bankpas',
-      qr: 'QR-code',
-    },
-  },
   features: {
     title: 'Gemaakt voor snel en controleerbaar anonimiseren.',
-    subtitle:
-      'Open een afbeelding, controleer de gedetecteerde gebieden, pas ze aan waar nodig en exporteer binnen enkele seconden.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -102,12 +68,9 @@ export const nl: Copy = {
       },
     ],
     classesTitle: '19 ondersteunde klassen',
-    classesNote: '18 klassen uit het gebundelde unseen-det 0.5.0 plus gezichtsdetectie via YuNet.',
   },
   privacy: {
     title: 'Geen netwerk. Geen leesrechten voor foto’s.',
-    subtitle:
-      'Elke privacybelofte wordt afgedwongen op build- en besturingssysteemniveau in plaats van alleen in een beleidstekst.',
     factors: [
       {
         tag: 'Offline binary',
@@ -149,7 +112,6 @@ export const nl: Copy = {
   },
   download: {
     title: 'Native op mobiel en desktop.',
-    subtitle: 'Kant-en-klare releases staan op GitHub, of bouw direct vanuit de broncode.',
     currentBadge: 'Huidig platform',
     releasesAction: 'GitHub Releases',
     sourceAction: 'Bouwen uit broncode',
@@ -158,7 +120,7 @@ export const nl: Copy = {
     copy: 'Kopiëren',
     copied: 'Gekopieerd',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Nul release-machtigingen' },
       linux: { name: 'Linux', meta: 'Desktop-app (tar.gz) & unseen CLI' },
@@ -167,15 +129,12 @@ export const nl: Copy = {
   },
   cta: {
     title: 'Open source onder AGPL-3.0.',
-    subtitle:
-      'Controleer de code, download de nieuwste versie of meld gemiste detecties op de webfeedbackpagina.',
     feedbackAction: 'Webfeedback openen',
     releasesAction: 'GitHub Releases',
     githubAction: 'Broncode bekijken',
   },
   more: {
     title: 'Meer van lollipopkit.',
-    subtitle: 'Andere native apps gebouwd met dezelfde technische focus.',
     apps: [
       {
         title: 'ServerBox',

@@ -27,42 +27,8 @@ export const tr: Copy = {
     feedbackAction: 'Web Geri Bildirimi',
     githubAction: 'GitHub',
   },
-  demo: {
-    ariaLabel: 'Etkileşimli MosaicIt sansürleme önizlemesi',
-    peekLabel: 'Orijinali görmek için basılı tutun',
-    resetLabel: 'Maskeleri sıfırla',
-    receiptTitle: 'Transfer Dekontu',
-    recipientLabel: 'Alıcı',
-    recipientValue: 'Kerem Yılmaz',
-    phoneLabel: 'Telefon',
-    phoneValue: '+90 (555) 014 89 20',
-    addressLabel: 'Adres',
-    addressValue: 'Çınar Sok. No: 42, D: 8',
-    amountLabel: 'Tutar',
-    amountValue: '₺24.800,00',
-    cardLabel: 'Hesap',
-    cardValue: '4543 **** **** 4821',
-    qrLabel: 'Dekont QR',
-    styles: {
-      solid: 'Düz Renk',
-      surround: 'Çevre Uyumlu',
-      blocks: 'Bloklar',
-      tinted: 'Renkli Bloklar',
-      noise: 'Kumlama',
-    },
-    classes: {
-      person_name: 'Ad Soyad',
-      phone: 'Telefon',
-      address: 'Adres',
-      finance: 'Tutar',
-      bank_card: 'Banka Kartı',
-      qr: 'QR Kod',
-    },
-  },
   features: {
     title: 'Hızlı ve doğrulanabilir gizlilik sansürü için tasarlandı.',
-    subtitle:
-      'Bir görsel açın, tespit edilen alanları inceleyin, gerekirse düzenleyin ve saniyeler içinde dışa aktarın.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -102,12 +68,9 @@ export const tr: Copy = {
       },
     ],
     classesTitle: 'Desteklenen 19 sınıf',
-    classesNote: 'Gömülü unseen-det 0.5.0 modelinden 18 sınıf ve YuNet ile yüz algılama.',
   },
   privacy: {
     title: 'Sıfır ağ. Sıfır fotoğraf arşivi okuma erişimi.',
-    subtitle:
-      'Her gizlilik iddiası yalnızca gizlilik politikası metniyle değil, derleme ve işletim sistemi izin sınırlarıyla zorunlu kılınır.',
     factors: [
       {
         tag: 'Çevrimdışı Paket',
@@ -149,7 +112,6 @@ export const tr: Copy = {
   },
   download: {
     title: 'Mobil ve masaüstünde yerel deneyim.',
-    subtitle: 'Hazır sürümler GitHub üzerinde yayımlanır veya doğrudan kaynak koddan derleyebilirsiniz.',
     currentBadge: 'Mevcut platform',
     releasesAction: 'GitHub Sürümleri',
     sourceAction: 'Kaynaktan derle',
@@ -158,7 +120,7 @@ export const tr: Copy = {
     copy: 'Kopyala',
     copied: 'Kopyalandı',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Sürümde sıfır izin' },
       linux: { name: 'Linux', meta: 'Masaüstü uygulaması (tar.gz) ve unseen CLI' },
@@ -167,15 +129,12 @@ export const tr: Copy = {
   },
   cta: {
     title: 'AGPL-3.0 altında açık kaynak.',
-    subtitle:
-      'Kodu denetleyin, en son sürümü indirin veya kaçırılan algılamaları web geri bildirim sayfasından bildirin.',
     feedbackAction: 'Web Geri Bildirimini Aç',
     releasesAction: 'GitHub Sürümleri',
     githubAction: 'Kaynak Kodu Gör',
   },
   more: {
     title: "lollipopkit'ten daha fazlası.",
-    subtitle: 'Aynı mühendislik odağıyla geliştirilmiş diğer yerel uygulamalar.',
     apps: [
       {
         title: 'ServerBox',

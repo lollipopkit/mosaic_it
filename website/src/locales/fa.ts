@@ -27,42 +27,8 @@ export const fa: Copy = {
     feedbackAction: 'بازخورد وب',
     githubAction: 'GitHub',
   },
-  demo: {
-    ariaLabel: 'پیش‌نمایش تعاملی پوشاندن اطلاعات در MosaicIt',
-    peekLabel: 'برای دیدن تصویر اصلی نگه دارید',
-    resetLabel: 'بازنشانی پوشش‌ها',
-    receiptTitle: 'رسید انتقال وجه',
-    recipientLabel: 'گیرنده',
-    recipientValue: 'آرش محمدی',
-    phoneLabel: 'تلفن',
-    phoneValue: '۰۹۱۲ ۵۵۵ ۰۱۴۸',
-    addressLabel: 'نشانی',
-    addressValue: 'خیابان سرو، پلاک ۴۲، واحد ۸',
-    amountLabel: 'مبلغ',
-    amountValue: '۲٬۴۸۰٬۰۰۰ تومان',
-    cardLabel: 'حساب',
-    cardValue: '۶۰۳۷ **** **** ۴۸۲۱',
-    qrLabel: 'کد QR رسید',
-    styles: {
-      solid: 'تک‌رنگ',
-      surround: 'همرنگ اطراف',
-      blocks: 'بلوک‌ها',
-      tinted: 'بلوک رنگی',
-      noise: 'نویز',
-    },
-    classes: {
-      person_name: 'نام شخص',
-      phone: 'تلفن',
-      address: 'نشانی',
-      finance: 'مالی',
-      bank_card: 'کارت بانکی',
-      qr: 'کد QR',
-    },
-  },
   features: {
     title: 'طراحی‌شده برای پوشاندن سریع و قابل‌راستی‌آزمایی.',
-    subtitle:
-      'تصویری باز کنید، نواحی شناسایی‌شده را بررسی کنید، در صورت نیاز اصلاح کنید و ظرف چند ثانیه خروجی بگیرید.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -102,12 +68,9 @@ export const fa: Copy = {
       },
     ],
     classesTitle: '۱۹ دسته پشتیبانی‌شده',
-    classesNote: '۱۸ دسته از مدل داخلی unseen-det 0.5.0 به‌علاوه تشخیص چهره از طریق YuNet.',
   },
   privacy: {
     title: 'صفر شبکه. صفر دسترسی خواندن به گالری عکس.',
-    subtitle:
-      'هر ادعای حریم خصوصی در سطح ساخت برنامه و مجوزهای سیستم‌عامل اعمال می‌شود، نه صرفاً در متن سیاست‌نامه.',
     factors: [
       {
         tag: 'باینری آفلاین',
@@ -149,7 +112,6 @@ export const fa: Copy = {
   },
   download: {
     title: 'بومی برای موبایل و دسکتاپ.',
-    subtitle: 'نسخه‌های آماده در GitHub منتشر شده‌اند یا می‌توانید مستقیماً از کد منبع بسازید.',
     currentBadge: 'پلتفرم فعلی',
     releasesAction: 'انتشارهای GitHub',
     sourceAction: 'ساخت از کد منبع',
@@ -158,7 +120,7 @@ export const fa: Copy = {
     copy: 'کپی',
     copied: 'کپی شد',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · بدون مجوز در نسخه انتشار' },
       linux: { name: 'Linux', meta: 'برنامه دسکتاپ (tar.gz) و unseen CLI' },
@@ -167,15 +129,12 @@ export const fa: Copy = {
   },
   cta: {
     title: 'متن‌باز تحت مجوز AGPL-3.0.',
-    subtitle:
-      'کد را بررسی کنید، آخرین نسخه را دریافت کنید یا موارد جاافتاده را در صفحه بازخورد وب گزارش دهید.',
     feedbackAction: 'باز کردن بازخورد وب',
     releasesAction: 'انتشارهای GitHub',
     githubAction: 'مشاهده کد منبع',
   },
   more: {
     title: 'پروژه‌های دیگر از lollipopkit.',
-    subtitle: 'برنامه‌های بومی دیگر که با همین رویکرد مهندسی ساخته شده‌اند.',
     apps: [
       {
         title: 'ServerBox',

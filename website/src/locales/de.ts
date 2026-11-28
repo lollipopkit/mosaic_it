@@ -27,42 +27,8 @@ export const de: Copy = {
     feedbackAction: 'Web-Feedback',
     githubAction: 'GitHub',
   },
-  demo: {
-    ariaLabel: 'Interaktive Vorschau der Unkenntlichmachung mit MosaicIt',
-    peekLabel: 'Gedrückt halten für Original',
-    resetLabel: 'Masken zurücksetzen',
-    receiptTitle: 'Überweisungsbeleg',
-    recipientLabel: 'Empfänger',
-    recipientValue: 'Lukas Weber',
-    phoneLabel: 'Telefon',
-    phoneValue: '+49 30 23125 892',
-    addressLabel: 'Adresse',
-    addressValue: 'Ahornstraße 42, 10115 Berlin',
-    amountLabel: 'Betrag',
-    amountValue: '2.480,00 €',
-    cardLabel: 'Konto',
-    cardValue: '6222 **** **** 4821',
-    qrLabel: 'Beleg-QR',
-    styles: {
-      solid: 'Volltonfarbe',
-      surround: 'Hintergrundfarbe',
-      blocks: 'Graues Mosaik',
-      tinted: 'Farbiges Mosaik',
-      noise: 'Rauschen',
-    },
-    classes: {
-      person_name: 'Name',
-      phone: 'Telefon',
-      address: 'Adresse',
-      finance: 'Betrag',
-      bank_card: 'Bankkarte',
-      qr: 'QR-Code',
-    },
-  },
   features: {
     title: 'Für schnelles, nachvollziehbares Unkenntlichmachen.',
-    subtitle:
-      'Öffne ein Bild, prüfe die erkannten Bereiche, passe sie bei Bedarf an und exportiere in Sekunden.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -102,12 +68,9 @@ export const de: Copy = {
       },
     ],
     classesTitle: '19 unterstützte Klassen',
-    classesNote: '18 Klassen aus dem integrierten unseen-det 0.5.0 plus Gesichtserkennung über YuNet.',
   },
   privacy: {
     title: 'Kein Netzwerk. Kein Lesezugriff auf Fotos.',
-    subtitle:
-      'Jedes Datenschutzversprechen wird auf Build- und Betriebssystemebene erzwungen, nicht bloß in einer Richtlinie behauptet.',
     factors: [
       {
         tag: 'Offline-Binary',
@@ -149,7 +112,6 @@ export const de: Copy = {
   },
   download: {
     title: 'Nativ für Mobilgeräte und Desktop.',
-    subtitle: 'Vorkompilierte Releases findest du auf GitHub, oder baue direkt aus dem Quellcode.',
     currentBadge: 'Aktuelle Plattform',
     releasesAction: 'GitHub Releases',
     sourceAction: 'Aus Quellcode bauen',
@@ -158,7 +120,7 @@ export const de: Copy = {
     copy: 'Kopieren',
     copied: 'Kopiert',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Keine Release-Berechtigungen' },
       linux: { name: 'Linux', meta: 'Desktop-App (tar.gz) & unseen CLI' },
@@ -167,15 +129,12 @@ export const de: Copy = {
   },
   cta: {
     title: 'Open Source unter AGPL-3.0.',
-    subtitle:
-      'Prüfe den Quellcode, lade das neueste Release herunter oder melde übersehene Treffer auf der Web-Feedback-Seite.',
     feedbackAction: 'Web-Feedback öffnen',
     releasesAction: 'GitHub Releases',
     githubAction: 'Quellcode ansehen',
   },
   more: {
     title: 'Mehr von lollipopkit.',
-    subtitle: 'Weitere native Apps mit demselben Fokus auf sauberes Engineering.',
     apps: [
       {
         title: 'ServerBox',

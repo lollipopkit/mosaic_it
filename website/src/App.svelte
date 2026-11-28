@@ -1,5 +1,7 @@
 <script lang="ts">
-  import EditorDemo from './lib/EditorDemo.svelte';
+  import { tick } from 'svelte';
+  import { fade, scale } from 'svelte/transition';
+  import { cubicOut } from 'svelte/easing';
   import {
     DETECTED_CLASSES,
     LOCALES,
@@ -10,19 +12,44 @@
   } from './i18n';
 
   type PlatformId = 'ios' | 'macos' | 'android' | 'linux' | 'windows';
+  type DeviceKey = 'iphone' | 'iphone-duo';
+  type FrameKey = DeviceKey | 'cli';
+  type SceneKey = '1-chat' | '2-bank' | '4-fill' | '6-batch' | '7-export' | '8-selfcheck';
+  type FeatureMedia = { kind: 'app'; scene: SceneKey } | { kind: 'cli' };
 
   const REPO_URL = 'https://github.com/lollipopkit/mosaic_it';
   const RELEASES_URL = `${REPO_URL}/releases`;
   const LICENSE_URL = `${REPO_URL}/blob/main/LICENSE`;
   const FEEDBACK_URL = '/feedback';
 
-  // From app/tool/appstore/web.sh; sizes keep the row from jumping on load.
-  const SHOTS = [
-    { name: 'iphone18pro-1-chat', w: 552, h: 1200 },
-    { name: 'iphone18pro-4-fill', w: 552, h: 1200 },
-    { name: 'iphoneduo-inner-landscape-1-chat', w: 1200, h: 844 },
-    { name: 'iphoneduo-outer-portrait-2-bank', w: 825, h: 1200 },
-    { name: 'iphone18pro-3-regions', w: 552, h: 1200 },
+  const DEVICE_VIEWS: { key: DeviceKey; label: string }[] = [
+    { key: 'iphone', label: 'iPhone' },
+    { key: 'iphone-duo', label: 'iPhone Duo' },
+  ];
+
+  const HERO_SHOTS: {
+    scene: SceneKey;
+    x: number;
+    y: number;
+    hoverSlot: number;
+    rotate: number;
+    hoverRotate: number;
+    motion: number;
+  }[] = [
+    { scene: '1-chat', x: -24, y: 8, hoverSlot: -1.5, rotate: -8, hoverRotate: -1.8, motion: 18 },
+    { scene: '4-fill', x: -8, y: -4, hoverSlot: -0.5, rotate: -2.5, hoverRotate: -0.6, motion: 12 },
+    { scene: '8-selfcheck', x: 9, y: 4, hoverSlot: 0.5, rotate: 3, hoverRotate: 0.6, motion: 14 },
+    { scene: '2-bank', x: 24, y: -2, hoverSlot: 1.5, rotate: 8.5, hoverRotate: 1.8, motion: 20 },
+  ];
+
+  // 1-to-1 real capture for each feature card in copy.features.cards.
+  const FEATURE_MEDIA: FeatureMedia[] = [
+    { kind: 'app', scene: '1-chat' },
+    { kind: 'app', scene: '4-fill' },
+    { kind: 'app', scene: '8-selfcheck' },
+    { kind: 'app', scene: '6-batch' },
+    { kind: 'app', scene: '7-export' },
+    { kind: 'cli' },
   ];
 
   const BUILD_COMMANDS = [
@@ -31,6 +58,18 @@
     'cargo build --release -p unseen-cli',
     'cd app && flutter run -d macos',
   ].join('\n');
+
+  function prefersReducedMotion(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  function transitionMs(ms: number): number {
+    return prefersReducedMotion() ? 0 : ms;
+  }
+
+  function scrollBehavior(): ScrollBehavior {
+    return prefersReducedMotion() ? 'auto' : 'smooth';
+  }
 
   function detectPlatform(): PlatformId | null {
     if (typeof navigator === 'undefined') return null;
@@ -46,12 +85,220 @@
     return null;
   }
 
+  function detectInitialDevice(): DeviceKey {
+    if (typeof navigator === 'undefined' || typeof window === 'undefined') return 'iphone';
+    const ua = navigator.userAgent || '';
+    const platform = navigator.platform || '';
+    const minSide = Math.min(window.innerWidth, window.innerHeight);
+    const isIpad = /\biPad\b/i.test(ua) || (platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIpad && minSide >= 540) return 'iphone-duo';
+    if (/\bAndroid\b/i.test(ua) && (!/\bMobile\b/i.test(ua) || minSide >= 540)) return 'iphone-duo';
+    if (/\biPhone\b/i.test(ua) && minSide >= 540) return 'iphone-duo';
+    return 'iphone';
+  }
+
   let locale = $state<Locale>(detectInitialLocale());
   let copied = $state(false);
   const currentPlatform = detectPlatform();
 
+  let activeDevice = $state<DeviceKey>(detectInitialDevice());
+  let userSelectedDevice = false;
+  let activeHeroShot = $state(0);
+  let activeFeature = $state(0);
+  let isDesktopTour = $state(
+    typeof window !== 'undefined' && window.matchMedia('(min-width: 861px)').matches,
+  );
+  let featureItems = $state<(HTMLLIElement | undefined)[]>([]);
+  let heroViewportEl = $state<HTMLDivElement | undefined>(undefined);
+  let tourEl = $state<HTMLDivElement | undefined>(undefined);
+  let heroViewportHeight = $state<number | undefined>(undefined);
+  let animateHeroHeight = $state(false);
+  let stackMotion = $state({ x: 0, y: 0 });
+  let heroAnimTimer = 0;
+  let copyTimer = 0;
+  let deviceSwitchSeq = 0;
+
   let copy = $derived(TRANSLATIONS[locale]);
   let shotLocale = $derived(locale === 'zh-CN' ? 'zh' : 'en');
+  let isWideDevice = $derived(activeDevice === 'iphone-duo');
+
+  function shotUrl(device: DeviceKey, scene: SceneKey): string {
+    const prefix = device === 'iphone-duo' ? 'iphoneduo-inner-landscape' : 'iphone18pro';
+    return `/screenshots/${shotLocale}/${prefix}-${scene}.webp`;
+  }
+
+  function featureShot(index: number, device: DeviceKey): { frame: FrameKey; src: string } {
+    const media = FEATURE_MEDIA[index] ?? FEATURE_MEDIA[0];
+    if (media.kind === 'cli') {
+      return { frame: 'cli', src: '/screenshots/cli.webp' };
+    }
+    return { frame: device, src: shotUrl(device, media.scene) };
+  }
+
+  let activeFeatureShot = $derived(featureShot(activeFeature, activeDevice));
+
+  function handleStackMove(event: MouseEvent) {
+    if (prefersReducedMotion()) return;
+    const el = event.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    const nx = (event.clientX - rect.left) / rect.width - 0.5;
+    const ny = (event.clientY - rect.top) / rect.height - 0.5;
+    stackMotion = {
+      x: Math.max(-0.5, Math.min(0.5, nx)),
+      y: Math.max(-0.5, Math.min(0.5, ny)),
+    };
+  }
+
+  function resetStack() {
+    stackMotion = { x: 0, y: 0 };
+  }
+
+  function syncActiveFeature() {
+    if (typeof window === 'undefined' || !window.matchMedia('(min-width: 861px)').matches) return;
+    const items = featureItems.filter((el): el is HTMLLIElement => Boolean(el));
+    if (!items.length) return;
+    const middle = window.innerHeight / 2;
+    let best = 0;
+    let bestDistance = Infinity;
+    items.forEach((item, index) => {
+      const rect = item.getBoundingClientRect();
+      const distance = Math.abs(rect.top + rect.height / 2 - middle);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = index;
+      }
+    });
+    activeFeature = best;
+  }
+
+  async function selectDevice(device: DeviceKey) {
+    userSelectedDevice = true;
+    if (device === activeDevice) return;
+
+    const seq = ++deviceSwitchSeq;
+    const heroRect = heroViewportEl?.getBoundingClientRect();
+    const heroInView = Boolean(heroRect && heroRect.top >= 0 && heroRect.bottom <= window.innerHeight + 160);
+
+    if (heroInView && !prefersReducedMotion()) {
+      animateHeroHeight = true;
+      if (heroAnimTimer) window.clearTimeout(heroAnimTimer);
+      heroAnimTimer = window.setTimeout(() => {
+        animateHeroHeight = false;
+        heroAnimTimer = 0;
+      }, 420);
+      activeDevice = device;
+      await tick();
+      if (seq === deviceSwitchSeq) syncActiveFeature();
+      return;
+    }
+
+    if (heroAnimTimer) {
+      window.clearTimeout(heroAnimTimer);
+      heroAnimTimer = 0;
+    }
+    animateHeroHeight = false;
+    const anchor = featureItems[activeFeature] ?? tourEl;
+    const beforeTop = anchor?.getBoundingClientRect().top;
+
+    activeDevice = device;
+    await tick();
+    await tick();
+    if (seq !== deviceSwitchSeq) return;
+
+    if (anchor && typeof beforeTop === 'number' && Number.isFinite(beforeTop)) {
+      const afterTop = anchor.getBoundingClientRect().top;
+      const delta = afterTop - beforeTop;
+      if (Math.abs(delta) > 0.5) {
+        window.scrollBy({ left: 0, top: delta, behavior: 'instant' });
+      }
+    }
+    syncActiveFeature();
+  }
+
+  function measureHeroHeight(node: HTMLElement, deviceKey: DeviceKey) {
+    const update = () => {
+      if (deviceKey !== activeDevice) return;
+      const next = Math.ceil(node.offsetHeight);
+      if (next > 0) heroViewportHeight = next;
+    };
+    update();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : undefined;
+    ro?.observe(node);
+    return {
+      destroy() {
+        ro?.disconnect();
+      },
+    };
+  }
+
+  function syncNavOffset(node: HTMLElement) {
+    const update = () => {
+      const top = parseFloat(getComputedStyle(node).top) || 0;
+      const bottom = Math.ceil(top + node.offsetHeight);
+      if (bottom > 0) {
+        document.documentElement.style.setProperty('--nav-bottom', `${bottom}px`);
+      }
+    };
+    update();
+    window.addEventListener('resize', update, { passive: true });
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : undefined;
+    ro?.observe(node);
+    return {
+      destroy() {
+        window.removeEventListener('resize', update);
+        ro?.disconnect();
+      },
+    };
+  }
+
+  $effect(() => {
+    const items = featureItems.filter(Boolean);
+    if (!items.length) return;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      syncActiveFeature();
+    };
+    const onViewportChange = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    window.addEventListener('scroll', onViewportChange, { passive: true });
+    window.addEventListener('resize', onViewportChange, { passive: true });
+    update();
+    return () => {
+      window.removeEventListener('scroll', onViewportChange);
+      window.removeEventListener('resize', onViewportChange);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  });
+
+  $effect(() => {
+    const mq = window.matchMedia('(min-width: 861px)');
+    const onMq = () => {
+      isDesktopTour = mq.matches;
+    };
+    onMq();
+    mq.addEventListener('change', onMq);
+
+    const syncDevice = () => {
+      if (userSelectedDevice) return;
+      const detected = detectInitialDevice();
+      if (detected !== activeDevice) activeDevice = detected;
+    };
+    window.addEventListener('resize', syncDevice, { passive: true });
+    return () => {
+      mq.removeEventListener('change', onMq);
+      window.removeEventListener('resize', syncDevice);
+      if (heroAnimTimer) {
+        window.clearTimeout(heroAnimTimer);
+        heroAnimTimer = 0;
+      }
+      if (copyTimer) {
+        window.clearTimeout(copyTimer);
+        copyTimer = 0;
+      }
+    };
+  });
 
   let orderedPlatforms = $derived.by((): PlatformId[] => {
     const base: PlatformId[] = ['ios', 'macos', 'android', 'linux', 'windows'];
@@ -73,8 +320,10 @@
     try {
       await navigator.clipboard.writeText(BUILD_COMMANDS);
       copied = true;
-      window.setTimeout(() => {
+      if (copyTimer) window.clearTimeout(copyTimer);
+      copyTimer = window.setTimeout(() => {
         copied = false;
+        copyTimer = 0;
       }, 2000);
     } catch {
       // Clipboard API unavailable.
@@ -82,14 +331,13 @@
   }
 </script>
 
-<header class="site-nav">
+<header class="site-nav" use:syncNavOffset>
   <a class="brand" href="#top">
     <img src="/app_icon.png" alt="" width="28" height="28" />
     <span>MosaicIt</span>
   </a>
 
   <nav aria-label="Primary">
-    <a href="#screenshots">{copy.nav.screenshots}</a>
     <a href="#features">{copy.nav.features}</a>
     <a href="#privacy">{copy.nav.privacy}</a>
     <a href="#download">{copy.nav.download}</a>
@@ -128,43 +376,169 @@
     </div>
 
     <div class="hero-stage">
-      <EditorDemo {copy} />
+      <div
+        class="hero-viewport"
+        class:hero-viewport--animating={animateHeroHeight}
+        bind:this={heroViewportEl}
+        style={heroViewportHeight ? `height:${heroViewportHeight}px` : undefined}
+      >
+        {#key activeDevice}
+          <div
+            class="hero-panel"
+            use:measureHeroHeight={activeDevice}
+            in:scale={{ start: 0.96, duration: transitionMs(340), easing: cubicOut }}
+            out:fade={{ duration: transitionMs(180) }}
+          >
+            {#if activeDevice === 'iphone'}
+              <div
+                class="screenshot-stack"
+                aria-label={copy.nav.screenshots}
+                onmousemove={handleStackMove}
+                onmouseleave={resetStack}
+                role="img"
+              >
+                {#each HERO_SHOTS as item, index}
+                  <img
+                    class="screenshot-card"
+                    src={shotUrl('iphone', item.scene)}
+                    alt=""
+                    loading={index === 0 ? 'eager' : 'lazy'}
+                    decoding="async"
+                    style={`--base-x:${item.x}%; --base-y:${item.y}%; --hover-slot:${item.hoverSlot}; --base-r:${item.rotate}deg; --hover-r:${item.hoverRotate}deg; --move-x:${stackMotion.x * item.motion}px; --move-y:${stackMotion.y * item.motion}px; --tilt-x:${-stackMotion.y * 6}deg; --tilt-y:${stackMotion.x * 8}deg; --z:${HERO_SHOTS.length - index};`}
+                  />
+                {/each}
+              </div>
+            {:else}
+              <div class="hero-gallery">
+                <div
+                  class="hero-showcase hero-showcase--iphone-duo"
+                  role="presentation"
+                  onmousemove={handleStackMove}
+                  onmouseleave={resetStack}
+                  style={`--tilt-x:${-stackMotion.y * 4}deg; --tilt-y:${stackMotion.x * 5}deg;`}
+                >
+                  {#each HERO_SHOTS as item, index}
+                    <img
+                      class="hero-showcase-img"
+                      class:shown={index === activeHeroShot}
+                      src={shotUrl('iphone-duo', item.scene)}
+                      alt=""
+                      aria-hidden={index !== activeHeroShot}
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      decoding="async"
+                    />
+                  {/each}
+                </div>
+                <div class="hero-thumbs" role="group" aria-label={copy.nav.screenshots}>
+                  {#each HERO_SHOTS as item, index}
+                    <button
+                      type="button"
+                      class="hero-thumb hero-thumb--iphone-duo"
+                      class:active={index === activeHeroShot}
+                      aria-pressed={index === activeHeroShot}
+                      aria-label={`${copy.nav.screenshots} ${index + 1}`}
+                      onclick={() => {
+                        activeHeroShot = index;
+                      }}
+                    >
+                      <img
+                        src={shotUrl('iphone-duo', item.scene)}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </button>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          </div>
+        {/key}
+      </div>
     </div>
-  </section>
-
-  <section id="screenshots" class="shots" aria-label={copy.nav.screenshots}>
-    {#each SHOTS as shot}
-      <img
-        src={`/screenshots/${shotLocale}/${shot.name}.webp`}
-        alt=""
-        width={shot.w}
-        height={shot.h}
-        loading="lazy"
-        decoding="async"
-      />
-    {/each}
   </section>
 
   <section id="features" class="page-section">
     <div class="section-head">
       <h2>{copy.features.title}</h2>
-      <p>{copy.features.subtitle}</p>
     </div>
 
-    <div class="feature-grid">
-      {#each copy.features.cards as card}
-        <article class="feature-card">
-          <span class="card-tag">{card.tag}</span>
-          <h3>{card.title}</h3>
-          <p>{card.description}</p>
-        </article>
-      {/each}
+    <div class="tour-switcher-bar" class:tour-switcher-bar--wide={isWideDevice}>
+      <div class="device-switcher" role="group" aria-label={copy.nav.screenshots}>
+        {#each DEVICE_VIEWS as view}
+          <button
+            type="button"
+            class="device-pill"
+            class:active={activeDevice === view.key}
+            aria-pressed={activeDevice === view.key}
+            onclick={() => selectDevice(view.key)}
+          >
+            {view.label}
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <div class="tour" class:tour--wide={isWideDevice} bind:this={tourEl}>
+      <ol class="tour-list">
+        {#each copy.features.cards as card, index}
+          {@const itemShot = featureShot(index, activeDevice)}
+          <li bind:this={featureItems[index]} class={`tour-card--${itemShot.frame}`}>
+            <button
+              type="button"
+              class="tour-item"
+              class:active={index === activeFeature}
+              aria-pressed={isDesktopTour ? index === activeFeature : undefined}
+              onclick={() => {
+                if (!isDesktopTour) return;
+                activeFeature = index;
+                featureItems[index]?.scrollIntoView({ behavior: scrollBehavior(), block: 'center' });
+              }}
+            >
+              <span class="tour-tag">{String(index + 1).padStart(2, '0')} · {card.tag}</span>
+              <span class="tour-title">{card.title}</span>
+              <span class="tour-desc">{card.description}</span>
+            </button>
+            <img
+              class={`tour-shot-inline tour-shot-inline--${itemShot.frame}`}
+              src={itemShot.src}
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+          </li>
+        {/each}
+      </ol>
+
+      <div class="tour-device" class:tour-device--wide={activeFeatureShot.frame !== 'iphone'}>
+        <div class={`device-frame device-frame--${activeFeatureShot.frame}`}>
+          {#key activeFeatureShot.frame}
+            <div
+              class="device-frame-layer"
+              in:scale={{ start: 0.96, duration: transitionMs(340), easing: cubicOut }}
+              out:fade={{ duration: transitionMs(180) }}
+            >
+              {#each copy.features.cards as _card, index}
+                {@const itemShot = featureShot(index, activeDevice)}
+                {#if itemShot.frame === activeFeatureShot.frame}
+                  <img
+                    class:shown={index === activeFeature}
+                    src={itemShot.src}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
+                {/if}
+              {/each}
+            </div>
+          {/key}
+        </div>
+      </div>
     </div>
 
     <div class="classes-block">
       <div class="classes-head">
         <h3>{copy.features.classesTitle}</h3>
-        <span>{copy.features.classesNote}</span>
       </div>
       <div class="protocol-badges">
         {#each DETECTED_CLASSES as cls}
@@ -177,7 +551,6 @@
   <section id="privacy" class="page-section">
     <div class="section-head">
       <h2>{copy.privacy.title}</h2>
-      <p>{copy.privacy.subtitle}</p>
     </div>
 
     <div class="sec-factors">
@@ -207,7 +580,6 @@
   <section id="download" class="page-section">
     <div class="section-head">
       <h2>{copy.download.title}</h2>
-      <p>{copy.download.subtitle}</p>
     </div>
 
     <div class="download-list">
@@ -253,7 +625,6 @@
   <section class="cta-section">
     <div class="cta-block">
       <h2>{copy.cta.title}</h2>
-      <p>{copy.cta.subtitle}</p>
       <div class="cta-actions">
         <a class="btn-primary" href={FEEDBACK_URL}>{copy.cta.feedbackAction}</a>
         <a class="btn-secondary" href={RELEASES_URL} target="_blank" rel="noopener noreferrer">
@@ -269,7 +640,6 @@
   <section id="more" class="page-section">
     <div class="section-head">
       <h2>{copy.more.title}</h2>
-      <p>{copy.more.subtitle}</p>
     </div>
 
     <div class="other-apps-grid">

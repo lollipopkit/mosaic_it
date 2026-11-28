@@ -27,42 +27,8 @@ export const id: Copy = {
     feedbackAction: 'Umpan Balik Web',
     githubAction: 'GitHub',
   },
-  demo: {
-    ariaLabel: 'Pratinjau penyensoran interaktif MosaicIt',
-    peekLabel: 'Tahan untuk melihat gambar asli',
-    resetLabel: 'Atur ulang sensor',
-    receiptTitle: 'Bukti Transfer',
-    recipientLabel: 'Penerima',
-    recipientValue: 'Budi Santoso',
-    phoneLabel: 'Telepon',
-    phoneValue: '+62 812-0000-4820',
-    addressLabel: 'Alamat',
-    addressValue: 'Jl. Cempaka No. 42, Kav. 8B',
-    amountLabel: 'Nominal',
-    amountValue: 'Rp 2.480.000',
-    cardLabel: 'Rekening',
-    cardValue: '4215 **** **** 4821',
-    qrLabel: 'QR Bukti',
-    styles: {
-      solid: 'Polos',
-      surround: 'Serasi Latar',
-      blocks: 'Blok',
-      tinted: 'Blok Warna',
-      noise: 'Derau',
-    },
-    classes: {
-      person_name: 'Nama',
-      phone: 'Telepon',
-      address: 'Alamat',
-      finance: 'Keuangan',
-      bank_card: 'Kartu Bank',
-      qr: 'Kode QR',
-    },
-  },
   features: {
     title: 'Dirancang untuk penyensoran yang cepat dan dapat diverifikasi.',
-    subtitle:
-      'Buka gambar, periksa area yang terdeteksi, sesuaikan bila perlu, lalu ekspor dalam hitungan detik.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -102,12 +68,9 @@ export const id: Copy = {
       },
     ],
     classesTitle: '19 kelas yang didukung',
-    classesNote: '18 kelas dari model bawaan unseen-det 0.5.0 ditambah deteksi wajah melalui YuNet.',
   },
   privacy: {
     title: 'Nol jaringan. Nol akses baca galeri foto.',
-    subtitle:
-      'Setiap klaim privasi ditegakkan di tingkat kompilasi dan batas izin sistem operasi, bukan sekadar teks kebijakan.',
     factors: [
       {
         tag: 'Biner Luring',
@@ -149,7 +112,6 @@ export const id: Copy = {
   },
   download: {
     title: 'Natif di perangkat seluler dan desktop.',
-    subtitle: 'Rilis siap pakai tersedia di GitHub, atau bangun langsung dari kode sumber.',
     currentBadge: 'Platform saat ini',
     releasesAction: 'Rilis GitHub',
     sourceAction: 'Bangun dari sumber',
@@ -158,7 +120,7 @@ export const id: Copy = {
     copy: 'Salin',
     copied: 'Disalin',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Nol izin pada rilis' },
       linux: { name: 'Linux', meta: 'Aplikasi desktop (tar.gz) & unseen CLI' },
@@ -167,15 +129,12 @@ export const id: Copy = {
   },
   cta: {
     title: 'Sumber terbuka di bawah AGPL-3.0.',
-    subtitle:
-      'Audit kodenya, unduh rilis terbaru, atau laporkan deteksi yang terlewat di halaman umpan balik web.',
     feedbackAction: 'Buka Umpan Balik Web',
     releasesAction: 'Rilis GitHub',
     githubAction: 'Lihat Sumber',
   },
   more: {
     title: 'Lainnya dari lollipopkit.',
-    subtitle: 'Aplikasi natif lain yang dibangun dengan fokus rekayasa yang sama.',
     apps: [
       {
         title: 'ServerBox',

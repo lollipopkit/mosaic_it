@@ -17,8 +17,6 @@ export type Locale =
   | 'fa'
   | 'az';
 
-export type StyleKey = 'solid' | 'surround' | 'blocks' | 'tinted' | 'noise';
-
 export interface Copy {
   meta: {
     lang: string;
@@ -44,42 +42,13 @@ export interface Copy {
     feedbackAction: string;
     githubAction: string;
   };
-  demo: {
-    ariaLabel: string;
-    peekLabel: string;
-    resetLabel: string;
-    receiptTitle: string;
-    recipientLabel: string;
-    recipientValue: string;
-    phoneLabel: string;
-    phoneValue: string;
-    addressLabel: string;
-    addressValue: string;
-    amountLabel: string;
-    amountValue: string;
-    cardLabel: string;
-    cardValue: string;
-    qrLabel: string;
-    styles: Record<StyleKey, string>;
-    classes: {
-      person_name: string;
-      phone: string;
-      address: string;
-      finance: string;
-      bank_card: string;
-      qr: string;
-    };
-  };
   features: {
     title: string;
-    subtitle: string;
     cards: Array<{ tag: string; title: string; description: string }>;
     classesTitle: string;
-    classesNote: string;
   };
   privacy: {
     title: string;
-    subtitle: string;
     factors: Array<{ tag: string; title: string; description: string }>;
     tableColArea: string;
     tableColDetail: string;
@@ -87,7 +56,6 @@ export interface Copy {
   };
   download: {
     title: string;
-    subtitle: string;
     currentBadge: string;
     releasesAction: string;
     sourceAction: string;
@@ -105,14 +73,12 @@ export interface Copy {
   };
   cta: {
     title: string;
-    subtitle: string;
     feedbackAction: string;
     releasesAction: string;
     githubAction: string;
   };
   more: {
     title: string;
-    subtitle: string;
     apps: Array<{
       title: string;
       tag: string;

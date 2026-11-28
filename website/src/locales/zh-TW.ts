@@ -27,41 +27,8 @@ export const zhTW: Copy = {
     feedbackAction: '提交偵測回饋',
     githubAction: 'GitHub',
   },
-  demo: {
-    ariaLabel: 'MosaicIt 互動式打碼預覽',
-    peekLabel: '按住對比原圖',
-    resetLabel: '重設遮蔽',
-    receiptTitle: '轉帳收據',
-    recipientLabel: '收款人',
-    recipientValue: '林明',
-    phoneLabel: '手機號碼',
-    phoneValue: '0912 *** 892',
-    addressLabel: '聯絡地址',
-    addressValue: '楓林路 42 號 8 樓',
-    amountLabel: '轉帳金額',
-    amountValue: 'NT$ 12,840',
-    cardLabel: '收款帳戶',
-    cardValue: '6222 **** **** 4821',
-    qrLabel: '收據 QR 碼',
-    styles: {
-      solid: '純色',
-      surround: '環境融合',
-      blocks: '灰階馬賽克',
-      tinted: '彩色馬賽克',
-      noise: '雜訊',
-    },
-    classes: {
-      person_name: '姓名',
-      phone: '手機',
-      address: '地址',
-      finance: '金額',
-      bank_card: '銀行卡',
-      qr: 'QR 碼',
-    },
-  },
   features: {
     title: '快速、可驗證的本機打碼流程。',
-    subtitle: '開啟圖片後自動標出隱私區域，依需求增減遮蔽框，一鍵複製或匯出。',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -98,11 +65,9 @@ export const zhTW: Copy = {
       },
     ],
     classesTitle: '支援 19 類敏感目標',
-    classesNote: '包含內建 unseen-det 0.5.0 的 18 個類別，以及基於 YuNet 的人臉偵測（face）。',
   },
   privacy: {
     title: '零網路程式碼，零相簿讀取權限。',
-    subtitle: '隱私邊界由建置產物與系統權限清單直接約束，支援公開稽核。',
     factors: [
       {
         tag: '離線建置',
@@ -141,7 +106,6 @@ export const zhTW: Copy = {
   },
   download: {
     title: '支援行動與桌面平台。',
-    subtitle: '於 GitHub Releases 下載預編譯版本，或直接由原始碼建置。',
     currentBadge: '目前平台',
     releasesAction: 'GitHub Releases',
     sourceAction: '由原始碼建置',
@@ -150,7 +114,7 @@ export const zhTW: Copy = {
     copy: '複製',
     copied: '已複製',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Release 零權限清單' },
       linux: { name: 'Linux', meta: '桌面應用程式（tar.gz）與 unseen CLI' },
@@ -159,14 +123,12 @@ export const zhTW: Copy = {
   },
   cta: {
     title: '以 AGPL-3.0 授權免費開源。',
-    subtitle: '檢視完整原始碼、下載最新版本，或在網頁回饋頁提交漏檢與誤檢樣本以改進偵測模型。',
     feedbackAction: '開啟偵測回饋頁',
     releasesAction: 'GitHub Releases',
     githubAction: '檢視原始碼',
   },
   more: {
     title: 'lollipopkit 的更多專案。',
-    subtitle: '同樣專注於原生體驗與簡潔設計的其他開源工具。',
     apps: [
       {
         title: 'ServerBox',

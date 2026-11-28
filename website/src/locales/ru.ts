@@ -27,42 +27,8 @@ export const ru: Copy = {
     feedbackAction: 'Веб-отзыв',
     githubAction: 'GitHub',
   },
-  demo: {
-    ariaLabel: 'Интерактивный предпросмотр скрытия данных в MosaicIt',
-    peekLabel: 'Удерживайте, чтобы увидеть оригинал',
-    resetLabel: 'Сбросить маски',
-    receiptTitle: 'Квитанция перевода',
-    recipientLabel: 'Получатель',
-    recipientValue: 'Алексей Соколов',
-    phoneLabel: 'Телефон',
-    phoneValue: '+7 (900) 555-01-42',
-    addressLabel: 'Адрес',
-    addressValue: 'ул. Кленовая, д. 42, кв. 8',
-    amountLabel: 'Сумма',
-    amountValue: '24 800 ₽',
-    cardLabel: 'Счёт',
-    cardValue: '2200 **** **** 4821',
-    qrLabel: 'QR квитанции',
-    styles: {
-      solid: 'Заливка',
-      surround: 'В тон фона',
-      blocks: 'Блоки',
-      tinted: 'Цветные блоки',
-      noise: 'Шум',
-    },
-    classes: {
-      person_name: 'Имя',
-      phone: 'Телефон',
-      address: 'Адрес',
-      finance: 'Сумма',
-      bank_card: 'Карта',
-      qr: 'QR-код',
-    },
-  },
   features: {
     title: 'Создано для быстрого и проверяемого скрытия данных.',
-    subtitle:
-      'Откройте изображение, проверьте найденные области, при необходимости скорректируйте их и экспортируйте за секунды.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -102,12 +68,9 @@ export const ru: Copy = {
       },
     ],
     classesTitle: '19 поддерживаемых классов',
-    classesNote: '18 классов встроенной модели unseen-det 0.5.0 и обнаружение лиц через YuNet.',
   },
   privacy: {
     title: 'Никакой сети. Никакого чтения фототеки.',
-    subtitle:
-      'Каждое обещание приватности закреплено на уровне сборки и системных разрешений, а не в тексте политики.',
     factors: [
       {
         tag: 'Офлайн-сборка',
@@ -149,7 +112,6 @@ export const ru: Copy = {
   },
   download: {
     title: 'Нативно на смартфонах и компьютерах.',
-    subtitle: 'Готовые сборки доступны на GitHub, либо вы можете собрать проект из исходного кода.',
     currentBadge: 'Текущая платформа',
     releasesAction: 'Релизы GitHub',
     sourceAction: 'Собрать из исходников',
@@ -158,7 +120,7 @@ export const ru: Copy = {
     copy: 'Копировать',
     copied: 'Скопировано',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Без разрешений в релизе' },
       linux: { name: 'Linux', meta: 'Десктопное приложение (tar.gz) и unseen CLI' },
@@ -167,15 +129,12 @@ export const ru: Copy = {
   },
   cta: {
     title: 'Открытый исходный код под AGPL-3.0.',
-    subtitle:
-      'Проверьте код, скачайте последний релиз или сообщите о пропущенных областях на странице веб-отзыва.',
     feedbackAction: 'Открыть веб-отзыв',
     releasesAction: 'Релизы GitHub',
     githubAction: 'Исходный код',
   },
   more: {
     title: 'Другие проекты lollipopkit.',
-    subtitle: 'Нативные приложения, созданные с тем же инженерным подходом.',
     apps: [
       {
         title: 'ServerBox',

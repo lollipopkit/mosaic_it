@@ -27,41 +27,8 @@ export const ja: Copy = {
     feedbackAction: 'Web フィードバック',
     githubAction: 'GitHub',
   },
-  demo: {
-    ariaLabel: 'MosaicIt インタラクティブ遮蔽プレビュー',
-    peekLabel: '長押しで元画像を確認',
-    resetLabel: 'マスクをリセット',
-    receiptTitle: '振込明細',
-    recipientLabel: '受取人',
-    recipientValue: '山田 太郎',
-    phoneLabel: '電話番号',
-    phoneValue: '090-0148-8920',
-    addressLabel: '住所',
-    addressValue: '東京都港区楓町 4-2-8',
-    amountLabel: '振込金額',
-    amountValue: '¥ 128,400',
-    cardLabel: '口座番号',
-    cardValue: '6222 **** **** 4821',
-    qrLabel: '明細 QR',
-    styles: {
-      solid: '単色',
-      surround: '周囲色',
-      blocks: 'ブロック',
-      tinted: 'カラーモザイク',
-      noise: 'ノイズ',
-    },
-    classes: {
-      person_name: '氏名',
-      phone: '電話番号',
-      address: '住所',
-      finance: '金額',
-      bank_card: '銀行口座',
-      qr: 'QR コード',
-    },
-  },
   features: {
     title: '高速で検証可能なローカル遮蔽。',
-    subtitle: '画像を開いて検出領域を確認・調整し、そのままコピーまたは書き出せます。',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -98,11 +65,9 @@ export const ja: Copy = {
       },
     ],
     classesTitle: '19 クラスの検出対象',
-    classesNote: '同梱の unseen-det 0.5.0（18 クラス）と YuNet による顔検出（face）。',
   },
   privacy: {
     title: '通信コードゼロ。写真読み取り権限ゼロ。',
-    subtitle: 'プライバシー保証を規約ではなくビルド構成と OS 権限レベルで強制しています。',
     factors: [
       {
         tag: 'オフライン構成',
@@ -141,7 +106,6 @@ export const ja: Copy = {
   },
   download: {
     title: 'モバイルとデスクトップに対応。',
-    subtitle: 'GitHub Releases からビルド済みパッケージを入手するか、ソースからビルドできます。',
     currentBadge: '現在のプラットフォーム',
     releasesAction: 'GitHub Releases',
     sourceAction: 'ソースからビルド',
@@ -150,7 +114,7 @@ export const ja: Copy = {
     copy: 'コピー',
     copied: 'コピー済み',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · リリース権限ゼロ' },
       linux: { name: 'Linux', meta: 'デスクトップアプリ（tar.gz）・unseen CLI' },
@@ -159,14 +123,12 @@ export const ja: Copy = {
   },
   cta: {
     title: 'AGPL-3.0 オープンソース。',
-    subtitle: 'ソースコードの監査、最新版の入手、または Web フィードバックページからの検出報告が可能です。',
     feedbackAction: 'Web フィードバックを開く',
     releasesAction: 'GitHub Releases',
     githubAction: 'ソースを見る',
   },
   more: {
     title: 'lollipopkit の他のプロジェクト。',
-    subtitle: '同じ設計方針で作られたネイティブアプリ。',
     apps: [
       {
         title: 'ServerBox',

@@ -27,42 +27,8 @@ export const en: Copy = {
     feedbackAction: 'Web Feedback',
     githubAction: 'GitHub',
   },
-  demo: {
-    ariaLabel: 'Interactive MosaicIt redaction preview',
-    peekLabel: 'Hold to peek original',
-    resetLabel: 'Reset masks',
-    receiptTitle: 'Transfer Receipt',
-    recipientLabel: 'Recipient',
-    recipientValue: 'Alex Chen',
-    phoneLabel: 'Phone',
-    phoneValue: '+1 (555) 014-8920',
-    addressLabel: 'Address',
-    addressValue: '42 Maple St, Apt 8B',
-    amountLabel: 'Amount',
-    amountValue: '$2,480.00',
-    cardLabel: 'Account',
-    cardValue: '6222 **** **** 4821',
-    qrLabel: 'Receipt QR',
-    styles: {
-      solid: 'Solid',
-      surround: 'Surround',
-      blocks: 'Blocks',
-      tinted: 'Tinted',
-      noise: 'Noise',
-    },
-    classes: {
-      person_name: 'Name',
-      phone: 'Phone',
-      address: 'Address',
-      finance: 'Finance',
-      bank_card: 'Bank card',
-      qr: 'QR code',
-    },
-  },
   features: {
     title: 'Built for fast, verifiable redaction.',
-    subtitle:
-      'Open an image, inspect the detected regions, adjust if needed, and export in seconds.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -102,12 +68,9 @@ export const en: Copy = {
       },
     ],
     classesTitle: '19 supported classes',
-    classesNote: '18 classes from bundled unseen-det 0.5.0 plus face detection via YuNet.',
   },
   privacy: {
     title: 'Zero network. Zero photo-library read access.',
-    subtitle:
-      'Every privacy claim is enforced at the build and OS-permission boundary rather than policy text.',
     factors: [
       {
         tag: 'Offline Binary',
@@ -149,7 +112,6 @@ export const en: Copy = {
   },
   download: {
     title: 'Native across mobile and desktop.',
-    subtitle: 'Prebuilt releases are published on GitHub, or build directly from source.',
     currentBadge: 'Current platform',
     releasesAction: 'GitHub Releases',
     sourceAction: 'Build from source',
@@ -158,7 +120,7 @@ export const en: Copy = {
     copy: 'Copy',
     copied: 'Copied',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Zero release permissions' },
       linux: { name: 'Linux', meta: 'Desktop app (tar.gz) & unseen CLI' },
@@ -167,15 +129,12 @@ export const en: Copy = {
   },
   cta: {
     title: 'Open source under AGPL-3.0.',
-    subtitle:
-      'Audit the code, grab the latest release, or report missed detections on the web feedback page.',
     feedbackAction: 'Open Web Feedback',
     releasesAction: 'GitHub Releases',
     githubAction: 'View Source',
   },
   more: {
     title: 'More from lollipopkit.',
-    subtitle: 'Other native apps built with the same engineering focus.',
     apps: [
       {
         title: 'ServerBox',
