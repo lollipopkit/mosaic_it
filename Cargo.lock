@@ -1953,7 +1953,7 @@ checksum = "d245f478577f809a851594d02313b640fb437e0bb33866753cff937863096954"
 
 [[package]]
 name = "unseen-cli"
-version = "1.0.9"
+version = "1.0.13"
 dependencies = [
  "anyhow",
  "clap",
@@ -1968,7 +1968,7 @@ dependencies = [
 
 [[package]]
 name = "unseen-core"
-version = "1.0.9"
+version = "1.0.13"
 dependencies = [
  "blake3",
  "ed25519-dalek",
@@ -1989,7 +1989,7 @@ dependencies = [
 
 [[package]]
 name = "unseen-ffi"
-version = "1.0.9"
+version = "1.0.13"
 dependencies = [
  "anyhow",
  "flutter_rust_bridge",
@@ -2001,7 +2001,7 @@ dependencies = [
 
 [[package]]
 name = "unseen-infer"
-version = "1.0.9"
+version = "1.0.13"
 dependencies = [
  "libloading",
  "ndarray",
@@ -2011,7 +2011,7 @@ dependencies = [
 
 [[package]]
 name = "unseen-media"
-version = "1.0.9"
+version = "1.0.13"
 dependencies = [
  "block2",
  "image",
