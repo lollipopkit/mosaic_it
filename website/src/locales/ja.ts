@@ -9,6 +9,7 @@ export const ja: Copy = {
       'スクリーンショットや写真内の個人情報をオンデバイスで検出して遮蔽。OCR 不要、ネットワーク通信なし、写真ライブラリ読み取り権限なし。',
   },
   nav: {
+    screenshots: 'スクリーンショット',
     features: '機能',
     privacy: 'プライバシー',
     download: 'ダウンロード',

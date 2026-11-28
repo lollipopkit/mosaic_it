@@ -9,6 +9,7 @@ export const ko: Copy = {
       '스크린샷과 사진 속 개인정보를 완전 오프라인으로 감지하고 가립니다. OCR 없이, 네트워크 요청 없이, 사진 보관함 읽기 권한 없이 작동합니다.',
   },
   nav: {
+    screenshots: '스크린샷',
     features: '기능',
     privacy: '개인정보 보호',
     download: '다운로드',

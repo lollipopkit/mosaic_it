@@ -9,6 +9,7 @@ export const id: Copy = {
       'Deteksi dan sensor informasi pribadi pada tangkapan layar dan foto sepenuhnya secara luring. Tanpa OCR, tanpa permintaan jaringan, dan tanpa izin baca galeri foto.',
   },
   nav: {
+    screenshots: 'Tangkapan layar',
     features: 'Fitur',
     privacy: 'Privasi',
     download: 'Unduh',

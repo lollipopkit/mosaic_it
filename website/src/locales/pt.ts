@@ -9,6 +9,7 @@ export const pt: Copy = {
       'Detecte e oculte informações privadas em capturas de tela e fotos totalmente offline. Sem OCR, sem requisições de rede e sem permissão de leitura da biblioteca de fotos.',
   },
   nav: {
+    screenshots: 'Capturas de tela',
     features: 'Recursos',
     privacy: 'Privacidade',
     download: 'Baixar',

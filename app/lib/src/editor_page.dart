@@ -5,7 +5,7 @@ import 'dart:ui' as ui;
 
 import 'package:file_selector/file_selector.dart';
 import 'package:fl_lib/fl_lib.dart'
-    show ContextMenuAction, Frosted, showContextMenu;
+    show ContextMenuAction, Frosted, ScreenEdge, SystemBars, showContextMenu;
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -61,7 +61,7 @@ class _EditorPageState extends State<EditorPage> {
     'mpeg',
     'ts',
   };
-  static const _desktopImageExts = [
+  static const _imageExts = {
     'png',
     'jpg',
     'jpeg',
@@ -72,7 +72,8 @@ class _EditorPageState extends State<EditorPage> {
     'tif',
     'tiff',
     'gif',
-  ];
+  };
+  static const _screenshots = bool.fromEnvironment('SCREENSHOTS');
 
   Session? _model;
   ModelInfo? _info;
@@ -86,6 +87,11 @@ class _EditorPageState extends State<EditorPage> {
   bool _peeking = false;
   final _peekPointers = <int>{};
   late final AppLifecycleListener _lifecycle;
+
+  /// Where the system puts bars of our controls along each edge.
+  final _systemBars = SystemBars.watch({
+    for (final e in ScreenEdge.values) e: _control,
+  });
   String? _busy;
   bool _picking = false;
   bool _exporting = false;
@@ -124,6 +130,7 @@ class _EditorPageState extends State<EditorPage> {
     if (widget.shots case final initial? when initial.isNotEmpty) {
       _editSession = EditSession(initial)..addListener(_changed);
     }
+    _systemBars.addListener(_barsChanged);
     _lifecycle = AppLifecycleListener(
       onInactive: _stopPeeking,
       onHide: _stopPeeking,
@@ -139,13 +146,29 @@ class _EditorPageState extends State<EditorPage> {
     if (!mounted || _model == null || _info == null || _coldDrained) return;
     _coldDrained = true;
     final cold = await PlatformBridge.drainIncomingFiles();
+    final launch = _screenshots ? await _launchFiles() : const <String>[];
     if (!mounted) return;
-    final initial = <String>[..._pendingIncoming, ...cold];
+    final initial = <String>[..._pendingIncoming, ...cold, ...launch];
     _pendingIncoming.clear();
     if (initial.isNotEmpty) {
       _enqueueIncoming(initial);
     }
   }
+
+  /// Builds with `--dart-define=SCREENSHOTS=true` open the images in
+  /// `tmp/launch_files` at start, for scripted store screenshots
+  /// (tool/appstore/shoot.sh).
+  static Future<List<String>> _launchFiles() async {
+    final dir = Directory('${Directory.systemTemp.path}/launch_files');
+    if (!await dir.exists()) return const [];
+    return [
+      await for (final f in dir.list())
+        if (f is File && _imageExts.contains(PlatformBridge.extensionOf(f.path)))
+          f.path,
+    ]..sort();
+  }
+
+  void _barsChanged() => setState(() {});
 
   void _stopPeeking() {
     _peekPointers.clear();
@@ -162,6 +185,7 @@ class _EditorPageState extends State<EditorPage> {
   @override
   void dispose() {
     _incomingSub?.cancel();
+    _systemBars.removeListener(_barsChanged);
     _lifecycle.dispose();
     _editSession?.removeListener(_changed);
     _editSession?.dispose();
@@ -367,7 +391,10 @@ class _EditorPageState extends State<EditorPage> {
       } else {
         final picked = await openFiles(
           acceptedTypeGroups: [
-            XTypeGroup(label: _l.imagesFileType, extensions: _desktopImageExts),
+            XTypeGroup(
+              label: _l.imagesFileType,
+              extensions: _imageExts.toList(),
+            ),
           ],
         );
         paths = [for (final x in picked) x.path];
@@ -862,14 +889,37 @@ class _EditorPageState extends State<EditorPage> {
 
   // --- layout -------------------------------------------------------------
 
-  /// Heights of what floats over the image, without the safe area.
-  static const _topBar = 60.0, _toolBar = 68.0, _strip = BatchStrip.height;
+  /// Thickness of the bars over the image. They sit above and below it, or
+  /// beside it when the view is wider than tall, centred on the line the
+  /// system lays bars of [_control]-sized buttons on.
+  static const _actionBar = 60.0, _toolBar = 68.0, _toolRail = 78.0;
+  static const _control = 44.0;
+  static const _strip = BatchStrip.height;
+
+  /// Tools stay within thumb reach on large screens.
+  static const _toolBarMaxExtent = 520.0;
 
   @override
   Widget build(BuildContext context) {
     final s = _editSession;
     final scheme = Theme.of(context).colorScheme;
     final inset = MediaQuery.paddingOf(context);
+    final size = MediaQuery.sizeOf(context);
+    final wide = size.width > size.height;
+    final batch = s != null && s.shots.length > 1;
+    final axis = wide ? Axis.vertical : Axis.horizontal;
+    final system = _validSystemBars(size);
+    // Side insets this uneven on a device reporting system bars are a column
+    // (iPhone Duo) that is empty but for a camera and the status bar: the
+    // actions run down it, clear of them, and when wide the tools take the
+    // other side. Even insets hold a camera cutout in their middle.
+    final inStatus = system.isNotEmpty && (inset.left - inset.right).abs() > 32;
+    final railAxis = wide || inStatus ? Axis.vertical : Axis.horizontal;
+    final actionsRight = inStatus && inset.right > inset.left;
+    final bar = _bars(size, inset, system);
+    final actionsBar = bar[actionsRight ? ScreenEdge.right : ScreenEdge.left]!;
+    final toolsBar = bar[actionsRight ? ScreenEdge.left : ScreenEdge.right]!;
+    final topBar = bar[ScreenEdge.top]!, bottomBar = bar[ScreenEdge.bottom]!;
     final shot = s?.shot;
     final active = s?.active;
     final selected = shot == null
@@ -878,11 +928,357 @@ class _EditorPageState extends State<EditorPage> {
     final idle = _busy == null;
     final ready = idle && _model != null;
     final failed = idle && _model == null && _standalone;
-    final batch = (s?.shots.length ?? 0) > 1;
+    Widget gap(double v) => SizedBox(width: v, height: v);
     Widget round(Widget button) => Frosted(
       shape: const CircleBorder(),
       child: SizedBox.square(dimension: 44, child: Center(child: button)),
     );
+
+    final undoRedo = Frosted(
+      child: Flex(
+        direction: railAxis,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final (tip, icon, enabled, onPressed) in [
+            (_l.undo, Icons.undo, s?.canUndo ?? false, s?.undo),
+            (_l.redo, Icons.redo, s?.canRedo ?? false, s?.redo),
+          ])
+            IconButton(
+              constraints: BoxConstraints.tight(
+                railAxis == Axis.vertical
+                    ? const Size(44, 40)
+                    : const Size(40, 44),
+              ),
+              padding: EdgeInsets.zero,
+              tooltip: tip,
+              icon: Icon(icon, size: 20),
+              onPressed: enabled ? onPressed : null,
+            ),
+        ],
+      ),
+    );
+
+    final peek = () {
+      final enabled = shot != null;
+      final button = Semantics(
+        button: true,
+        enabled: enabled,
+        label: shot == null
+            ? _l.peekOriginal
+            : '${_l.peekOriginal}, ${_l.selectedOf(selected, shot.boxes.length)}',
+        child: IgnorePointer(
+          ignoring: !enabled,
+          child: Listener(
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: (e) {
+              _peekPointers.add(e.pointer);
+              if (!_peeking) setState(() => _peeking = true);
+            },
+            onPointerUp: (e) => _peekUp(e.pointer),
+            onPointerCancel: (e) => _peekUp(e.pointer),
+            child: SizedBox.square(
+              dimension: 44,
+              child: Center(
+                child: Icon(
+                  _peeking ? Icons.visibility : Icons.visibility_outlined,
+                  size: 20,
+                  color: !enabled
+                      ? scheme.onSurface.withValues(alpha: .38)
+                      : _peeking
+                      ? scheme.primary
+                      : null,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      return Badge.count(
+        count: selected,
+        isLabelVisible: enabled,
+        offset: const Offset(-6, 4),
+        backgroundColor: scheme.primary,
+        textColor: scheme.onPrimary,
+        child: Frosted(
+          shape: const CircleBorder(),
+          child: _mobile
+              ? button
+              : Tooltip(message: _l.peekOriginal, child: button),
+        ),
+      );
+    }();
+
+    Widget buildActionsFlex({required bool compact}) => Flex(
+      direction: railAxis,
+      mainAxisSize: compact ? MainAxisSize.min : MainAxisSize.max,
+      children: [
+        round(
+          IconButton(
+            padding: EdgeInsets.zero,
+            tooltip: _l.selectMedia,
+            onPressed: ready ? _pickMedia : null,
+            icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
+          ),
+        ),
+        gap(4),
+        undoRedo,
+        if (compact) gap(12) else const Spacer(),
+        peek,
+        gap(4),
+        round(
+          IconButton(
+            padding: EdgeInsets.zero,
+            tooltip: _l.settings,
+            onPressed: idle ? _openSettings : null,
+            icon: const Icon(Icons.settings_outlined, size: 20),
+          ),
+        ),
+        gap(4),
+        IconButton.filled(
+          style: const ButtonStyle(
+            fixedSize: WidgetStatePropertyAll(Size.square(44)),
+            padding: WidgetStatePropertyAll(EdgeInsets.zero),
+          ),
+          tooltip: _l.export,
+          onPressed: idle && s != null ? _openExport : null,
+          icon: Transform.translate(
+            offset: const Offset(0, -1),
+            child: const Icon(Icons.ios_share, size: 19),
+          ),
+        ),
+      ],
+    );
+    // In a column or a short rail, centred and scaled down so it never overflows.
+    final actions = inStatus
+        ? Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: buildActionsFlex(compact: true),
+            ),
+          )
+        : wide
+        ? LayoutBuilder(
+            builder: (context, c) => c.maxHeight < 280
+                ? Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: buildActionsFlex(compact: true),
+                    ),
+                  )
+                : buildActionsFlex(compact: false),
+          )
+        : buildActionsFlex(compact: false);
+
+    final toolButtons = [
+      ToolButton(
+        icon: Icons.highlight_alt,
+        label: _l.modeDraw,
+        selected: s != null && _drawing && !_merging,
+        onTap: s == null
+            ? null
+            : () => setState(() {
+                _drawing = _merging || !_drawing;
+                _merging = false;
+                _mergeFrom = null;
+              }),
+      ),
+      ToolButton(
+        icon: Icons.filter_none,
+        label: _l.similar,
+        onTap: s == null || active == null || !idle
+            ? null
+            : () => _findSimilar(active),
+      ),
+      ToolButton(
+        icon: Icons.join_inner,
+        label: _l.merge,
+        selected: s != null && _merging,
+        onTap: s == null
+            ? null
+            : () => _merging ? _mergePick(null) : _startMerge(active),
+      ),
+      ToolButton(
+        icon: Icons.flag_outlined,
+        label: _l.feedbackShort,
+        onTap: idle ? _openFeedback : null,
+      ),
+    ];
+    final tools = Frosted(
+      child: Padding(
+        padding: const EdgeInsets.all(3),
+        child: wide
+            ? SizedBox(
+                width: 56,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final t in toolButtons)
+                      Flexible(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 56),
+                          child: SizedBox(height: 56, child: t),
+                        ),
+                      ),
+                  ],
+                ),
+              )
+            : SizedBox(
+                height: 46,
+                child: Row(
+                  children: [for (final t in toolButtons) Expanded(child: t)],
+                ),
+              ),
+      ),
+    );
+    final toolBar = Container(
+      constraints: wide
+          ? null
+          : const BoxConstraints(maxWidth: _toolBarMaxExtent),
+      padding: const EdgeInsets.all(8),
+      child: Flex(
+        direction: axis,
+        mainAxisAlignment: wide
+            ? MainAxisAlignment.spaceBetween
+            : MainAxisAlignment.start,
+        children: [
+          Frosted(
+            shape: const CircleBorder(),
+            child: SizedBox.square(
+              dimension: 52,
+              child: IconButton(
+                tooltip: _l.fillStyle,
+                onPressed: () =>
+                    showFillSheet(context, _settings, () => setState(() {})),
+                icon: FillSwatch(
+                  style: _settings.fillStyle,
+                  color: _settings.fillColor,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
+          if (wide)
+            Flexible(child: tools)
+          else ...[
+            gap(8),
+            Expanded(child: tools),
+            gap(8),
+          ],
+          Badge.count(
+            count: selected,
+            isLabelVisible: s != null,
+            // Inside the button's top right, on its circle.
+            offset: const Offset(-10, 6),
+            backgroundColor: scheme.primary,
+            textColor: scheme.onPrimary,
+            child: Frosted(
+              shape: const CircleBorder(),
+              child: SizedBox.square(
+                dimension: 52,
+                child: IconButton(
+                  tooltip: _l.regionsTooltip,
+                  onPressed: s == null
+                      ? null
+                      : () => showRegionSheet(context, s),
+                  icon: const Icon(Icons.tune),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final strip = batch
+        ? BatchStrip(
+            shots: s.shots,
+            index: s.index,
+            onSelect: (i) => s.index = i,
+            axis: axis,
+          )
+        : null;
+
+    final notices = [
+      if (!idle) const LinearProgressIndicator(minHeight: 2),
+      if (shot != null && shot.cameraPhoto)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+          child: Frosted(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(_l.cameraPhoto),
+            ),
+          ),
+        ),
+      if (_merging && s != null)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+          child: MergeHint(onCancel: () => _mergePick(null)),
+        ),
+    ];
+
+    // Rails are centred on the line their edge's bar sits on, clamped inside the viewport.
+    Rect rail(Rect bar, double width) {
+      final w = math.min(width, size.width);
+      final left = (bar.center.dx - w / 2).clamp(0.0, size.width - w);
+      final top = (bar.top + 8).clamp(0.0, size.height);
+      final bottom = math.max(top, (bar.bottom - 8).clamp(0.0, size.height));
+      return Rect.fromLTRB(left, top, left + w, bottom);
+    }
+    final actionsRail = rail(actionsBar, _actionBar);
+    final toolsRail = rail(toolsBar, _toolRail);
+    // Upright, the strip stays above the tools.
+    final stripTop = inset.top.clamp(0.0, size.height);
+    final stripBottom = math.max(
+      stripTop,
+      (size.height - inset.bottom).clamp(0.0, size.height),
+    );
+    final stripRect = !batch || !wide
+        ? null
+        : actionsRight
+        ? Rect.fromLTRB(
+            math.max(0.0, actionsRail.left - _strip),
+            stripTop,
+            actionsRail.left,
+            stripBottom,
+          )
+        : Rect.fromLTRB(
+            actionsRail.right,
+            stripTop,
+            math.min(size.width, actionsRail.right + _strip),
+            stripBottom,
+          );
+    // Around the image: the rails beside it, else the bars above and below.
+    final inner = Rect.fromLTRB(
+      actionsRight ? toolsRail.right : (stripRect ?? actionsRail).right,
+      wide || inStatus ? inset.top + 12 : topBar.center.dy + 30,
+      actionsRight ? (stripRect ?? actionsRail).left : toolsRail.left,
+      wide
+          ? size.height - inset.bottom - 12
+          : bottomBar.center.dy - _toolBar / 2 - (batch ? _strip : 0) - 8,
+    );
+    // Upright, the image shares the tools' middle.
+    final mid = bottomBar.center.dx;
+    final half = [
+      mid - inset.left - 12,
+      size.width - inset.right - 12 - mid,
+      if (inStatus)
+        (actionsRight ? actionsRail.left - mid : mid - actionsRail.right),
+    ].reduce(math.min);
+    final fitPadding = _clampPadding(
+      EdgeInsets.fromLTRB(
+        wide ? inner.left : mid - half,
+        inner.top,
+        wide ? size.width - inner.right : size.width - mid - half,
+        size.height - inner.bottom,
+      ),
+      size,
+    );
+
     return Scaffold(
       backgroundColor: scheme.surfaceContainerLowest,
       body: Stack(
@@ -900,16 +1296,11 @@ class _EditorPageState extends State<EditorPage> {
                     mergeFrom: _mergeFrom,
                     onMergePick: _mergePick,
                     peekOriginal: _peeking,
-                    fitPadding: EdgeInsets.fromLTRB(
-                      12,
-                      inset.top + _topBar,
-                      12,
-                      inset.bottom + _toolBar + (batch ? _strip : 0) + 8,
-                    ),
+                    fitPadding: fitPadding,
                   )
                 : Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(24),
+                      padding: fitPadding,
                       child: failed
                           ? FilledButton.icon(
                               onPressed: _loadAndDrain,
@@ -924,298 +1315,143 @@ class _EditorPageState extends State<EditorPage> {
                     ),
                   ),
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            child: SafeArea(
-              bottom: false,
+          if (wide || inStatus) ...[
+            Positioned.fromRect(rect: actionsRail, child: actions),
+            if (stripRect != null)
+              Positioned.fromRect(rect: stripRect, child: strip!),
+            Positioned(
+              left: fitPadding.left,
+              right: fitPadding.right,
+              top: 0,
+              child: SafeArea(
+                left: false,
+                right: false,
+                bottom: false,
+                child: Column(children: notices),
+              ),
+            ),
+          ] else
+            Positioned(
+              left: topBar.left,
+              width: topBar.width,
+              top: topBar.center.dy - _actionBar / 2,
               child: Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                    child: Row(
-                      children: [
-                        round(
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            tooltip: _l.selectMedia,
-                            onPressed: ready ? _pickMedia : null,
-                            icon: const Icon(
-                              Icons.add_photo_alternate_outlined,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Frosted(
-                          child: Row(
-                            children: [
-                              IconButton(
-                                constraints: const BoxConstraints.tightFor(
-                                  width: 40,
-                                  height: 44,
-                                ),
-                                padding: EdgeInsets.zero,
-                                tooltip: _l.undo,
-                                icon: const Icon(Icons.undo, size: 20),
-                                onPressed: s != null && s.canUndo
-                                    ? s.undo
-                                    : null,
-                              ),
-                              IconButton(
-                                constraints: const BoxConstraints.tightFor(
-                                  width: 40,
-                                  height: 44,
-                                ),
-                                padding: EdgeInsets.zero,
-                                tooltip: _l.redo,
-                                icon: const Icon(Icons.redo, size: 20),
-                                onPressed: s != null && s.canRedo
-                                    ? s.redo
-                                    : null,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Spacer(),
-                        () {
-                          final enabled = shot != null;
-                          final button = Semantics(
-                            button: true,
-                            enabled: enabled,
-                            label: shot == null
-                                ? _l.peekOriginal
-                                : '${_l.peekOriginal}, ${_l.selectedOf(selected, shot.boxes.length)}',
-                            child: IgnorePointer(
-                              ignoring: !enabled,
-                              child: Listener(
-                                behavior: HitTestBehavior.opaque,
-                                onPointerDown: (e) {
-                                  _peekPointers.add(e.pointer);
-                                  if (!_peeking) {
-                                    setState(() => _peeking = true);
-                                  }
-                                },
-                                onPointerUp: (e) {
-                                  _peekPointers.remove(e.pointer);
-                                  if (_peekPointers.isEmpty && _peeking) {
-                                    setState(() => _peeking = false);
-                                  }
-                                },
-                                onPointerCancel: (e) {
-                                  _peekPointers.remove(e.pointer);
-                                  if (_peekPointers.isEmpty && _peeking) {
-                                    setState(() => _peeking = false);
-                                  }
-                                },
-                                child: SizedBox.square(
-                                  dimension: 44,
-                                  child: Center(
-                                    child: Icon(
-                                      _peeking
-                                          ? Icons.visibility
-                                          : Icons.visibility_outlined,
-                                      size: 20,
-                                      color: !enabled
-                                          ? scheme.onSurface.withValues(
-                                              alpha: .38,
-                                            )
-                                          : _peeking
-                                          ? scheme.primary
-                                          : null,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                          return Badge.count(
-                            count: selected,
-                            isLabelVisible: enabled,
-                            offset: const Offset(-6, 4),
-                            backgroundColor: scheme.primary,
-                            textColor: scheme.onPrimary,
-                            child: Frosted(
-                              shape: const CircleBorder(),
-                              child: _mobile
-                                  ? button
-                                  : Tooltip(
-                                      message: _l.peekOriginal,
-                                      child: button,
-                                    ),
-                            ),
-                          );
-                        }(),
-                        const SizedBox(width: 4),
-                        round(
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            tooltip: _l.settings,
-                            onPressed: idle ? _openSettings : null,
-                            icon: const Icon(Icons.settings_outlined, size: 20),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        IconButton.filled(
-                          style: const ButtonStyle(
-                            fixedSize: WidgetStatePropertyAll(Size.square(44)),
-                            padding: WidgetStatePropertyAll(EdgeInsets.zero),
-                          ),
-                          tooltip: _l.export,
-                          onPressed: idle && s != null ? _openExport : null,
-                          icon: Transform.translate(
-                            offset: const Offset(0, -1),
-                            child: const Icon(Icons.ios_share, size: 19),
-                          ),
-                        ),
-                      ],
+                  SizedBox(
+                    height: _actionBar,
+                    child: Center(
+                      child: SizedBox(height: _control, child: actions),
                     ),
                   ),
-                  if (!idle) const LinearProgressIndicator(minHeight: 2),
-                  if (shot != null && shot.cameraPhoto)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Frosted(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Text(_l.cameraPhoto),
-                        ),
-                      ),
-                    ),
-                  if (_merging && s != null)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                      child: MergeHint(onCancel: () => _mergePick(null)),
-                    ),
+                  ...notices,
                 ],
               ),
             ),
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: SafeArea(
-              top: false,
+          if (wide)
+            Positioned.fromRect(rect: toolsRail, child: toolBar)
+          else
+            Positioned(
+              left: math.max(0.0, bottomBar.left - 8),
+              width: math.min(
+                size.width - math.max(0.0, bottomBar.left - 8),
+                bottomBar.width + 16,
+              ),
+              bottom: math.max(0.0, size.height - bottomBar.center.dy - _toolBar / 2),
               child: Column(
                 children: [
-                  if (batch && s != null)
-                    BatchStrip(
-                      shots: s.shots,
-                      index: s.index,
-                      onSelect: (i) => s.index = i,
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-                    child: Row(
-                      children: [
-                        Frosted(
-                          shape: const CircleBorder(),
-                          child: SizedBox.square(
-                            dimension: 52,
-                            child: IconButton(
-                              tooltip: _l.fillStyle,
-                              onPressed: () => showFillSheet(
-                                context,
-                                _settings,
-                                () => setState(() {}),
-                              ),
-                              icon: FillSwatch(
-                                style: _settings.fillStyle,
-                                color: _settings.fillColor,
-                                size: 24,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Frosted(
-                            child: Container(
-                              height: 52,
-                              padding: const EdgeInsets.all(3),
-                              child: Row(
-                                children: [
-                                  ToolButton(
-                                    icon: Icons.highlight_alt,
-                                    label: _l.modeDraw,
-                                    selected:
-                                        s != null && _drawing && !_merging,
-                                    onTap: s == null
-                                        ? null
-                                        : () => setState(() {
-                                            _drawing = _merging || !_drawing;
-                                            _merging = false;
-                                            _mergeFrom = null;
-                                          }),
-                                  ),
-                                  ToolButton(
-                                    icon: Icons.filter_none,
-                                    label: _l.similar,
-                                    onTap: s == null || active == null || !idle
-                                        ? null
-                                        : () => _findSimilar(active),
-                                  ),
-                                  ToolButton(
-                                    icon: Icons.join_inner,
-                                    label: _l.merge,
-                                    selected: s != null && _merging,
-                                    onTap: s == null
-                                        ? null
-                                        : () => _merging
-                                              ? _mergePick(null)
-                                              : _startMerge(active),
-                                  ),
-                                  ToolButton(
-                                    icon: Icons.flag_outlined,
-                                    label: _l.feedbackShort,
-                                    onTap: idle ? _openFeedback : null,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Badge.count(
-                          count: selected,
-                          isLabelVisible: s != null,
-                          // Inside the button's top right, on its circle.
-                          offset: const Offset(-10, 6),
-                          backgroundColor: scheme.primary,
-                          textColor: scheme.onPrimary,
-                          child: Frosted(
-                            shape: const CircleBorder(),
-                            child: SizedBox.square(
-                              dimension: 52,
-                              child: IconButton(
-                                tooltip: _l.regionsTooltip,
-                                onPressed: s == null
-                                    ? null
-                                    : () => showRegionSheet(context, s),
-                                icon: const Icon(Icons.tune),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  ?strip,
+                  Center(child: toolBar),
                 ],
               ),
             ),
-          ),
         ],
       ),
     );
   }
+
+  /// Drops stale system bar coordinates during a rotation or fold transition
+  /// frame where [MediaQuery.sizeOf] updated ahead of the platform channel.
+  Map<ScreenEdge, Rect> _validSystemBars(Size size) {
+    final system = _systemBars.value;
+    if (system.isEmpty) return const {};
+    for (final r in system.values) {
+      if (r.left < -1 ||
+          r.top < -1 ||
+          r.right > size.width + 1 ||
+          r.bottom > size.height + 1) {
+        return const {};
+      }
+    }
+    return system;
+  }
+
+  static EdgeInsets _clampPadding(EdgeInsets p, Size size) {
+    var left = math.max(0.0, p.left);
+    var right = math.max(0.0, p.right);
+    var top = math.max(0.0, p.top);
+    var bottom = math.max(0.0, p.bottom);
+    if (left + right > size.width) {
+      final s = size.width / (left + right);
+      left *= s;
+      right *= s;
+    }
+    if (top + bottom > size.height) {
+      final s = size.height / (top + bottom);
+      top *= s;
+      bottom *= s;
+    }
+    return EdgeInsets.fromLTRB(left, top, right, bottom);
+  }
+
+  /// Where a bar along each edge sits: as the system lays one out (clear of
+  /// corners, cameras and the status bar, centred on their line), else just
+  /// inside the safe area.
+  Map<ScreenEdge, Rect> _bars(
+    Size size,
+    EdgeInsets inset,
+    Map<ScreenEdge, Rect> system,
+  ) {
+    final w = size.width, h = size.height;
+    Rect side(double left) {
+      final top = (inset.top + 4).clamp(0.0, h);
+      final bottom = math.max(top, (h - inset.bottom - 4).clamp(0.0, h));
+      final barW = math.min(_control, w);
+      final l = left.clamp(0.0, w - barW);
+      return Rect.fromLTRB(l, top, l + barW, bottom);
+    }
+
+    final topW = math.max(0.0, w - inset.horizontal - 24);
+    final bottomW = math.max(0.0, w - inset.horizontal - 16);
+    return {
+      ScreenEdge.left: system[ScreenEdge.left] ?? side(inset.left + 18),
+      ScreenEdge.right:
+          system[ScreenEdge.right] ?? side(w - inset.right - 18 - _control),
+      ScreenEdge.top:
+          system[ScreenEdge.top] ??
+          Rect.fromLTWH(
+            (inset.left + 12).clamp(0.0, w),
+            (inset.top + 8).clamp(0.0, h),
+            math.min(topW, w),
+            math.min(_control, h),
+          ),
+      ScreenEdge.bottom:
+          system[ScreenEdge.bottom] ??
+          Rect.fromLTWH(
+            (inset.left + 8).clamp(0.0, w),
+            (h - inset.bottom - _toolBar / 2 - _control / 2).clamp(0.0, h),
+            math.min(bottomW, w),
+            math.min(_control, h),
+          ),
+    };
+  }
+
+  void _peekUp(int pointer) {
+    _peekPointers.remove(pointer);
+    if (_peekPointers.isEmpty && _peeking) setState(() => _peeking = false);
+  }
 }
 
-/// A tool in the bottom bar: icon over a short label; [selected] while its
+/// A tool in the tool bar: icon over a short label; [selected] while its
 /// mode is on.
 class ToolButton extends StatelessWidget {
   const ToolButton({
@@ -1237,32 +1473,36 @@ class ToolButton extends StatelessWidget {
     final color = onTap == null
         ? scheme.onSurface.withValues(alpha: .38)
         : (selected ? scheme.onSecondaryContainer : scheme.onSurfaceVariant);
-    return Expanded(
-      child: Semantics(
-        selected: selected,
-        button: true,
-        child: Material(
-          color: selected ? scheme.secondaryContainer : Colors.transparent,
-          shape: const StadiumBorder(),
-          child: InkWell(
-            customBorder: const StadiumBorder(),
-            onTap: onTap,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 20,
-                  color: selected && onTap != null ? scheme.primary : color,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: color),
-                ),
-              ],
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: Material(
+        color: selected ? scheme.secondaryContainer : Colors.transparent,
+        shape: const StadiumBorder(),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 20,
+                    color: selected && onTap != null ? scheme.primary : color,
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    style: TextStyle(fontSize: 12, color: color),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -1278,40 +1518,55 @@ class BatchStrip extends StatelessWidget {
     required this.shots,
     required this.index,
     required this.onSelect,
+    this.axis = Axis.horizontal,
   });
 
   final List<Shot> shots;
   final int index;
   final ValueChanged<int> onSelect;
 
-  static const _height = 68.0;
+  /// The direction the thumbnails run in.
+  final Axis axis;
 
-  /// Its height in the layout.
-  static const height = _height + 16;
+  static const _cross = 68.0;
+
+  /// Its thickness in the layout, across [axis].
+  static const height = _cross + 16;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    double thumb(Shot s) =>
-        ((_height - 10) * s.size.width / s.size.height).clamp(24.0, 96.0);
+    final horizontal = axis == Axis.horizontal;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    const side = _cross - 10;
+    // Thumbnail size along [axis]; [side] across it.
+    double thumb(Shot s) => horizontal
+        ? (side * s.size.width / s.size.height).clamp(24.0, 96.0)
+        : (side * s.size.height / s.size.width).clamp(24.0, 128.0);
     // Thumbnail, its frame and the room for its badge.
     double extent(Shot s) => thumb(s) + 25;
     return SizedBox(
-      height: height,
+      width: horizontal ? null : height,
+      height: horizontal ? height : null,
       child: LayoutBuilder(
         builder: (context, c) {
           final total = shots.fold(0.0, (w, s) => w + extent(s));
+          final room = horizontal ? c.maxWidth : c.maxHeight;
           // Centred while they fit; built as they scroll into view.
-          final side = math.max(16.0, (c.maxWidth - total) / 2);
+          final edge = math.max(16.0, (room - total) / 2);
           return ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: side),
+            scrollDirection: axis,
+            padding: horizontal
+                ? EdgeInsets.symmetric(horizontal: edge)
+                : EdgeInsets.symmetric(vertical: edge),
             itemCount: shots.length,
             itemExtentBuilder: (i, _) => extent(shots[i]),
             itemBuilder: (context, i) {
               final shot = shots[i];
               return Padding(
-                padding: const EdgeInsets.fromLTRB(5, 4, 10, 4),
+                padding: horizontal
+                    ? const EdgeInsets.fromLTRB(5, 2, 10, 10)
+                    : const EdgeInsets.fromLTRB(2, 5, 10, 10),
                 child: Semantics(
                   selected: i == index,
                   label: shot.name,
@@ -1335,9 +1590,11 @@ class BatchStrip extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                             child: Image.file(
                               shot.image,
-                              height: _height - 10,
-                              width: thumb(shot),
-                              cacheHeight: 128,
+                              width: horizontal ? thumb(shot) : side,
+                              height: horizontal ? side : thumb(shot),
+                              cacheHeight:
+                                  ((horizontal ? side : thumb(shot)) * dpr)
+                                      .round(),
                               fit: BoxFit.cover,
                             ),
                           ),

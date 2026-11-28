@@ -65,6 +65,7 @@ class _UnseenAppState extends State<UnseenApp> {
       builder: (context, _) {
         final source = AppThemeSource.current();
         return MaterialApp(
+          debugShowCheckedModeBanner: false,
           onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
           localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

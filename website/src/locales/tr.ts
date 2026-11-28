@@ -9,6 +9,7 @@ export const tr: Copy = {
       'Ekran görüntülerindeki ve fotoğraflardaki kişisel bilgileri tamamen çevrimdışı olarak tespit edip gizleyin. OCR yok, ağ isteği yok ve fotoğraf arşivi okuma izni yok.',
   },
   nav: {
+    screenshots: 'Ekran görüntüleri',
     features: 'Özellikler',
     privacy: 'Gizlilik',
     download: 'İndir',

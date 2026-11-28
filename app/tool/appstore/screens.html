@@ -1,0 +1,146 @@
+<!doctype html>
+<!-- Fictional screens with fake personal data, rendered to PNG by render.sh
+     and imported into the simulator's Photos for App Store screenshots.
+     Usage: screens.html?s=<chat|bank|parcel|boarding|mail>&l=<en|zh> -->
+<meta charset="utf-8">
+<style>
+  :root { --bg:#f2f2f7; --card:#fff; --fg:#111; --mut:#8a8a8e; --acc:#0a84ff; --line:#e5e5ea; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { width:440px; height:956px; overflow:hidden; }
+  body { font:16px/1.35 -apple-system, "PingFang SC", "Helvetica Neue", sans-serif; background:var(--bg); color:var(--fg); }
+  .status { height:54px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 34px 8px; font-weight:600; font-size:17px; }
+  .status i { font-style:normal; letter-spacing:2px; font-size:13px; }
+  .nav { padding:6px 20px 12px; display:flex; align-items:center; gap:12px; }
+  .nav b { font-size:17px; }
+  .nav small { display:block; color:var(--mut); font-size:13px; font-weight:400; }
+  .back { color:var(--acc); font-size:28px; line-height:1; }
+  .av { width:40px; height:40px; border-radius:50%; flex:none; display:grid; place-items:center; color:#fff; font-weight:600; }
+  .card { background:var(--card); border-radius:18px; margin:0 16px 12px; padding:16px 18px; }
+  .row { display:flex; justify-content:space-between; gap:16px; padding:9px 0; border-bottom:1px solid var(--line); }
+  .row:last-child { border:0; }
+  .row span:first-child { color:var(--mut); }
+  .row span:last-child { text-align:right; font-weight:500; }
+  h1 { font-size:34px; padding:4px 20px 14px; }
+  .msgs { padding:8px 14px; display:flex; flex-direction:column; gap:8px; }
+  .b { max-width:76%; padding:9px 14px; border-radius:20px; font-size:16.5px; }
+  .in { background:#e9e9eb; align-self:flex-start; }
+  .out { background:var(--acc); color:#fff; align-self:flex-end; }
+  .time { text-align:center; color:var(--mut); font-size:12px; margin:6px 0; }
+  .loc { background:#fff; border-radius:16px; overflow:hidden; align-self:flex-start; width:250px; }
+  .map { height:110px; background:
+      linear-gradient(115deg, transparent 46%, #f7d774 46% 50%, transparent 50%),
+      linear-gradient(20deg, transparent 60%, #fff 60% 64%, transparent 64%),
+      linear-gradient(160deg, #cfe8c4, #e8efe2 60%, #cfe0f2); }
+  .loc p { padding:8px 12px; font-size:14px; }
+  .big { font-size:40px; font-weight:700; text-align:center; padding:6px 0 2px; }
+  .ok { width:64px; height:64px; border-radius:50%; background:#34c759; color:#fff; font-size:36px; display:grid; place-items:center; margin:8px auto; }
+  .center { text-align:center; color:var(--mut); }
+  .qr { display:block; margin:10px auto; }
+  .pass { background:linear-gradient(160deg,#1c3f94,#2a6fdb); color:#fff; border-radius:22px; margin:6px 16px; padding:20px; }
+  .pass .mut { color:#c8d6ff; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+  .pass .iata { font-size:48px; font-weight:700; }
+  .grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px 10px; margin-top:14px; }
+  .grid b { display:block; font-size:17px; }
+  .bar { background:#fff; border-radius:12px; padding:12px; margin-top:16px; }
+  .mail { background:#fff; min-height:900px; padding:0 20px; }
+  .mail h2 { font-size:22px; margin:8px 0 14px; }
+  .from { display:flex; gap:12px; align-items:center; padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .from small { color:var(--mut); display:block; font-size:13px; }
+  .mail p { margin:14px 0; }
+  .sig { color:#444; font-size:14px; border-top:1px solid var(--line); padding-top:12px; }
+</style>
+<body>
+<script>
+const q = new URLSearchParams(location.search);
+const L = q.get('l') || 'en', S = q.get('s') || 'chat';
+const T = (en, zh) => L === 'zh' ? zh : en;
+const av = (t, c) => `<div class="av" style="background:${c}">${t}</div>`;
+// Deterministic fake QR / barcode (not decodable).
+function rnd(seed) { return () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648; }
+function qr(size, seed) {
+  const n = 29, c = size / n, r = rnd(seed); let s = '';
+  const finder = (x, y) => `<rect x="${x*c}" y="${y*c}" width="${7*c}" height="${7*c}"/><rect x="${(x+1)*c}" y="${(y+1)*c}" width="${5*c}" height="${5*c}" fill="#fff"/><rect x="${(x+2)*c}" y="${(y+2)*c}" width="${3*c}" height="${3*c}"/>`;
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const inF = (x < 8 && y < 8) || (x > n - 9 && y < 8) || (x < 8 && y > n - 9);
+    if (!inF && r() < .5) s += `<rect x="${x*c}" y="${y*c}" width="${c}" height="${c}"/>`;
+  }
+  return `<svg class="qr" width="${size}" height="${size}"><rect width="${size}" height="${size}" fill="#fff"/>${s}${finder(0,0)}${finder(n-7,0)}${finder(0,n-7)}</svg>`;
+}
+function barcode(w, h, seed) {
+  const r = rnd(seed); let x = 0, s = '';
+  while (x < w) { const bw = 1 + Math.floor(r() * 4); if (r() < .55) s += `<rect x="${x}" width="${bw}" height="${h}"/>`; x += bw; }
+  return `<svg width="${w}" height="${h}">${s}</svg>`;
+}
+const status = `<div class="status"><span>9:41</span><i>●●●● 5G ▮</i></div>`;
+const rows = r => r.map(([k, v]) => `<div class="row"><span>${k}</span><span>${v}</span></div>`).join('');
+
+const screens = {
+  chat: () => `${status}
+    <div class="nav"><span class="back">‹</span>${av(T('EC','林'), '#ff9f0a')}<b>${T('Emma Carter','林晓雨')}<small>${T('+1 (415) 555-0172','+86 138 0013 8274')}</small></b></div>
+    <div class="msgs">
+      <div class="time">${T('Today 9:12 AM','今天 上午 9:12')}</div>
+      <div class="b in">${T("Hey! I'm sending the package to your new place today 📦","我今天把快递寄到你新家 📦")}</div>
+      <div class="b out">${T('Great, thanks! Here is the address:','好的谢谢！地址发你：')}</div>
+      <div class="b out">${T('Daniel Brooks<br>2418 Maple Avenue, Apt 5B<br>Portland, OR 97205','王子涵<br>上海市徐汇区漕溪北路 1288 弄 5 号 602 室')}</div>
+      <div class="b in">${T('Got it. Your phone number for the courier?','收到，快递员要留个电话？')}</div>
+      <div class="b out">${T('(503) 555-0148','159 2107 6635')}</div>
+      <div class="loc"><div class="map"></div><p>📍 ${T('Shared location · 2418 Maple Ave','共享位置 · 漕溪北路 1288 弄')}</p></div>
+      <div class="b in">${T('Also my email is emma.carter@example.com for the receipt','发票发我邮箱 linxy@example.cn')}</div>
+      <div class="b out">${T('Will do 👍','好的 👍')}</div>
+    </div>`,
+  bank: () => `${status}
+    <div class="nav"><span class="back">‹</span><b>${T('Transfer Details','转账详情')}</b></div>
+    <div class="ok">✓</div>
+    <div class="center">${T('Transfer completed','转账成功')}</div>
+    <div class="big">${T('$2,480.00','¥ 18,600.00')}</div>
+    <div class="center" style="margin-bottom:16px">${T('Nov 26, 2026 · 14:32','2026-11-26 14:32')}</div>
+    <div class="card">${rows([
+      [T('To','收款人'), T('Olivia Martinez','陈思远')],
+      [T('Account','收款账号'), T('•••• 4821 · Routing 021000021','6222 0212 0300 4821 916')],
+      [T('Bank','收款银行'), T('First Harbor Bank','招商银行 上海分行')],
+      [T('From','付款账户'), T('Checking 7730 1196 0254','储蓄卡 6214 8301 2297 0254')],
+      [T('Card','付款卡'), '4532 7719 0284 1156'],
+      [T('Reference','交易单号'), 'TX20261126143207719'],
+      [T('Memo','附言'), T('Rent – December','十二月房租')],
+    ])}</div>`,
+  parcel: () => `${status}
+    <div class="nav"><span class="back">‹</span><b>${T('Order Details','订单详情')}</b></div>
+    <div class="card"><b style="font-size:19px">${T('Out for delivery','派送中')}</b><div style="color:var(--mut);margin-top:4px">${T('Arrives today by 6 PM','预计今天 18:00 前送达')}</div></div>
+    <div class="card">${rows([
+      [T('Recipient','收件人'), T('Sophia Nguyen','赵一鸣')],
+      [T('Phone','电话'), T('+1 (212) 555-0193','186 0217 5523')],
+      [T('Address','地址'), T('88 Hudson Street, Fl 12<br>New York, NY 10013','北京市朝阳区建国路 93 号<br>万达广场 8 号楼 1702')],
+      [T('Tracking','运单号'), '1Z 999 AA1 0123 4567 84'],
+      [T('Order','订单号'), '113-7745902-8812260'],
+    ])}</div>
+    <div class="card" style="text-align:center">${qr(180, 7)}<div class="center">${T('Show this code to the courier','向快递员出示取件码')}</div></div>`,
+  boarding: () => `${status}
+    <div class="nav"><span class="back">‹</span><b>${T('Boarding Pass','登机牌')}</b></div>
+    <div class="pass">
+      <div style="display:flex;justify-content:space-between"><div><div class="mut">${T('From','出发')}</div><div class="iata">SFO</div></div><div style="align-self:center;font-size:24px">✈︎</div><div style="text-align:right"><div class="mut">${T('To','到达')}</div><div class="iata">NRT</div></div></div>
+      <div class="grid">
+        <div style="grid-column:span 2"><span class="mut">${T('Passenger','旅客')}</span><b>${T('LIAM ANDERSON','ZHOU / JIAMING')}</b></div>
+        <div><span class="mut">${T('Seat','座位')}</span><b>32K</b></div>
+        <div><span class="mut">${T('Flight','航班')}</span><b>NX 837</b></div>
+        <div><span class="mut">${T('Gate','登机口')}</span><b>G94</b></div>
+        <div><span class="mut">${T('Boards','登机')}</span><b>10:25</b></div>
+        <div style="grid-column:span 2"><span class="mut">${T('Passport','证件号')}</span><b>${T('X48201937','E73915826')}</b></div>
+        <div><span class="mut">${T('Seq','序号')}</span><b>118</b></div>
+        <div style="grid-column:span 3"><span class="mut">${T('Frequent flyer','常旅客')}</span><b>NX 7720 4418 93</b></div>
+      </div>
+      <div class="bar">${qr(200, 31)}</div>
+    </div>`,
+  mail: () => `${status}
+    <div class="mail">
+      <div class="nav" style="padding-left:0"><span class="back">‹</span><span style="color:var(--acc)">${T('Inbox','收件箱')}</span></div>
+      <h2>${T('Your lease agreement is ready','您的租房合同已生成')}</h2>
+      <div class="from">${av(T('NH','安'), '#5e5ce6')}<div><b>${T('Noah Harris','安居物业 · 孙经理')}</b><small>${T('noah.harris@example.com','sun.manager@example.cn')}</small><small>${T('to me · Nov 27','发给 我 · 11月27日')}</small></div></div>
+      <p>${T('Hi Ava,','您好，刘女士：')}</p>
+      <p>${T('Your lease for <b>1520 Lakeview Drive, Unit 3</b> starts on December 1. Please confirm your ID number <b>D4819-2207-6631</b> and sign by Friday.','您承租的<b>深圳市南山区科苑路 15 号 3 栋 1201</b> 将于 12 月 1 日起租。请核对身份证号 <b>440305199208174426</b> 并于周五前签署。')}</p>
+      <p>${T('The first payment goes to account <b>0091 4402 7781</b>. Call me at <b>(650) 555-0127</b> with any questions.','首期租金请转入账户 <b>6217 0033 1000 8842 731</b>。如有问题请致电 <b>137 2468 0915</b>。')}</p>
+      <p>${T('Best,','祝好，')}</p>
+      <div class="sig">${T('Noah Harris · Lakeview Property Group<br>noah.harris@example.com · (650) 555-0127','孙建国 · 安居物业<br>sun.manager@example.cn · 137 2468 0915')}</div>
+    </div>`,
+};
+document.body.innerHTML = (screens[S] || screens.chat)();
+</script>

@@ -16,6 +16,15 @@
   const LICENSE_URL = `${REPO_URL}/blob/main/LICENSE`;
   const FEEDBACK_URL = '/feedback';
 
+  // From app/tool/appstore/web.sh; sizes keep the row from jumping on load.
+  const SHOTS = [
+    { name: 'iphone18pro-1-chat', w: 552, h: 1200 },
+    { name: 'iphone18pro-4-fill', w: 552, h: 1200 },
+    { name: 'iphoneduo-inner-landscape-1-chat', w: 1200, h: 844 },
+    { name: 'iphoneduo-outer-portrait-2-bank', w: 825, h: 1200 },
+    { name: 'iphone18pro-3-regions', w: 552, h: 1200 },
+  ];
+
   const BUILD_COMMANDS = [
     'git clone --recurse-submodules https://github.com/lollipopkit/mosaic_it',
     'cd mosaic_it',
@@ -42,6 +51,7 @@
   const currentPlatform = detectPlatform();
 
   let copy = $derived(TRANSLATIONS[locale]);
+  let shotLocale = $derived(locale === 'zh-CN' ? 'zh' : 'en');
 
   let orderedPlatforms = $derived.by((): PlatformId[] => {
     const base: PlatformId[] = ['ios', 'macos', 'android', 'linux', 'windows'];
@@ -79,6 +89,7 @@
   </a>
 
   <nav aria-label="Primary">
+    <a href="#screenshots">{copy.nav.screenshots}</a>
     <a href="#features">{copy.nav.features}</a>
     <a href="#privacy">{copy.nav.privacy}</a>
     <a href="#download">{copy.nav.download}</a>
@@ -119,6 +130,19 @@
     <div class="hero-stage">
       <EditorDemo {copy} />
     </div>
+  </section>
+
+  <section id="screenshots" class="shots" aria-label={copy.nav.screenshots}>
+    {#each SHOTS as shot}
+      <img
+        src={`/screenshots/${shotLocale}/${shot.name}.webp`}
+        alt=""
+        width={shot.w}
+        height={shot.h}
+        loading="lazy"
+        decoding="async"
+      />
+    {/each}
   </section>
 
   <section id="features" class="page-section">

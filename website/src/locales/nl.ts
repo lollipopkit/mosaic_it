@@ -9,6 +9,7 @@ export const nl: Copy = {
       'Detecteer en scherm privégegevens in screenshots en foto’s volledig offline af. Geen OCR, geen netwerkverzoeken en geen leesrechten voor je fotobibliotheek.',
   },
   nav: {
+    screenshots: 'Screenshots',
     features: 'Functies',
     privacy: 'Privacy',
     download: 'Downloaden',

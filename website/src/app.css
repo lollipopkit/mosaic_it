@@ -322,6 +322,26 @@ select:focus-visible {
   perspective: 1200px;
 }
 
+/* Screenshots: one row, scrolled sideways when it does not fit */
+.shots {
+  width: min(1120px, 92vw);
+  margin: 0 auto clamp(2rem, 5vw, 4rem);
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 0.5rem;
+}
+
+.shots img {
+  flex: none;
+  height: clamp(220px, 52vw, 520px);
+  width: auto;
+  border-radius: 22px;
+  border: 1px solid var(--border-light);
+  scroll-snap-align: start;
+}
+
 /* Interactive MosaicIt Phone Editor Demo */
 .demo-phone {
   width: min(100%, 348px);

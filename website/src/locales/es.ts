@@ -9,6 +9,7 @@ export const es: Copy = {
       'Detecta y oculta datos privados en capturas de pantalla y fotos completamente sin conexión. Sin OCR, sin solicitudes de red y sin permisos de lectura de tu fototeca.',
   },
   nav: {
+    screenshots: 'Capturas',
     features: 'Funciones',
     privacy: 'Privacidad',
     download: 'Descargar',

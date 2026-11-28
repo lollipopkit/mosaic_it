@@ -12,6 +12,12 @@
   </p>
 </div>
 
+<p align="center">
+  <img src="website/public/screenshots/zh/iphone18pro-1-chat.webp" height="400" alt="" />
+  <img src="website/public/screenshots/zh/iphone18pro-4-fill.webp" height="400" alt="" />
+  <img src="website/public/screenshots/zh/iphoneduo-inner-landscape-1-chat.webp" height="400" alt="" />
+</p>
+
 ## 简介
 
 MosaicIt 在设备本地直接定位截图与照片中的敏感隐私区域——不执行 OCR 文字识别——并允许在导出前按需核对、增删和调整遮挡框。

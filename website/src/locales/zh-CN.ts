@@ -9,6 +9,7 @@ export const zhCN: Copy = {
       '全程离线检测并遮挡截图与照片中的隐私信息。无需 OCR、不包含任何网络请求代码、不申请相册读取权限。',
   },
   nav: {
+    screenshots: '截图',
     features: '功能',
     privacy: '隐私',
     download: '下载',
