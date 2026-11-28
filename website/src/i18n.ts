@@ -1,4 +1,4 @@
-import type { Copy, Locale, StyleKey } from './locales/types';
+import type { Copy, Locale } from './locales/types';
 import { az } from './locales/az';
 import { de } from './locales/de';
 import { en } from './locales/en';
@@ -17,7 +17,7 @@ import { uk } from './locales/uk';
 import { zhCN } from './locales/zh-CN';
 import { zhTW } from './locales/zh-TW';
 
-export type { Copy, Locale, StyleKey };
+export type { Copy, Locale };
 
 export const LOCALES: { code: Locale; label: string }[] = [
   { code: 'en', label: 'English' },
