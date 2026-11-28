@@ -427,27 +427,24 @@ void main() {
     expect(regions.bottom, lessThanOrEqualTo(340));
   });
 
-  testWidgets('stale SystemBars on rotation transition and tiny viewports do not throw', (
-    t,
-  ) async {
-    // Stale portrait Duo bars arriving on a landscape frame must be ignored.
-    SystemBars.debugBars = const {
-      ScreenEdge.right: Rect.fromLTRB(399, 60, 443, 618),
-      ScreenEdge.bottom: Rect.fromLTRB(8, 622, 368, 666),
-    };
-    await pumpWide(
-      t,
-      const EdgeInsets.only(right: 90),
-      size: const Size(678, 466),
-    );
-    // Tiny viewport with large insets must not produce negative dimensions.
-    SystemBars.debugBars = const {};
-    await pumpWide(
-      t,
-      const EdgeInsets.all(60),
-      size: const Size(80, 80),
-    );
-  });
+  testWidgets(
+    'stale SystemBars on rotation transition and tiny viewports do not throw',
+    (t) async {
+      // Stale portrait Duo bars arriving on a landscape frame must be ignored.
+      SystemBars.debugBars = const {
+        ScreenEdge.right: Rect.fromLTRB(399, 60, 443, 618),
+        ScreenEdge.bottom: Rect.fromLTRB(8, 622, 368, 666),
+      };
+      await pumpWide(
+        t,
+        const EdgeInsets.only(right: 90),
+        size: const Size(678, 466),
+      );
+      // Tiny viewport with large insets must not produce negative dimensions.
+      SystemBars.debugBars = const {};
+      await pumpWide(t, const EdgeInsets.all(60), size: const Size(80, 80));
+    },
+  );
 
   testWidgets('ToolButton scales cleanly under 1.5x text scale', (t) async {
     const info = ModelInfo(

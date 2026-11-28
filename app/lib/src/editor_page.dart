@@ -163,7 +163,8 @@ class _EditorPageState extends State<EditorPage> {
     if (!await dir.exists()) return const [];
     return [
       await for (final f in dir.list())
-        if (f is File && _imageExts.contains(PlatformBridge.extensionOf(f.path)))
+        if (f is File &&
+            _imageExts.contains(PlatformBridge.extensionOf(f.path)))
           f.path,
     ]..sort();
   }
@@ -1229,6 +1230,7 @@ class _EditorPageState extends State<EditorPage> {
       final bottom = math.max(top, (bar.bottom - 8).clamp(0.0, size.height));
       return Rect.fromLTRB(left, top, left + w, bottom);
     }
+
     final actionsRail = rail(actionsBar, _actionBar);
     final toolsRail = rail(toolsBar, _toolRail);
     // Upright, the strip stays above the tools.
@@ -1356,7 +1358,10 @@ class _EditorPageState extends State<EditorPage> {
                 size.width - math.max(0.0, bottomBar.left - 8),
                 bottomBar.width + 16,
               ),
-              bottom: math.max(0.0, size.height - bottomBar.center.dy - _toolBar / 2),
+              bottom: math.max(
+                0.0,
+                size.height - bottomBar.center.dy - _toolBar / 2,
+              ),
               child: Column(
                 children: [
                   ?strip,
