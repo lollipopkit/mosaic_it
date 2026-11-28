@@ -13,6 +13,7 @@ export const id: Copy = {
     features: 'Fitur',
     privacy: 'Privasi',
     download: 'Unduh',
+    docs: 'Dokumentasi',
     feedback: 'Umpan Balik',
     github: 'GitHub',
     languageLabel: 'Bahasa',
@@ -32,9 +33,9 @@ export const id: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: 'Deteksi di Perangkat Tanpa OCR',
+        title: 'Deteksi Cepat & Hemat Daya di ANE / GPU',
         description:
-          'Bobot FP16 ONNX / LiteRT yang dibundel mendeteksi 18 kelas data pribadi pada tangkapan layar antarmuka ditambah deteksi wajah YuNet—tanpa pengenalan teks atau unduhan model eksternal.',
+          'Bobot FP16 ringan yang dibundel berjalan di Apple Neural Engine (ANE / NPU melalui CoreML) dan GPU seluler Android (LiteRT) untuk inferensi hemat baterai dalam hitungan milidetik—mendeteksi 18 kelas data pribadi dan wajah YuNet langsung tanpa OCR atau pencocokan kamus/regex.',
       },
       {
         tag: '5 Gaya',
@@ -166,6 +167,7 @@ export const id: Copy = {
     features: 'Fitur',
     privacy: 'Privasi',
     download: 'Unduh',
+    docs: 'Dokumentasi',
     feedback: 'Umpan Balik',
     releases: 'Rilis',
     license: 'AGPL-3.0',

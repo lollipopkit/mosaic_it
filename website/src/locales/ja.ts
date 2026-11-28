@@ -13,6 +13,7 @@ export const ja: Copy = {
     features: '機能',
     privacy: 'プライバシー',
     download: 'ダウンロード',
+    docs: 'ドキュメント',
     feedback: 'フィードバック',
     github: 'GitHub',
     languageLabel: '言語',
@@ -32,9 +33,9 @@ export const ja: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: 'OCR 不要のオンデバイス検出',
+        title: 'ANE / GPU 対応の省電力・高速検出',
         description:
-          '同梱された FP16 ONNX / LiteRT モデルで 18 クラスの PII と YuNet による顔領域を端末内で検出。テキスト認識や外部ダウンロードは行いません。',
+          '同梱の軽量 FP16 モデルを Apple Neural Engine（ANE / NPU・CoreML）と Android モバイル GPU（LiteRT）で実行し、省電力かつミリ秒単位で推論。OCR や辞書・正規表現マッチングに頼らず 18 クラスの PII と YuNet の顔領域を直接検出します。',
       },
       {
         tag: '5 スタイル',
@@ -157,6 +158,7 @@ export const ja: Copy = {
     features: '機能',
     privacy: 'プライバシー',
     download: 'ダウンロード',
+    docs: 'ドキュメント',
     feedback: 'フィードバック',
     releases: 'リリース',
     license: 'AGPL-3.0',

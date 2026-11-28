@@ -13,6 +13,7 @@ export const de: Copy = {
     features: 'Funktionen',
     privacy: 'Datenschutz',
     download: 'Download',
+    docs: 'Doku',
     feedback: 'Feedback',
     github: 'GitHub',
     languageLabel: 'Sprache',
@@ -32,9 +33,9 @@ export const de: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: 'Lokale Erkennung ohne OCR',
+        title: 'Schnelle, sparsame ANE-/GPU-Erkennung',
         description:
-          'Mitgelieferte FP16 ONNX / LiteRT-Gewichte erkennen 18 Klassen sensibler Daten in UI-Screenshots plus Gesichtserkennung via YuNet — ganz ohne Texterkennung oder externe Modell-Downloads.',
+          'Mitgelieferte leichte FP16-Gewichte laufen auf der Apple Neural Engine (ANE / NPU via CoreML) und der Android-Mobil-GPU (LiteRT) für millisekundenschnelle, akkuschonende Inferenz — 18 Klassen sensibler Daten plus YuNet-Gesichter direkt ohne OCR oder Wörterbuch-/Regex-Abgleich.',
       },
       {
         tag: '5 Stile',
@@ -166,6 +167,7 @@ export const de: Copy = {
     features: 'Funktionen',
     privacy: 'Datenschutz',
     download: 'Download',
+    docs: 'Doku',
     feedback: 'Feedback',
     releases: 'Releases',
     license: 'AGPL-3.0',

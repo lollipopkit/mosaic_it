@@ -13,6 +13,7 @@ export const ko: Copy = {
     features: '기능',
     privacy: '개인정보 보호',
     download: '다운로드',
+    docs: '문서',
     feedback: '피드백',
     github: 'GitHub',
     languageLabel: '언어',
@@ -32,9 +33,9 @@ export const ko: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: 'OCR 없는 온디바이스 감지',
+        title: 'ANE / GPU 저전력 고속 감지',
         description:
-          '내장된 FP16 ONNX / LiteRT 가중치로 UI 스크린샷의 18가지 개인정보 유형과 YuNet 얼굴 감지를 수행합니다. 문자 인식이나 외부 모델 다운로드가 필요 없습니다.',
+          '내장된 경량 FP16 가중치가 Apple Neural Engine(ANE / NPU, CoreML)과 Android 모바일 GPU(LiteRT)에서 실행되어 배터리 소모가 적고 밀리초 단위로 빠르게 동작합니다. OCR이나 사전·정규식 매칭 없이 18개 개인정보 유형과 YuNet 얼굴을 직접 감지합니다.',
       },
       {
         tag: '5가지 스타일',
@@ -166,6 +167,7 @@ export const ko: Copy = {
     features: '기능',
     privacy: '개인정보 보호',
     download: '다운로드',
+    docs: '문서',
     feedback: '피드백',
     releases: '릴리스',
     license: 'AGPL-3.0',

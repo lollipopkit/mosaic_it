@@ -13,6 +13,7 @@ export const ru: Copy = {
     features: 'Возможности',
     privacy: 'Приватность',
     download: 'Скачать',
+    docs: 'Документация',
     feedback: 'Отзыв',
     github: 'GitHub',
     languageLabel: 'Язык',
@@ -32,9 +33,9 @@ export const ru: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: 'Локальное распознавание без OCR',
+        title: 'Быстрое и энергоэффективное распознавание на ANE / GPU',
         description:
-          'Встроенные веса FP16 ONNX / LiteRT определяют 18 классов персональных данных на скриншотах интерфейса вместе с обнаружением лиц через YuNet — без распознавания текста и загрузки внешних моделей.',
+          'Встроенные лёгкие веса FP16 работают на Apple Neural Engine (ANE / NPU через CoreML) и мобильном GPU Android (LiteRT), обеспечивая миллисекундный и экономичный инференс: 18 классов персональных данных и лица YuNet определяются напрямую без OCR, словарей и регулярных выражений.',
       },
       {
         tag: '5 стилей',
@@ -166,6 +167,7 @@ export const ru: Copy = {
     features: 'Возможности',
     privacy: 'Приватность',
     download: 'Скачать',
+    docs: 'Документация',
     feedback: 'Отзыв',
     releases: 'Релизы',
     license: 'AGPL-3.0',

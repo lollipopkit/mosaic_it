@@ -10,6 +10,8 @@
     persistLocale,
     type Locale,
   } from './i18n';
+  import DocsPage from './DocsPage.svelte';
+  import { docHref, getDocsBundle, parseDocSlug, type DocSlug } from './docs';
 
   type PlatformId = 'ios' | 'macos' | 'android' | 'linux' | 'windows';
   type DeviceKey = 'iphone' | 'iphone-duo';
@@ -98,6 +100,9 @@
   }
 
   let locale = $state<Locale>(detectInitialLocale());
+  let activeDocSlug = $state<DocSlug | null>(
+    typeof window !== 'undefined' ? parseDocSlug(window.location.pathname) : null,
+  );
   let copied = $state(false);
   const currentPlatform = detectPlatform();
 
@@ -119,6 +124,7 @@
   let deviceSwitchSeq = 0;
 
   let copy = $derived(TRANSLATIONS[locale]);
+  let docsBundle = $derived(getDocsBundle(locale));
   let shotLocale = $derived(locale === 'zh-CN' ? 'zh' : 'en');
   let isWideDevice = $derived(activeDevice === 'iphone-duo');
 
@@ -306,11 +312,73 @@
     return [currentPlatform, ...base.filter((p) => p !== currentPlatform)];
   });
 
+  function navigateToDocs(slug: DocSlug = 'quick-start') {
+    activeDocSlug = slug;
+    if (typeof window !== 'undefined') {
+      const target = docHref(slug);
+      if (`${window.location.pathname}${window.location.hash}` !== target) {
+        window.history.pushState({}, '', target);
+      }
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }
+
+  async function navigateHome(hash?: string) {
+    const wasDocs = activeDocSlug !== null;
+    activeDocSlug = null;
+    if (typeof window !== 'undefined') {
+      const target = hash ? `/${hash}` : '/';
+      if (`${window.location.pathname}${window.location.hash}` !== target) {
+        window.history.pushState({}, '', target);
+      }
+      await tick();
+      if (hash) {
+        const el = document.querySelector(hash);
+        if (el) {
+          el.scrollIntoView({ behavior: scrollBehavior() });
+          return;
+        }
+      }
+      window.scrollTo({ top: 0, behavior: wasDocs ? 'instant' : scrollBehavior() });
+    }
+  }
+
+  function handleInternalLink(event: MouseEvent, action: () => void) {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    action();
+  }
+
+  $effect(() => {
+    const onPopState = async () => {
+      const nextSlug = parseDocSlug(window.location.pathname);
+      activeDocSlug = nextSlug;
+      await tick();
+      if (nextSlug !== null) {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      } else if (window.location.hash) {
+        const el = document.querySelector(window.location.hash);
+        if (el) {
+          el.scrollIntoView({ behavior: 'instant' });
+        }
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  });
+
   $effect(() => {
     const c = copy;
     document.documentElement.lang = c.meta.lang;
     document.documentElement.dir = c.meta.dir;
-    document.title = c.meta.title;
+    if (activeDocSlug) {
+      const page = docsBundle.pages.find((p) => p.slug === activeDocSlug);
+      document.title = page ? `${page.title} · ${docsBundle.pageTitle}` : docsBundle.pageTitle;
+    } else {
+      document.title = c.meta.title;
+    }
     const desc = document.querySelector('meta[name="description"]');
     if (desc) desc.setAttribute('content', c.meta.description);
     persistLocale(locale);
@@ -332,15 +400,29 @@
 </script>
 
 <header class="site-nav" use:syncNavOffset>
-  <a class="brand" href="#top">
+  <a class="brand" href="/" onclick={(e) => handleInternalLink(e, () => navigateHome())}>
     <img src="/app_icon.png" alt="" width="28" height="28" />
     <span>MosaicIt</span>
   </a>
 
   <nav aria-label="Primary">
-    <a href="#features">{copy.nav.features}</a>
-    <a href="#privacy">{copy.nav.privacy}</a>
-    <a href="#download">{copy.nav.download}</a>
+    <a href="/#features" onclick={(e) => handleInternalLink(e, () => navigateHome('#features'))}>
+      {copy.nav.features}
+    </a>
+    <a href="/#privacy" onclick={(e) => handleInternalLink(e, () => navigateHome('#privacy'))}>
+      {copy.nav.privacy}
+    </a>
+    <a href="/#download" onclick={(e) => handleInternalLink(e, () => navigateHome('#download'))}>
+      {copy.nav.download}
+    </a>
+    <a
+      href="/docs"
+      class:active={activeDocSlug !== null}
+      aria-current={activeDocSlug !== null ? 'page' : undefined}
+      onclick={(e) => handleInternalLink(e, () => navigateToDocs('quick-start'))}
+    >
+      {copy.nav.docs}
+    </a>
     <a href={FEEDBACK_URL}>{copy.nav.feedback}</a>
     <a href={REPO_URL} target="_blank" rel="noopener noreferrer">{copy.nav.github}</a>
   </nav>
@@ -354,11 +436,21 @@
         {/each}
       </select>
     </label>
-    <a class="nav-cta" href="#download">{copy.nav.cta}</a>
+    <a class="nav-cta" href="/#download" onclick={(e) => handleInternalLink(e, () => navigateHome('#download'))}>
+      {copy.nav.cta}
+    </a>
   </div>
 </header>
 
 <main id="top">
+{#if activeDocSlug !== null}
+  <DocsPage
+    bundle={docsBundle}
+    activeSlug={activeDocSlug}
+    onSelectSlug={navigateToDocs}
+    onGoHome={() => navigateHome()}
+  />
+{:else}
   <section class="hero">
     <div class="hero-copy">
       <h1>
@@ -661,14 +753,24 @@
       {/each}
     </div>
   </section>
+{/if}
 </main>
 
 <footer class="site-footer">
   <span>© 2026 lollipopkit</span>
   <div class="footer-links">
-    <a href="#features">{copy.footer.features}</a>
-    <a href="#privacy">{copy.footer.privacy}</a>
-    <a href="#download">{copy.footer.download}</a>
+    <a href="/#features" onclick={(e) => handleInternalLink(e, () => navigateHome('#features'))}>
+      {copy.footer.features}
+    </a>
+    <a href="/#privacy" onclick={(e) => handleInternalLink(e, () => navigateHome('#privacy'))}>
+      {copy.footer.privacy}
+    </a>
+    <a href="/#download" onclick={(e) => handleInternalLink(e, () => navigateHome('#download'))}>
+      {copy.footer.download}
+    </a>
+    <a href="/docs" onclick={(e) => handleInternalLink(e, () => navigateToDocs('quick-start'))}>
+      {copy.footer.docs}
+    </a>
     <a href={FEEDBACK_URL}>{copy.footer.feedback}</a>
     <a href={REPO_URL} target="_blank" rel="noopener noreferrer">GitHub</a>
     <a href={RELEASES_URL} target="_blank" rel="noopener noreferrer">{copy.footer.releases}</a>

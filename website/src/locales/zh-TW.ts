@@ -13,6 +13,7 @@ export const zhTW: Copy = {
     features: '功能',
     privacy: '隱私',
     download: '下載',
+    docs: '文件',
     feedback: '偵測回饋',
     github: 'GitHub',
     languageLabel: '語言',
@@ -32,9 +33,9 @@ export const zhTW: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: '免 OCR 本機偵測',
+        title: 'ANE / GPU 低功耗高速偵測',
         description:
-          '內建 FP16 ONNX / LiteRT 權重，直接定位 18 類截圖隱私資訊並結合 YuNet 偵測人臉，無需辨識文字，也無需連網下載模型。',
+          '內建輕量 FP16 視覺模型，在 Apple 端執行於神經網路引擎（ANE / NPU，CoreML）、在 Android 端執行於行動端 GPU（LiteRT），毫秒級回應且省電；直接偵測 18 類隱私區域與 YuNet 人臉，無需 OCR 或傳統詞庫與正規表示式比對。',
       },
       {
         tag: '5 種遮蔽樣式',
@@ -157,6 +158,7 @@ export const zhTW: Copy = {
     features: '功能',
     privacy: '隱私',
     download: '下載',
+    docs: '文件',
     feedback: '偵測回饋',
     releases: '版本發布',
     license: 'AGPL-3.0',

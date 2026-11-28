@@ -13,6 +13,7 @@ export const nl: Copy = {
     features: 'Functies',
     privacy: 'Privacy',
     download: 'Downloaden',
+    docs: 'Docs',
     feedback: 'Feedback',
     github: 'GitHub',
     languageLabel: 'Taal',
@@ -32,9 +33,9 @@ export const nl: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: 'Lokale detectie zonder OCR',
+        title: 'Snelle, energiezuinige ANE-/GPU-detectie',
         description:
-          'Meegeleverde FP16 ONNX / LiteRT-gewichten herkennen 18 klassen persoonsgegevens in UI-screenshots plus gezichtsdetectie via YuNet — zonder tekstherkenning of externe modeldownloads.',
+          'Meegeleverde lichte FP16-gewichten draaien op de Apple Neural Engine (ANE / NPU via CoreML) en mobiele Android-GPU (LiteRT) voor energiezuinige detectie in milliseconden: 18 klassen persoonsgegevens plus YuNet-gezichten zonder OCR of woordenlijst-/regex-matching.',
       },
       {
         tag: '5 stijlen',
@@ -166,6 +167,7 @@ export const nl: Copy = {
     features: 'Functies',
     privacy: 'Privacy',
     download: 'Downloaden',
+    docs: 'Docs',
     feedback: 'Feedback',
     releases: 'Releases',
     license: 'AGPL-3.0',
