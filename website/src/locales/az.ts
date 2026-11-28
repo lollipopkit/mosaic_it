@@ -32,9 +32,9 @@ export const az: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: 'OCR Olmadan Cihazda Aşkarlama',
+        title: 'ANE / GPU-da Sürətli və Enerjiyə Qənaətli Aşkarlama',
         description:
-          'Daxili FP16 ONNX / LiteRT çəkiləri interfeys ekran görüntülərində 18 şəxsi məlumat sinfini və YuNet ilə üzləri aşkar edir — mətn tanıma və ya kənar model yükləməsi olmadan.',
+          'Daxili yüngül FP16 çəkiləri Apple Neural Engine (CoreML ilə ANE / NPU) və Android mobil GPU (LiteRT) üzərində işləyərək az enerji sərfiyyatı ilə millisaniyəlik sürət verir — OCR və ya lüğət/regex uyğunlaşdırması olmadan 18 şəxsi məlumat sinfini və YuNet üzlərini birbaşa aşkar edir.',
       },
       {
         tag: '5 üslub',

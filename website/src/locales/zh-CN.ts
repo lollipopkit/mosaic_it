@@ -32,9 +32,9 @@ export const zhCN: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: '免 OCR 本地检测',
+        title: 'ANE / GPU 低功耗高速检测',
         description:
-          '内置 FP16 ONNX / LiteRT 权重，直接定位 18 类截图隐私信息并结合 YuNet 检测人脸，无需识别文字内容，也无需联网下载模型。',
+          '内置轻量 FP16 视觉模型，在 Apple 端运行于神经网络引擎（ANE / NPU，CoreML）、在 Android 端运行于移动端 GPU（LiteRT），毫秒级响应且省电；直接识别 18 类隐私区域与 YuNet 人脸，不依赖 OCR 或传统词库与正则匹配。',
       },
       {
         tag: '5 种遮挡样式',

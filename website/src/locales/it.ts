@@ -32,9 +32,9 @@ export const it: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: 'Rilevamento locale senza OCR',
+        title: 'Rilevamento rapido a basso consumo su ANE / GPU',
         description:
-          'I pesi integrati FP16 ONNX / LiteRT rilevano 18 classi di dati sensibili negli screenshot dell’interfaccia più il rilevamento volti con YuNet — senza riconoscimento del testo né download di modelli esterni.',
+          'I pesi FP16 leggeri integrati girano su Apple Neural Engine (ANE / NPU tramite CoreML) e sulla GPU mobile Android (LiteRT) per inferenza in millisecondi a basso consumo: rilevano 18 classi di dati sensibili e volti YuNet direttamente senza OCR, dizionari né regex.',
       },
       {
         tag: '5 stili',

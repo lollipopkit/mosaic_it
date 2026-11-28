@@ -32,9 +32,9 @@ export const fr: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: 'Détection locale sans OCR',
+        title: 'Détection rapide et sobre sur ANE / GPU',
         description:
-          'Les poids FP16 ONNX / LiteRT intégrés détectent 18 classes de données personnelles dans les captures d’écran ainsi que les visages via YuNet — sans reconnaissance de texte ni téléchargement externe.',
+          'Les poids FP16 légers intégrés s’exécutent sur l’Apple Neural Engine (ANE / NPU via CoreML) et le GPU mobile Android (LiteRT) pour une inférence en quelques millisecondes, économe en batterie : 18 classes de données personnelles et visages YuNet détectés sans OCR, dictionnaires ni regex.',
       },
       {
         tag: '5 styles',

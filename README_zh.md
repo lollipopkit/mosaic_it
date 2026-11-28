@@ -20,7 +20,7 @@
 
 ## 简介
 
-MosaicIt 在设备本地直接定位截图与照片中的敏感隐私区域——不执行 OCR 文字识别——并允许在导出前按需核对、增删和调整遮挡框。
+MosaicIt 在设备本地直接定位截图与照片中的敏感隐私区域——内置轻量视觉神经网络检测器，在 Apple 端运行于神经网络引擎（ANE / NPU，CoreML）、在 Android 端运行于移动端 GPU（LiteRT），实现毫秒级低功耗省电推理，不依赖 OCR 或传统词库与正则匹配——并允许在导出前按需核对、增删和调整遮挡框。
 
 应用内置 `unseen-det 0.6.0` 检测权重，不包含任何联网代码或网络权限，所有图片均不会离开你的设备。
 
@@ -39,9 +39,10 @@ MosaicIt 在设备本地直接定位截图与照片中的敏感隐私区域—�
 
 ## 核心功能
 
-**免 OCR 本地检测**
+**ANE / GPU 硬件加速，低功耗高效检测**
 
-- 内置 `unseen-det 0.6.0`（macOS / iOS / Linux / Windows 运行 FP16 ONNX，Android 运行 FP16 LiteRT），直接检测 UI 截图中的 **18 类隐私信息**，并配合 YuNet 检测 **人脸**（共 19 类）：
+- 内置轻量 FP16 模型 `unseen-det 0.6.0`：在 macOS / iOS 上经 CoreML 运行于 **ANE（Apple 神经网络引擎 / NPU）**，在 Android 上经 LiteRT 运行于 **移动端 GPU（不支持时回退 XNNPACK CPU）**，在 Linux / Windows 上运行于 **ONNX Runtime**，兼顾毫秒级检测速度与低功耗省电表现。
+- 直接从图像像素定位 UI 截图中的 **18 类隐私信息**（无需 OCR，不依赖传统词库或正则匹配），并配合 YuNet 检测 **人脸**（共 19 类）：
   `person_name`、`address`、`phone`、`email`、`id_number`、`bank_card`、`plate`、`account_id`、`avatar`、`qr`、`barcode`、`finance`、`organization`、`device_id`、`secret`、`person`、`health`、`personal_info`、`face`。
 - 本地自适应偏好学习会根据你的勾选/取消记录微调预选阈值；也支持在设置中手动导入自定义 `.onnx` / `.tflite` 模型。
 

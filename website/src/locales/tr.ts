@@ -32,9 +32,9 @@ export const tr: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: 'OCR Olmadan Cihaz Üzerinde Algılama',
+        title: 'ANE / GPU Üzerinde Hızlı ve Düşük Güçlü Algılama',
         description:
-          'Uygulamaya gömülü FP16 ONNX / LiteRT ağırlıkları, arayüz ekran görüntülerinde 18 kişisel veri sınıfını ve YuNet ile yüzleri algılar — metin tanıma veya harici model indirme gerektirmez.',
+          'Uygulamaya gömülü hafif FP16 ağırlıkları, Apple Neural Engine (CoreML ile ANE / NPU) ve Android mobil GPU (LiteRT) üzerinde çalışarak pil dostu ve milisaniye düzeyinde çıkarım sağlar; OCR veya sözlük/regex eşleştirmesi olmadan 18 kişisel veri sınıfını ve YuNet yüzlerini doğrudan algılar.',
       },
       {
         tag: '5 Stil',

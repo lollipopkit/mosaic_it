@@ -32,9 +32,9 @@ export const en: Copy = {
     cards: [
       {
         tag: 'unseen-det 0.6.0',
-        title: 'On-Device Detection Without OCR',
+        title: 'Fast, Low-Power ANE / GPU Detection',
         description:
-          'Bundled FP16 ONNX / LiteRT weights detect 18 PII classes across UI screenshots plus YuNet face detection—no text recognition or external model downloads.',
+          'Bundled compact FP16 weights run on Apple Neural Engine (ANE / NPU via CoreML) and Android mobile GPU (LiteRT) for millisecond, battery-friendly inference—detecting 18 PII classes plus YuNet faces directly without OCR or dictionary/regex matching.',
       },
       {
         tag: '5 Styles',
