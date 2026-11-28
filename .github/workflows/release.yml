@@ -411,7 +411,9 @@ jobs:
     name: Build iOS app unsigned (arm64)
     if: needs.check.outputs.isRelease == 'true' || contains(needs.check.outputs.selected, ',ios,')
     needs: check
-    runs-on: macos-latest
+    # TODO: switch back to macos-latest once it ships Xcode 27.1+ SDK
+    # (fl_lib uses iOS 27.1 UIView.LayoutRegion.bar).
+    runs-on: xcode-27
     timeout-minutes: 45
     permissions:
       contents: read
