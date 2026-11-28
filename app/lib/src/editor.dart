@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:material_ui/material_ui.dart';
@@ -144,7 +145,9 @@ class _Draw extends _Grab {
 
 class _BoxEditorState extends State<BoxEditor> {
   final _view = TransformationController();
-  Size? _fittedFor;
+
+  /// Image size, viewport and padding the view was last fitted for.
+  (Size, Size, EdgeInsets)? _fittedFor;
   double _fitScale = 1;
 
   _Grab? _grab;
@@ -165,6 +168,7 @@ class _BoxEditorState extends State<BoxEditor> {
 
   /// Screen pixels around a handle that still grab it.
   static const _handleReach = 22.0;
+  static const _minScale = 0.05, _maxScale = 16.0;
 
   @override
   void initState() {
@@ -193,7 +197,7 @@ class _BoxEditorState extends State<BoxEditor> {
   }
 
   void _changed() {
-    if (_fittedFor != _size) _fittedFor = null;
+    if (_fittedFor?.$1 != _size) _fittedFor = null;
     setState(() {});
   }
 
@@ -255,18 +259,39 @@ class _BoxEditorState extends State<BoxEditor> {
 
   // --- geometry -----------------------------------------------------------
 
+  /// Fits the image into [viewport]. When only the viewport or padding
+  /// changed (rotation, fold, a bar appearing), the zoom relative to the fit
+  /// and the image point at the centre are kept.
   void _fit(Size viewport) {
-    if (_fittedFor == _size) return;
-    _fittedFor = _size;
     final pad = widget.fitPadding;
-    final area = pad.deflateSize(viewport);
-    final s = (area.width / _size.width).clamp(0.0, area.height / _size.height);
-    final dx = pad.left + (area.width - _size.width * s) / 2;
-    final dy = pad.top + (area.height - _size.height * s) / 2;
-    _fitScale = s;
+    final key = (_size, viewport, pad);
+    if (_fittedFor == key) return;
+    Size deflate(Size v, EdgeInsets p) => Size(
+      math.max(0.0, v.width - p.horizontal),
+      math.max(0.0, v.height - p.vertical),
+    );
+    Offset centre(Size v, EdgeInsets p) =>
+        Offset(p.left, p.top) + deflate(v, p).center(Offset.zero);
+    final area = deflate(viewport, pad);
+    final fit = math.min(area.width / _size.width, area.height / _size.height);
+    if (!fit.isFinite || fit <= 0) return;
+    final clampedFit = fit.clamp(_minScale, _maxScale);
+    final old = _fittedFor;
+    _fittedFor = key;
+    var zoom = clampedFit;
+    var focus = _size.center(Offset.zero);
+    if (old != null && old.$1 == _size) {
+      zoom = (_zoom / _fitScale * clampedFit).clamp(_minScale, _maxScale);
+      focus = MatrixUtils.transformPoint(
+        Matrix4.inverted(_view.value),
+        centre(old.$2, old.$3),
+      );
+    }
+    _fitScale = clampedFit;
+    final t = centre(viewport, pad) - focus * zoom;
     _view.value = Matrix4.identity()
-      ..translateByDouble(dx, dy, 0, 1)
-      ..scaleByDouble(s, s, s, 1);
+      ..translateByDouble(t.dx, t.dy, 0, 1)
+      ..scaleByDouble(zoom, zoom, zoom, 1);
   }
 
   static double _area(Rect r) => r.width * r.height;
@@ -476,8 +501,8 @@ class _BoxEditorState extends State<BoxEditor> {
           transformationController: _view,
           constrained: false,
           boundaryMargin: const EdgeInsets.all(double.infinity),
-          minScale: 0.05,
-          maxScale: 16,
+          minScale: _minScale,
+          maxScale: _maxScale,
           // The viewer pans only with two fingers; one-finger panning is
           // in [_move].
           panEnabled: _multi,

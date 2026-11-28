@@ -9,6 +9,7 @@ export const de: Copy = {
       'Private Angaben in Screenshots und Fotos vollständig offline erkennen und unkenntlich machen. Ohne OCR, ohne Netzwerkanfragen und ohne Lesezugriff auf die Fotomediathek.',
   },
   nav: {
+    screenshots: 'Screenshots',
     features: 'Funktionen',
     privacy: 'Datenschutz',
     download: 'Download',

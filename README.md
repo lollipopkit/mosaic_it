@@ -12,6 +12,12 @@ English | [简体中文](README_zh.md)
   </p>
 </div>
 
+<p align="center">
+  <img src="website/public/screenshots/en/iphone18pro-1-chat.webp" height="400" alt="" />
+  <img src="website/public/screenshots/en/iphone18pro-4-fill.webp" height="400" alt="" />
+  <img src="website/public/screenshots/en/iphoneduo-inner-landscape-1-chat.webp" height="400" alt="" />
+</p>
+
 ## Overview
 
 MosaicIt detects private information directly in screenshots and photos on device — without running OCR — and lets you inspect, adjust, and redact regions before exporting.

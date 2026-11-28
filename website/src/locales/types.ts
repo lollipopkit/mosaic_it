@@ -27,6 +27,7 @@ export interface Copy {
     description: string;
   };
   nav: {
+    screenshots: string;
     features: string;
     privacy: string;
     download: string;

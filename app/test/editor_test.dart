@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:fl_lib/fl_lib.dart' show ScreenEdge, SystemBars;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:unseen/l10n/app_localizations.dart';
@@ -17,6 +18,8 @@ class _FakeSession implements Session {
 }
 
 void main() {
+  tearDown(() => SystemBars.debugBars = const {});
+
   // A 1x1 PNG; the editor scales it to the declared image size, which equals
   // the 400x400 viewport, so image and screen coordinates coincide.
   final png =
@@ -137,6 +140,29 @@ void main() {
     expect(b.rect, const Rect.fromLTRB(100, 100, 200, 140));
   });
 
+  testWidgets('a resized viewport refits the image', (t) async {
+    final b = box(const Rect.fromLTRB(0, 0, 50, 50), selected: false);
+    final s = EditSession([
+      Shot(png, const Size(400, 400), [b]),
+    ]);
+    addTearDown(() => t.binding.setSurfaceSize(null));
+    await t.binding.setSurfaceSize(const Size(400, 400));
+    await t.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: BoxEditor(session: s, drawing: false),
+      ),
+    );
+    // Unfolded or rotated: the image is centred in the wider screen.
+    await t.binding.setSurfaceSize(const Size(800, 400));
+    await t.pump();
+    await t.tapAt(const Offset(25, 25));
+    expect(b.selected, isFalse);
+    await t.tapAt(const Offset(225, 25));
+    expect(b.selected, isTrue);
+  });
+
   testWidgets('one finger on empty space pans the view', (t) async {
     final b = box(const Rect.fromLTRB(100, 100, 150, 150), selected: false);
     await pump(t, [b]);
@@ -250,6 +276,238 @@ void main() {
     expect(s.canRedo, isTrue);
     s.record();
     expect(s.canRedo, isFalse);
+  });
+
+  Future<void> pumpWide(
+    WidgetTester t,
+    EdgeInsets padding, {
+    Size size = const Size(900, 420),
+  }) async {
+    const info = ModelInfo(
+      classes: ['phone'],
+      backend: 'CPU',
+      selectThresholds: {'phone': 0.5},
+      verified: false,
+    );
+    await t.binding.setSurfaceSize(size);
+    addTearDown(() => t.binding.setSurfaceSize(null));
+    await t.pumpWidget(
+      MediaQuery(
+        data: MediaQueryData(size: size, padding: padding),
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: EditorPage(
+            shots: [
+              for (var i = 0; i < 3; i++)
+                Shot(png, const Size(400, 800), [
+                  box(const Rect.fromLTRB(10, 10, 100, 60)),
+                ]),
+            ],
+            settings: AppSettings(fillStyle: FillStyle.solid, fillColor: 0),
+            model: _FakeSession(),
+            info: info,
+          ),
+        ),
+      ),
+    );
+    await t.pump();
+    expect(t.takeException(), isNull);
+  }
+
+  testWidgets(
+    'a view wider than tall puts the bars and strip beside the image',
+    (t) async {
+      await pumpWide(t, const EdgeInsets.symmetric(horizontal: 40));
+      final add = t.getCenter(find.byIcon(Icons.add_photo_alternate_outlined));
+      final export = t.getCenter(find.byIcon(Icons.ios_share));
+      final draw = t.getCenter(find.byIcon(Icons.highlight_alt));
+      final feedback = t.getCenter(find.byIcon(Icons.flag_outlined));
+      final strip = t.getRect(find.byType(BatchStrip));
+      // Actions run down the left edge, tools down the right one, both clear
+      // of the insets.
+      expect(add.dx, inInclusiveRange(40, 100));
+      expect(add.dy, lessThan(100));
+      expect(export.dx, add.dx);
+      expect(export.dy, greaterThan(210));
+      expect(draw.dx, inInclusiveRange(800, 860));
+      expect(feedback.dx, draw.dx);
+      expect(feedback.dy, greaterThan(draw.dy));
+      // The batch strip stands next to the actions.
+      expect(strip.left, greaterThanOrEqualTo(100));
+      expect(strip.height, greaterThan(strip.width));
+    },
+  );
+
+  testWidgets('a status bar column on one side takes the actions', (t) async {
+    SystemBars.debugBars = const {
+      ScreenEdge.left: Rect.fromLTRB(18, 12, 62, 408),
+      ScreenEdge.right: Rect.fromLTRB(833, 60, 877, 360),
+      ScreenEdge.top: Rect.fromLTRB(12, 8, 798, 52),
+      ScreenEdge.bottom: Rect.fromLTRB(8, 364, 802, 408),
+    };
+    await pumpWide(t, const EdgeInsets.only(right: 90));
+    final add = t.getCenter(find.byIcon(Icons.add_photo_alternate_outlined));
+    final export = t.getCenter(find.byIcon(Icons.ios_share));
+    final draw = t.getCenter(find.byIcon(Icons.highlight_alt));
+    final strip = t.getRect(find.byType(BatchStrip));
+    // Inside the column, in its middle, clear of what sits at its ends.
+    expect(add.dx, greaterThan(810));
+    expect((add.dy + export.dy) / 2, moreOrLessEquals(210, epsilon: 2));
+    expect(export.dx, add.dx);
+    expect(draw.dx, lessThan(90));
+    // The strip stands just inside the actions.
+    expect(strip.right, lessThanOrEqualTo(add.dx - 22));
+  });
+
+  testWidgets('upright, the actions run down a status bar column', (t) async {
+    SystemBars.debugBars = const {
+      ScreenEdge.left: Rect.fromLTRB(18, 12, 62, 666),
+      ScreenEdge.right: Rect.fromLTRB(399, 60, 443, 618),
+      ScreenEdge.top: Rect.fromLTRB(12, 8, 364, 52),
+      ScreenEdge.bottom: Rect.fromLTRB(8, 622, 368, 666),
+    };
+    await pumpWide(
+      t,
+      const EdgeInsets.only(right: 90),
+      size: const Size(466, 678),
+    );
+    final add = t.getCenter(find.byIcon(Icons.add_photo_alternate_outlined));
+    final export = t.getCenter(find.byIcon(Icons.ios_share));
+    final draw = t.getCenter(find.byIcon(Icons.highlight_alt));
+    final regions = t.getCenter(find.byIcon(Icons.tune));
+    expect(add.dx, greaterThan(376));
+    expect(export.dx, add.dx);
+    expect(export.dy, greaterThan(add.dy));
+    // The tools and the strip along the bottom stay out of the column.
+    expect(find.byType(BatchStrip), findsOneWidget);
+    expect(t.getRect(find.byType(BatchStrip)).right, lessThanOrEqualTo(376));
+    expect(draw.dx, lessThan(376));
+    expect(regions.dx, lessThan(376));
+  });
+
+  testWidgets(
+    'uneven side insets without SystemBars do not enter a status bar column',
+    (t) async {
+      // Android 3-button nav bar on the right in landscape: no SystemBars.
+      await pumpWide(t, const EdgeInsets.only(right: 60));
+      final add = t.getCenter(find.byIcon(Icons.add_photo_alternate_outlined));
+      final draw = t.getCenter(find.byIcon(Icons.highlight_alt));
+      expect(add.dx, lessThan(100));
+      expect(draw.dx, lessThan(900 - 60));
+
+      // Portrait with uneven side inset also keeps actions horizontal at top.
+      await pumpWide(
+        t,
+        const EdgeInsets.only(right: 60),
+        size: const Size(466, 678),
+      );
+      final addP = t.getCenter(find.byIcon(Icons.add_photo_alternate_outlined));
+      final exportP = t.getCenter(find.byIcon(Icons.ios_share));
+      expect(addP.dy, moreOrLessEquals(exportP.dy, epsilon: 2));
+      expect(exportP.dx, lessThan(466 - 60));
+    },
+  );
+
+  testWidgets('wide toolbar fits a short 900x340 viewport without overflow', (
+    t,
+  ) async {
+    await pumpWide(
+      t,
+      const EdgeInsets.fromLTRB(40, 0, 40, 21),
+      size: const Size(900, 340),
+    );
+    final fill = t.getRect(find.byTooltip('Fill style'));
+    final draw = t.getRect(find.byIcon(Icons.highlight_alt));
+    final feedback = t.getRect(find.byIcon(Icons.flag_outlined));
+    final regions = t.getRect(find.byIcon(Icons.tune));
+    expect(fill.top, greaterThanOrEqualTo(0));
+    expect(draw.top, greaterThanOrEqualTo(fill.bottom));
+    expect(feedback.top, greaterThan(draw.bottom));
+    expect(regions.bottom, lessThanOrEqualTo(340));
+  });
+
+  testWidgets(
+    'stale SystemBars on rotation transition and tiny viewports do not throw',
+    (t) async {
+      // Stale portrait Duo bars arriving on a landscape frame must be ignored.
+      SystemBars.debugBars = const {
+        ScreenEdge.right: Rect.fromLTRB(399, 60, 443, 618),
+        ScreenEdge.bottom: Rect.fromLTRB(8, 622, 368, 666),
+      };
+      await pumpWide(
+        t,
+        const EdgeInsets.only(right: 90),
+        size: const Size(678, 466),
+      );
+      // Tiny viewport with large insets must not produce negative dimensions.
+      SystemBars.debugBars = const {};
+      await pumpWide(t, const EdgeInsets.all(60), size: const Size(80, 80));
+    },
+  );
+
+  testWidgets('ToolButton scales cleanly under 1.5x text scale', (t) async {
+    const info = ModelInfo(
+      classes: ['phone'],
+      backend: 'CPU',
+      selectThresholds: {'phone': 0.5},
+      verified: false,
+    );
+    await t.binding.setSurfaceSize(const Size(360, 640));
+    addTearDown(() => t.binding.setSurfaceSize(null));
+    await t.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(
+          size: Size(360, 640),
+          textScaler: TextScaler.linear(1.5),
+        ),
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: EditorPage(
+            shots: [
+              Shot(png, const Size(400, 400), [
+                box(const Rect.fromLTRB(10, 10, 100, 60)),
+              ]),
+            ],
+            settings: AppSettings(fillStyle: FillStyle.solid, fillColor: 0),
+            model: _FakeSession(),
+            info: info,
+          ),
+        ),
+      ),
+    );
+    await t.pump();
+    expect(t.takeException(), isNull);
+  });
+
+  testWidgets('fill sheet fits a short landscape viewport without overflow', (
+    t,
+  ) async {
+    await t.binding.setSurfaceSize(const Size(678, 466));
+    addTearDown(() => t.binding.setSurfaceSize(null));
+    await t.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(
+          size: Size(678, 466),
+          padding: EdgeInsets.only(right: 90),
+        ),
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: EditorPage(
+            shots: const [],
+            settings: AppSettings(fillStyle: FillStyle.solid, fillColor: 0),
+            model: _FakeSession(),
+          ),
+        ),
+      ),
+    );
+    await t.pump();
+    await t.tap(find.byTooltip('Fill style'));
+    await t.pumpAndSettle();
+    expect(t.takeException(), isNull);
+    expect(find.text('Noise'), findsOneWidget);
   });
 
   testWidgets(

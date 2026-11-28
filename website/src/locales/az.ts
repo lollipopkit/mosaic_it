@@ -9,6 +9,7 @@ export const az: Copy = {
       'Ekran görüntülərində və fotolarda şəxsi məlumatları tamamilə oflayn aşkar edin və gizlədin. OCR yoxdur, şəbəkə sorğusu yoxdur və foto qalereyasını oxuma icazəsi yoxdur.',
   },
   nav: {
+    screenshots: 'Ekran görüntüləri',
     features: 'İmkanlar',
     privacy: 'Məxfilik',
     download: 'Yüklə',

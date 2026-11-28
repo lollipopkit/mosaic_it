@@ -9,6 +9,7 @@ export const en: Copy = {
       'Detect and redact private information in screenshots and photos completely offline. No OCR, no network requests, and no photo-library read permissions.',
   },
   nav: {
+    screenshots: 'Screenshots',
     features: 'Features',
     privacy: 'Privacy',
     download: 'Download',

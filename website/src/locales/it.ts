@@ -9,6 +9,7 @@ export const it: Copy = {
       'Rileva e oscura i dati privati in screenshot e foto completamente offline. Nessun OCR, nessuna richiesta di rete e nessun permesso di lettura della libreria foto.',
   },
   nav: {
+    screenshots: 'Screenshot',
     features: 'Funzionalità',
     privacy: 'Privacy',
     download: 'Download',

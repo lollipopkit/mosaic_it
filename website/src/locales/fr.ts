@@ -9,6 +9,7 @@ export const fr: Copy = {
       'Détectez et masquez vos informations privées dans les captures d’écran et photos entièrement hors ligne. Sans OCR, sans requête réseau et sans accès en lecture à votre photothèque.',
   },
   nav: {
+    screenshots: 'Captures',
     features: 'Fonctionnalités',
     privacy: 'Confidentialité',
     download: 'Télécharger',

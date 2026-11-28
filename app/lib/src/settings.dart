@@ -473,17 +473,20 @@ Future<void> showFillSheet(
   VoidCallback onChanged,
 ) => showResizableSheet<void>(
   context,
+  restLimit: SheetScaffold.restLimit,
   builder: (context) => StatefulBuilder(
     builder: (context, setSheet) => SheetScaffold(
       title: Text(AppLocalizations.of(context).fillStyle),
       contentPadding: EdgeInsets.zero,
-      child: FillPicker(
-        settings: settings,
-        onChanged: () {
-          settings.save();
-          setSheet(() {});
-          onChanged();
-        },
+      child: SingleChildScrollView(
+        child: FillPicker(
+          settings: settings,
+          onChanged: () {
+            settings.save();
+            setSheet(() {});
+            onChanged();
+          },
+        ),
       ),
     ),
   ),

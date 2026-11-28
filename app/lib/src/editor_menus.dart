@@ -329,6 +329,7 @@ Future<CheckAction?> showCheckSheet(
   required bool canAdd,
 }) => showResizableSheet<CheckAction>(
   context,
+  restLimit: SheetScaffold.restLimit,
   builder: (context) {
     final l = AppLocalizations.of(context);
     String reason(CheckReason r) => switch (r) {
@@ -357,44 +358,46 @@ Future<CheckAction?> showCheckSheet(
           ),
         ],
       ],
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          for (final a in areas)
-            SizedBox(
-              width: 160,
-              child: CardX(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(
-                      height: 72,
-                      child: CustomPaint(
-                        painter: _CropPainter(image, patches, a),
+      child: SingleChildScrollView(
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final a in areas)
+              SizedBox(
+                width: 160,
+                child: CardX(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        height: 72,
+                        child: CustomPaint(
+                          painter: _CropPainter(image, patches, a),
+                        ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Row(
-                        children: [
-                          ClassDot(a.className),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              '${classLabel(l, a.className)} · ${reason(a.reason)}',
-                              maxLines: 2,
-                              style: Theme.of(context).textTheme.bodySmall,
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          children: [
+                            ClassDot(a.className),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                '${classLabel(l, a.className)} · ${reason(a.reason)}',
+                                maxLines: 2,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   },

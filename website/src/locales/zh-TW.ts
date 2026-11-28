@@ -9,6 +9,7 @@ export const zhTW: Copy = {
       '全程離線偵測並遮蔽截圖與照片中的隱私資訊。無需 OCR、不含網路請求程式碼，也不申請相簿讀取權限。',
   },
   nav: {
+    screenshots: '截圖',
     features: '功能',
     privacy: '隱私',
     download: '下載',
