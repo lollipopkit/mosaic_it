@@ -142,7 +142,8 @@ jobs:
           test "$pub_ver" = "1.0.${build_data}+${build_data}"
           test "$cargo_ver" = "1.0.${build_data}"
 
-          sudo apt-get update && sudo apt-get install -y desktop-file-utils appstream
+          sudo apt-get update && sudo apt-get install -y \
+            desktop-file-utils appstream pkg-config libgtk-3-dev libx11-dev libxi-dev
           desktop-file-validate app/linux/packaging/com.lollipopkit.unseen.desktop
 
           stage="$(mktemp -d)"
