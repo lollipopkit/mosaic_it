@@ -6,6 +6,7 @@
   <p>全程离线的本地隐私打码工具——免 OCR、零网络代码、零相册读取权限，专为截图与照片设计。</p>
   <p>
     <a href="https://mosaic.lollipopkit.com">官网</a> ·
+    <a href="https://mosaic.lollipopkit.com/docs">文档</a> ·
     <a href="https://github.com/lollipopkit/mosaic_it/releases">版本下载</a> ·
     <a href="https://mosaic.lollipopkit.com/feedback">检测反馈</a> ·
     <a href="LICENSE">AGPL-3.0</a>
@@ -144,6 +145,7 @@ cd worker/feedback && npm test
 
 ## 文档
 
+- [在线使用文档](https://mosaic.lollipopkit.com/docs) — 安装说明、编辑器指南、模型与硬件加速、CLI 用法与常见问题
 - [app/README.md](app/README.md) — Flutter 客户端配置与平台说明
 
 ## 贡献与开源协议

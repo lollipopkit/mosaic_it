@@ -29,6 +29,7 @@ export interface Copy {
     features: string;
     privacy: string;
     download: string;
+    docs: string;
     feedback: string;
     github: string;
     languageLabel: string;
@@ -91,6 +92,7 @@ export interface Copy {
     features: string;
     privacy: string;
     download: string;
+    docs: string;
     feedback: string;
     releases: string;
     license: string;

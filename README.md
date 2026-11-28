@@ -6,6 +6,7 @@ English | [简体中文](README_zh.md)
   <p>On-device privacy redaction for screenshots and photos — without OCR, network code, or photo-library read permissions.</p>
   <p>
     <a href="https://mosaic.lollipopkit.com">Website</a> ·
+    <a href="https://mosaic.lollipopkit.com/docs">Docs</a> ·
     <a href="https://github.com/lollipopkit/mosaic_it/releases">Releases</a> ·
     <a href="https://mosaic.lollipopkit.com/feedback">Detection Feedback</a> ·
     <a href="LICENSE">AGPL-3.0</a>
@@ -144,6 +145,7 @@ cd worker/feedback && npm test
 
 ## Documentation
 
+- [Online Documentation](https://mosaic.lollipopkit.com/docs) — installation, editor guide, models, CLI reference, and FAQ
 - [app/README.md](app/README.md) — Flutter app setup and platform notes
 
 ## Contributing & License
