@@ -29,8 +29,6 @@ export const fa: Copy = {
   },
   features: {
     title: 'طراحی‌شده برای پوشاندن سریع و قابل‌راستی‌آزمایی.',
-    subtitle:
-      'تصویری باز کنید، نواحی شناسایی‌شده را بررسی کنید، در صورت نیاز اصلاح کنید و ظرف چند ثانیه خروجی بگیرید.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -70,12 +68,9 @@ export const fa: Copy = {
       },
     ],
     classesTitle: '۱۹ دسته پشتیبانی‌شده',
-    classesNote: '۱۸ دسته از مدل داخلی unseen-det 0.5.0 به‌علاوه تشخیص چهره از طریق YuNet.',
   },
   privacy: {
     title: 'صفر شبکه. صفر دسترسی خواندن به گالری عکس.',
-    subtitle:
-      'هر ادعای حریم خصوصی در سطح ساخت برنامه و مجوزهای سیستم‌عامل اعمال می‌شود، نه صرفاً در متن سیاست‌نامه.',
     factors: [
       {
         tag: 'باینری آفلاین',
@@ -117,7 +112,6 @@ export const fa: Copy = {
   },
   download: {
     title: 'بومی برای موبایل و دسکتاپ.',
-    subtitle: 'نسخه‌های آماده در GitHub منتشر شده‌اند یا می‌توانید مستقیماً از کد منبع بسازید.',
     currentBadge: 'پلتفرم فعلی',
     releasesAction: 'انتشارهای GitHub',
     sourceAction: 'ساخت از کد منبع',
@@ -126,7 +120,7 @@ export const fa: Copy = {
     copy: 'کپی',
     copied: 'کپی شد',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · بدون مجوز در نسخه انتشار' },
       linux: { name: 'Linux', meta: 'برنامه دسکتاپ (tar.gz) و unseen CLI' },
@@ -135,15 +129,12 @@ export const fa: Copy = {
   },
   cta: {
     title: 'متن‌باز تحت مجوز AGPL-3.0.',
-    subtitle:
-      'کد را بررسی کنید، آخرین نسخه را دریافت کنید یا موارد جاافتاده را در صفحه بازخورد وب گزارش دهید.',
     feedbackAction: 'باز کردن بازخورد وب',
     releasesAction: 'انتشارهای GitHub',
     githubAction: 'مشاهده کد منبع',
   },
   more: {
     title: 'پروژه‌های دیگر از lollipopkit.',
-    subtitle: 'برنامه‌های بومی دیگر که با همین رویکرد مهندسی ساخته شده‌اند.',
     apps: [
       {
         title: 'ServerBox',

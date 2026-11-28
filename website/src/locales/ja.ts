@@ -29,7 +29,6 @@ export const ja: Copy = {
   },
   features: {
     title: '高速で検証可能なローカル遮蔽。',
-    subtitle: '画像を開いて検出領域を確認・調整し、そのままコピーまたは書き出せます。',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -66,11 +65,9 @@ export const ja: Copy = {
       },
     ],
     classesTitle: '19 クラスの検出対象',
-    classesNote: '同梱の unseen-det 0.5.0（18 クラス）と YuNet による顔検出（face）。',
   },
   privacy: {
     title: '通信コードゼロ。写真読み取り権限ゼロ。',
-    subtitle: 'プライバシー保証を規約ではなくビルド構成と OS 権限レベルで強制しています。',
     factors: [
       {
         tag: 'オフライン構成',
@@ -109,7 +106,6 @@ export const ja: Copy = {
   },
   download: {
     title: 'モバイルとデスクトップに対応。',
-    subtitle: 'GitHub Releases からビルド済みパッケージを入手するか、ソースからビルドできます。',
     currentBadge: '現在のプラットフォーム',
     releasesAction: 'GitHub Releases',
     sourceAction: 'ソースからビルド',
@@ -118,7 +114,7 @@ export const ja: Copy = {
     copy: 'コピー',
     copied: 'コピー済み',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · リリース権限ゼロ' },
       linux: { name: 'Linux', meta: 'デスクトップアプリ（tar.gz）・unseen CLI' },
@@ -127,14 +123,12 @@ export const ja: Copy = {
   },
   cta: {
     title: 'AGPL-3.0 オープンソース。',
-    subtitle: 'ソースコードの監査、最新版の入手、または Web フィードバックページからの検出報告が可能です。',
     feedbackAction: 'Web フィードバックを開く',
     releasesAction: 'GitHub Releases',
     githubAction: 'ソースを見る',
   },
   more: {
     title: 'lollipopkit の他のプロジェクト。',
-    subtitle: '同じ設計方針で作られたネイティブアプリ。',
     apps: [
       {
         title: 'ServerBox',

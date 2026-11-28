@@ -29,8 +29,6 @@ export const az: Copy = {
   },
   features: {
     title: 'Sürətli və yoxlanıla bilən gizlətmə üçün yaradılıb.',
-    subtitle:
-      'Şəkli açın, aşkar edilmiş sahələri yoxlayın, lazım gələrsə düzəliş edin və saniyələr içində ixrac edin.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -70,12 +68,9 @@ export const az: Copy = {
       },
     ],
     classesTitle: '19 dəstəklənən sinif',
-    classesNote: 'Daxili unseen-det 0.5.0 modelindən 18 sinif və YuNet ilə üz aşkarlama.',
   },
   privacy: {
     title: 'Sıfır şəbəkə. Sıfır foto qalereya oxuma girişi.',
-    subtitle:
-      'Hər bir məxfilik iddiası siyasət mətni ilə deyil, qurma və əməliyyat sistemi icazə sərhədləri ilə təmin olunur.',
     factors: [
       {
         tag: 'Oflayn Paket',
@@ -117,7 +112,6 @@ export const az: Copy = {
   },
   download: {
     title: 'Mobil və masaüstündə yerli tətbiq.',
-    subtitle: 'Hazır buraxılışlar GitHub üzərində dərc olunub və ya birbaşa mənbə koddan qura bilərsiniz.',
     currentBadge: 'Cari platforma',
     releasesAction: 'GitHub Buraxılışları',
     sourceAction: 'Mənbədən qur',
@@ -126,7 +120,7 @@ export const az: Copy = {
     copy: 'Kopyala',
     copied: 'Kopyalandı',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Buraxılışda sıfır icazə' },
       linux: { name: 'Linux', meta: 'Masaüstü tətbiqi (tar.gz) və unseen CLI' },
@@ -135,15 +129,12 @@ export const az: Copy = {
   },
   cta: {
     title: 'AGPL-3.0 altında açıq mənbə.',
-    subtitle:
-      'Kodu yoxlayın, ən son buraxılışı yükləyin və ya buraxılmış aşkarlamaları veb rəy səhifəsində bildirin.',
     feedbackAction: 'Veb Rəy Səhifəsini Aç',
     releasesAction: 'GitHub Buraxılışları',
     githubAction: 'Mənbə Koda Bax',
   },
   more: {
     title: 'lollipopkit-dən daha çox.',
-    subtitle: 'Eyni mühəndislik yanaşması ilə yaradılmış digər yerli tətbiqlər.',
     apps: [
       {
         title: 'ServerBox',

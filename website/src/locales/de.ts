@@ -29,8 +29,6 @@ export const de: Copy = {
   },
   features: {
     title: 'Für schnelles, nachvollziehbares Unkenntlichmachen.',
-    subtitle:
-      'Öffne ein Bild, prüfe die erkannten Bereiche, passe sie bei Bedarf an und exportiere in Sekunden.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -70,12 +68,9 @@ export const de: Copy = {
       },
     ],
     classesTitle: '19 unterstützte Klassen',
-    classesNote: '18 Klassen aus dem integrierten unseen-det 0.5.0 plus Gesichtserkennung über YuNet.',
   },
   privacy: {
     title: 'Kein Netzwerk. Kein Lesezugriff auf Fotos.',
-    subtitle:
-      'Jedes Datenschutzversprechen wird auf Build- und Betriebssystemebene erzwungen, nicht bloß in einer Richtlinie behauptet.',
     factors: [
       {
         tag: 'Offline-Binary',
@@ -117,7 +112,6 @@ export const de: Copy = {
   },
   download: {
     title: 'Nativ für Mobilgeräte und Desktop.',
-    subtitle: 'Vorkompilierte Releases findest du auf GitHub, oder baue direkt aus dem Quellcode.',
     currentBadge: 'Aktuelle Plattform',
     releasesAction: 'GitHub Releases',
     sourceAction: 'Aus Quellcode bauen',
@@ -126,7 +120,7 @@ export const de: Copy = {
     copy: 'Kopieren',
     copied: 'Kopiert',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Keine Release-Berechtigungen' },
       linux: { name: 'Linux', meta: 'Desktop-App (tar.gz) & unseen CLI' },
@@ -135,15 +129,12 @@ export const de: Copy = {
   },
   cta: {
     title: 'Open Source unter AGPL-3.0.',
-    subtitle:
-      'Prüfe den Quellcode, lade das neueste Release herunter oder melde übersehene Treffer auf der Web-Feedback-Seite.',
     feedbackAction: 'Web-Feedback öffnen',
     releasesAction: 'GitHub Releases',
     githubAction: 'Quellcode ansehen',
   },
   more: {
     title: 'Mehr von lollipopkit.',
-    subtitle: 'Weitere native Apps mit demselben Fokus auf sauberes Engineering.',
     apps: [
       {
         title: 'ServerBox',

@@ -499,14 +499,6 @@ select:focus-visible {
   max-width: 24ch;
 }
 
-.section-head p {
-  margin-top: 0.85rem;
-  color: var(--stone);
-  font-size: 1.02rem;
-  line-height: 1.65;
-  max-width: 58ch;
-}
-
 /* Device switcher & feature tour (matching ServerBox) */
 .tour-switcher-bar {
   position: sticky;
@@ -824,11 +816,6 @@ select:focus-visible {
   color: var(--black);
 }
 
-.classes-head span {
-  font-size: 0.85rem;
-  color: var(--stone);
-}
-
 .protocol-badges {
   display: flex;
   flex-wrap: wrap;
@@ -1053,12 +1040,6 @@ select:focus-visible {
   line-height: 1.06;
   letter-spacing: -0.03em;
   max-width: 24ch;
-}
-
-.cta-block p {
-  color: var(--stone);
-  max-width: 56ch;
-  line-height: 1.6;
 }
 
 .cta-actions {

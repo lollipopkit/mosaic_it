@@ -29,8 +29,6 @@ export const uk: Copy = {
   },
   features: {
     title: 'Створено для швидкого й перевіреного приховування даних.',
-    subtitle:
-      'Відкрийте зображення, перевірте знайдені області, за потреби відкоригуйте їх та експортуйте за лічені секунди.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -70,12 +68,9 @@ export const uk: Copy = {
       },
     ],
     classesTitle: '19 підтримуваних класів',
-    classesNote: '18 класів вбудованої моделі unseen-det 0.5.0 плюс виявлення облич через YuNet.',
   },
   privacy: {
     title: 'Нуль мережі. Нуль доступу на читання фототеки.',
-    subtitle:
-      'Кожна гарантія приватності забезпечена на рівні збірки й дозволів ОС, а не лише текстом політики.',
     factors: [
       {
         tag: 'Офлайн-збірка',
@@ -117,7 +112,6 @@ export const uk: Copy = {
   },
   download: {
     title: 'Нативно для смартфонів і компʼютерів.',
-    subtitle: 'Готові збірки опубліковано на GitHub, або зберіть застосунок безпосередньо з вихідного коду.',
     currentBadge: 'Поточна платформа',
     releasesAction: 'Релізи GitHub',
     sourceAction: 'Зібрати з коду',
@@ -126,7 +120,7 @@ export const uk: Copy = {
     copy: 'Копіювати',
     copied: 'Скопійовано',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Нуль дозволів у релізі' },
       linux: { name: 'Linux', meta: 'Десктопний застосунок (tar.gz) та unseen CLI' },
@@ -135,15 +129,12 @@ export const uk: Copy = {
   },
   cta: {
     title: 'Відкритий код під ліцензією AGPL-3.0.',
-    subtitle:
-      'Перевірте вихідний код, завантажте останній реліз або повідомте про пропущені спрацьовування на сторінці вебвідгуку.',
     feedbackAction: 'Відкрити вебвідгук',
     releasesAction: 'Релізи GitHub',
     githubAction: 'Переглянути код',
   },
   more: {
     title: 'Більше від lollipopkit.',
-    subtitle: 'Інші нативні застосунки, створені з такою самою інженерною увагою.',
     apps: [
       {
         title: 'ServerBox',

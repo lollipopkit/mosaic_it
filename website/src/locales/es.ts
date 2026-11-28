@@ -29,8 +29,6 @@ export const es: Copy = {
   },
   features: {
     title: 'Pensado para ocultar datos de forma rápida y verificable.',
-    subtitle:
-      'Abre una imagen, revisa las regiones detectadas, ajusta lo que necesites y exporta en segundos.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -70,12 +68,9 @@ export const es: Copy = {
       },
     ],
     classesTitle: '19 clases compatibles',
-    classesNote: '18 clases del modelo integrado unseen-det 0.5.0 más detección facial con YuNet.',
   },
   privacy: {
     title: 'Cero red. Cero permisos de lectura de fotos.',
-    subtitle:
-      'Cada garantía de privacidad se impone en la compilación y los permisos del sistema, no solo en un texto legal.',
     factors: [
       {
         tag: 'Binario sin conexión',
@@ -117,7 +112,6 @@ export const es: Copy = {
   },
   download: {
     title: 'Nativa en móvil y escritorio.',
-    subtitle: 'Las versiones precompiladas se publican en GitHub, o compila directamente desde el código fuente.',
     currentBadge: 'Plataforma actual',
     releasesAction: 'Lanzamientos en GitHub',
     sourceAction: 'Compilar desde fuente',
@@ -126,7 +120,7 @@ export const es: Copy = {
     copy: 'Copiar',
     copied: 'Copiado',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Cero permisos en lanzamiento' },
       linux: { name: 'Linux', meta: 'App de escritorio (tar.gz) y unseen CLI' },
@@ -135,15 +129,12 @@ export const es: Copy = {
   },
   cta: {
     title: 'Código abierto bajo AGPL-3.0.',
-    subtitle:
-      'Audita el código, descarga la última versión o reporta detecciones fallidas en la página web de comentarios.',
     feedbackAction: 'Abrir feedback web',
     releasesAction: 'Lanzamientos en GitHub',
     githubAction: 'Ver código fuente',
   },
   more: {
     title: 'Más de lollipopkit.',
-    subtitle: 'Otras aplicaciones nativas creadas con el mismo enfoque de ingeniería.',
     apps: [
       {
         title: 'ServerBox',

@@ -44,14 +44,11 @@ export interface Copy {
   };
   features: {
     title: string;
-    subtitle: string;
     cards: Array<{ tag: string; title: string; description: string }>;
     classesTitle: string;
-    classesNote: string;
   };
   privacy: {
     title: string;
-    subtitle: string;
     factors: Array<{ tag: string; title: string; description: string }>;
     tableColArea: string;
     tableColDetail: string;
@@ -59,7 +56,6 @@ export interface Copy {
   };
   download: {
     title: string;
-    subtitle: string;
     currentBadge: string;
     releasesAction: string;
     sourceAction: string;
@@ -77,14 +73,12 @@ export interface Copy {
   };
   cta: {
     title: string;
-    subtitle: string;
     feedbackAction: string;
     releasesAction: string;
     githubAction: string;
   };
   more: {
     title: string;
-    subtitle: string;
     apps: Array<{
       title: string;
       tag: string;

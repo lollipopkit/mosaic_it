@@ -29,8 +29,6 @@ export const ko: Copy = {
   },
   features: {
     title: '빠르고 검증 가능한 마스킹 워크플로.',
-    subtitle:
-      '이미지를 열고 감지된 영역을 확인한 뒤 필요에 맞게 조정하여 몇 초 만에 내보내세요.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -70,12 +68,9 @@ export const ko: Copy = {
       },
     ],
     classesTitle: '지원하는 19가지 유형',
-    classesNote: '내장 unseen-det 0.5.0의 18가지 유형과 YuNet 기반 얼굴 감지를 포함합니다.',
   },
   privacy: {
     title: '네트워크 제로. 사진 보관함 읽기 권한 제로.',
-    subtitle:
-      '모든 개인정보 보호 약속은 정책 문구가 아니라 빌드 경계와 OS 권한 차원에서 강제됩니다.',
     factors: [
       {
         tag: '오프라인 바이너리',
@@ -117,7 +112,6 @@ export const ko: Copy = {
   },
   download: {
     title: '모바일과 데스크톱 네이티브 지원.',
-    subtitle: 'GitHub에서 사전 빌드된 릴리스를 받거나 소스에서 직접 빌드하세요.',
     currentBadge: '현재 플랫폼',
     releasesAction: 'GitHub 릴리스',
     sourceAction: '소스에서 빌드',
@@ -126,7 +120,7 @@ export const ko: Copy = {
     copy: '복사',
     copied: '복사됨',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · 릴리스 권한 제로' },
       linux: { name: 'Linux', meta: '데스크톱 앱(tar.gz) 및 unseen CLI' },
@@ -135,15 +129,12 @@ export const ko: Copy = {
   },
   cta: {
     title: 'AGPL-3.0 오픈소스.',
-    subtitle:
-      '소스를 직접 감사하고, 최신 릴리스를 내려받거나, 웹 피드백 페이지에서 미탐지 사례를 제보해 주세요.',
     feedbackAction: '웹 피드백 열기',
     releasesAction: 'GitHub 릴리스',
     githubAction: '소스 보기',
   },
   more: {
     title: 'lollipopkit의 다른 앱.',
-    subtitle: '같은 엔지니어링 철학으로 만든 네이티브 도구들입니다.',
     apps: [
       {
         title: 'ServerBox',

@@ -29,7 +29,6 @@ export const zhCN: Copy = {
   },
   features: {
     title: '快速、可验证的本地打码工作流。',
-    subtitle: '打开图片后自动标出隐私区域，按需增删遮挡框，一键复制或导出。',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -69,11 +68,9 @@ export const zhCN: Copy = {
       },
     ],
     classesTitle: '支持 19 类敏感目标',
-    classesNote: '包含内置 unseen-det 0.5.0 的 18 个类别，以及基于 YuNet 的人脸检测（face）。',
   },
   privacy: {
     title: '零网络代码，零相册读取权限。',
-    subtitle: '隐私边界由构建产物与系统权限清单直接约束，支持公开审计。',
     factors: [
       {
         tag: '离线构建',
@@ -112,7 +109,6 @@ export const zhCN: Copy = {
   },
   download: {
     title: '覆盖移动与桌面端。',
-    subtitle: '在 GitHub Releases 获取预编译版本，或直接从源码构建。',
     currentBadge: '当前平台',
     releasesAction: 'GitHub Releases',
     sourceAction: '从源码构建',
@@ -121,7 +117,7 @@ export const zhCN: Copy = {
     copy: '复制',
     copied: '已复制',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Release 零权限清单' },
       linux: { name: 'Linux', meta: '桌面应用（tar.gz）与 unseen CLI' },
@@ -130,14 +126,12 @@ export const zhCN: Copy = {
   },
   cta: {
     title: '基于 AGPL-3.0 协议免费开源。',
-    subtitle: '查阅完整源码、下载最新版本，或在网页反馈页提交漏检与误检样例以改进检测模型。',
     feedbackAction: '打开检测反馈页',
     releasesAction: 'GitHub Releases',
     githubAction: '查看源码',
   },
   more: {
     title: 'lollipopkit 的更多作品。',
-    subtitle: '同样强调原生性能与克制设计的其他开源工具。',
     apps: [
       {
         title: 'ServerBox',

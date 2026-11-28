@@ -29,8 +29,6 @@ export const it: Copy = {
   },
   features: {
     title: 'Progettato per un oscuramento rapido e verificabile.',
-    subtitle:
-      'Apri un’immagine, controlla le aree rilevate, rifinisci se serve ed esporta in pochi secondi.',
     cards: [
       {
         tag: 'unseen-det 0.5.0',
@@ -70,12 +68,9 @@ export const it: Copy = {
       },
     ],
     classesTitle: '19 classi supportate',
-    classesNote: '18 classi dal modello integrato unseen-det 0.5.0 più il rilevamento volti tramite YuNet.',
   },
   privacy: {
     title: 'Zero rete. Zero accesso in lettura alle foto.',
-    subtitle:
-      'Ogni garanzia di privacy è imposta a livello di build e permessi di sistema, non solo scritta in un’informativa.',
     factors: [
       {
         tag: 'Binario offline',
@@ -117,7 +112,6 @@ export const it: Copy = {
   },
   download: {
     title: 'Nativa su mobile e desktop.',
-    subtitle: 'Le versioni precompilate sono disponibili su GitHub, oppure compila direttamente dai sorgenti.',
     currentBadge: 'Piattaforma attuale',
     releasesAction: 'Release su GitHub',
     sourceAction: 'Compila dai sorgenti',
@@ -126,7 +120,7 @@ export const it: Copy = {
     copy: 'Copia',
     copied: 'Copiato',
     platforms: {
-      ios: { name: 'iOS', meta: 'IPA · PHPicker · ONNX' },
+      ios: { name: 'iOS', meta: 'IPA · ONNX' },
       macos: { name: 'macOS', meta: 'DMG · Apple Silicon' },
       android: { name: 'Android', meta: 'APK · LiteRT · Zero permessi in release' },
       linux: { name: 'Linux', meta: 'App desktop (tar.gz) e unseen CLI' },
@@ -135,15 +129,12 @@ export const it: Copy = {
   },
   cta: {
     title: 'Open source con licenza AGPL-3.0.',
-    subtitle:
-      'Verifica il codice, scarica l’ultima release o segnala le rilevazioni mancate sulla pagina web di feedback.',
     feedbackAction: 'Apri feedback web',
     releasesAction: 'Release su GitHub',
     githubAction: 'Vedi sorgenti',
   },
   more: {
     title: 'Altro da lollipopkit.',
-    subtitle: 'Altre app native costruite con la stessa attenzione ingegneristica.',
     apps: [
       {
         title: 'ServerBox',

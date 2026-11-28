@@ -461,7 +461,6 @@
   <section id="features" class="page-section">
     <div class="section-head">
       <h2>{copy.features.title}</h2>
-      <p>{copy.features.subtitle}</p>
     </div>
 
     <div class="tour-switcher-bar" class:tour-switcher-bar--wide={isWideDevice}>
@@ -540,7 +539,6 @@
     <div class="classes-block">
       <div class="classes-head">
         <h3>{copy.features.classesTitle}</h3>
-        <span>{copy.features.classesNote}</span>
       </div>
       <div class="protocol-badges">
         {#each DETECTED_CLASSES as cls}
@@ -553,7 +551,6 @@
   <section id="privacy" class="page-section">
     <div class="section-head">
       <h2>{copy.privacy.title}</h2>
-      <p>{copy.privacy.subtitle}</p>
     </div>
 
     <div class="sec-factors">
@@ -583,7 +580,6 @@
   <section id="download" class="page-section">
     <div class="section-head">
       <h2>{copy.download.title}</h2>
-      <p>{copy.download.subtitle}</p>
     </div>
 
     <div class="download-list">
@@ -629,7 +625,6 @@
   <section class="cta-section">
     <div class="cta-block">
       <h2>{copy.cta.title}</h2>
-      <p>{copy.cta.subtitle}</p>
       <div class="cta-actions">
         <a class="btn-primary" href={FEEDBACK_URL}>{copy.cta.feedbackAction}</a>
         <a class="btn-secondary" href={RELEASES_URL} target="_blank" rel="noopener noreferrer">
@@ -645,7 +640,6 @@
   <section id="more" class="page-section">
     <div class="section-head">
       <h2>{copy.more.title}</h2>
-      <p>{copy.more.subtitle}</p>
     </div>
 
     <div class="other-apps-grid">
