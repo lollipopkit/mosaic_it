@@ -31,7 +31,7 @@ export const it: Copy = {
     title: 'Progettato per un oscuramento rapido e verificabile.',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: 'Rilevamento locale senza OCR',
         description:
           'I pesi integrati FP16 ONNX / LiteRT rilevano 18 classi di dati sensibili negli screenshot dell’interfaccia più il rilevamento volti con YuNet — senza riconoscimento del testo né download di modelli esterni.',

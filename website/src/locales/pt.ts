@@ -31,7 +31,7 @@ export const pt: Copy = {
     title: 'Feito para ocultação rápida e verificável.',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: 'Detecção local sem OCR',
         description:
           'Pesos FP16 ONNX / LiteRT integrados detectam 18 classes de dados pessoais em capturas de tela, além de detecção facial via YuNet — sem reconhecimento de texto nem downloads externos de modelos.',

@@ -31,7 +31,7 @@ export const az: Copy = {
     title: 'Sürətli və yoxlanıla bilən gizlətmə üçün yaradılıb.',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: 'OCR Olmadan Cihazda Aşkarlama',
         description:
           'Daxili FP16 ONNX / LiteRT çəkiləri interfeys ekran görüntülərində 18 şəxsi məlumat sinfini və YuNet ilə üzləri aşkar edir — mətn tanıma və ya kənar model yükləməsi olmadan.',

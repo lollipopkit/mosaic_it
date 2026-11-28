@@ -31,7 +31,7 @@ export const ko: Copy = {
     title: '빠르고 검증 가능한 마스킹 워크플로.',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: 'OCR 없는 온디바이스 감지',
         description:
           '내장된 FP16 ONNX / LiteRT 가중치로 UI 스크린샷의 18가지 개인정보 유형과 YuNet 얼굴 감지를 수행합니다. 문자 인식이나 외부 모델 다운로드가 필요 없습니다.',

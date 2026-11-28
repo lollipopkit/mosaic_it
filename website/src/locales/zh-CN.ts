@@ -31,7 +31,7 @@ export const zhCN: Copy = {
     title: '快速、可验证的本地打码工作流。',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: '免 OCR 本地检测',
         description:
           '内置 FP16 ONNX / LiteRT 权重，直接定位 18 类截图隐私信息并结合 YuNet 检测人脸，无需识别文字内容，也无需联网下载模型。',

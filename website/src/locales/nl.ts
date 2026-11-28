@@ -31,7 +31,7 @@ export const nl: Copy = {
     title: 'Gemaakt voor snel en controleerbaar anonimiseren.',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: 'Lokale detectie zonder OCR',
         description:
           'Meegeleverde FP16 ONNX / LiteRT-gewichten herkennen 18 klassen persoonsgegevens in UI-screenshots plus gezichtsdetectie via YuNet — zonder tekstherkenning of externe modeldownloads.',

@@ -31,7 +31,7 @@ export const tr: Copy = {
     title: 'Hızlı ve doğrulanabilir gizlilik sansürü için tasarlandı.',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: 'OCR Olmadan Cihaz Üzerinde Algılama',
         description:
           'Uygulamaya gömülü FP16 ONNX / LiteRT ağırlıkları, arayüz ekran görüntülerinde 18 kişisel veri sınıfını ve YuNet ile yüzleri algılar — metin tanıma veya harici model indirme gerektirmez.',

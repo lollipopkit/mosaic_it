@@ -22,7 +22,7 @@
 
 MosaicIt 在设备本地直接定位截图与照片中的敏感隐私区域——不执行 OCR 文字识别——并允许在导出前按需核对、增删和调整遮挡框。
 
-应用内置 `unseen-det 0.5.0` 检测权重，不包含任何联网代码或网络权限，所有图片均不会离开你的设备。
+应用内置 `unseen-det 0.6.0` 检测权重，不包含任何联网代码或网络权限，所有图片均不会离开你的设备。
 
 ## 下载安装
 
@@ -41,7 +41,7 @@ MosaicIt 在设备本地直接定位截图与照片中的敏感隐私区域—�
 
 **免 OCR 本地检测**
 
-- 内置 `unseen-det 0.5.0`（macOS / iOS / Linux / Windows 运行 FP16 ONNX，Android 运行 FP16 LiteRT），直接检测 UI 截图中的 **18 类隐私信息**，并配合 YuNet 检测 **人脸**（共 19 类）：
+- 内置 `unseen-det 0.6.0`（macOS / iOS / Linux / Windows 运行 FP16 ONNX，Android 运行 FP16 LiteRT），直接检测 UI 截图中的 **18 类隐私信息**，并配合 YuNet 检测 **人脸**（共 19 类）：
   `person_name`、`address`、`phone`、`email`、`id_number`、`bank_card`、`plate`、`account_id`、`avatar`、`qr`、`barcode`、`finance`、`organization`、`device_id`、`secret`、`person`、`health`、`personal_info`、`face`。
 - 本地自适应偏好学习会根据你的勾选/取消记录微调预选阈值；也支持在设置中手动导入自定义 `.onnx` / `.tflite` 模型。
 
@@ -112,7 +112,7 @@ cargo build --release -p unseen-cli --features coreml   # macOS CoreML / ANE 加
 
 ### Flutter 应用
 
-macOS、iOS、Android 与 Linux 构建会通过 `app/tool/bundle-model.sh` 自动准备并按 BLAKE3 校验 `models/manifest.toml` 中锁定的 `0.5.0` 权重（优先使用 `UNSEEN_MODEL_DIR`，否则自动下载并缓存）；Windows 本地构建后请在 Git Bash 中执行 `tool/bundle-model.sh tiled build/windows/x64/runner/Release/models`。
+macOS、iOS、Android 与 Linux 构建会通过 `app/tool/bundle-model.sh` 自动准备并按 BLAKE3 校验 `models/manifest.toml` 中锁定的 `0.6.0` 权重（优先使用 `UNSEEN_MODEL_DIR`，否则自动下载并缓存）；Windows 本地构建后请在 Git Bash 中执行 `tool/bundle-model.sh tiled build/windows/x64/runner/Release/models`。
 
 ```sh
 cd app

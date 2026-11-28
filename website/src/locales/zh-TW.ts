@@ -31,7 +31,7 @@ export const zhTW: Copy = {
     title: '快速、可驗證的本機打碼流程。',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: '免 OCR 本機偵測',
         description:
           '內建 FP16 ONNX / LiteRT 權重，直接定位 18 類截圖隱私資訊並結合 YuNet 偵測人臉，無需辨識文字，也無需連網下載模型。',

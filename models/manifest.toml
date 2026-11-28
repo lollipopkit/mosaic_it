@@ -20,6 +20,13 @@
 # (tiled, 18.1 MiB) and FP16 LiteRT (.tflite, 19.6 MiB). Trained on synthetic,
 # all labelled real screenshots, and WebPII. The sidecar selects every class
 # at 0.50 with no review band and certifies none.
+#
+# 0.6.0: 18 classes, format = 3, FP16 ONNX (tiled, 18.1 MiB) and FP16 LiteRT
+# (.tflite, 19.6 MiB). 3-way same-basin model soup adding edge-crop partial
+# screenshot augmentation (+35% relative recall on half-clipped edge regions,
+# -12.9% public-price finance false positives, 0.585 recall at 0.5 FP/image on
+# held-out mobile screenshots). The sidecar selects every class at 0.50 with no
+# review band and certifies none.
 
 [[model]]
 name = "unseen-det"
@@ -139,4 +146,24 @@ file = "unseen-det.tflite"
 blake3 = "93a8af52efd95c59a2a6f4f7d3170c9d32a8b24240aaba39311da23692fc786c"
 sidecar_blake3 = "d664cfa86d1526d8c06816e0163df7126fa58714c206926d6901ba6ce49eb8b2"
 url = "https://pub.lolli.tech/models/unseen/0.5.0"
+format = 3
+
+[[model]]
+name = "unseen-det"
+version = "0.6.0"
+variant = "tiled"
+file = "unseen-det-tile.onnx"
+blake3 = "bba2f4bc350b1614384fc77145051999809c62a62e7e5336f037ca3e6adb93c8"
+sidecar_blake3 = "ca00a034f9538a4d6eaffb3274915366ad3f39dc5367984809655a2c415e734e"
+url = "https://pub.lolli.tech/models/unseen/0.6.0"
+format = 3
+
+[[model]]
+name = "unseen-det"
+version = "0.6.0"
+variant = "litert"
+file = "unseen-det.tflite"
+blake3 = "f3541f83f5a2f7f6cdff049e23966973ca3f6dbf2fd0dcd0dda61928fd52689b"
+sidecar_blake3 = "ca00a034f9538a4d6eaffb3274915366ad3f39dc5367984809655a2c415e734e"
+url = "https://pub.lolli.tech/models/unseen/0.6.0"
 format = 3

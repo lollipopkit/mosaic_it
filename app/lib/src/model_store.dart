@@ -10,7 +10,7 @@ import 'rust/api.dart';
 final modelExtensions = [Platform.isAndroid ? '.tflite' : '.onnx'];
 
 /// Fallback version label when `bundled.stamp` is absent (e.g. unit tests).
-const defaultBundledModelVersion = '0.5.0';
+const defaultBundledModelVersion = '0.6.0';
 
 bool _isModel(String path) => modelExtensions.any(path.endsWith);
 

@@ -31,7 +31,7 @@ export const id: Copy = {
     title: 'Dirancang untuk penyensoran yang cepat dan dapat diverifikasi.',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: 'Deteksi di Perangkat Tanpa OCR',
         description:
           'Bobot FP16 ONNX / LiteRT yang dibundel mendeteksi 18 kelas data pribadi pada tangkapan layar antarmuka ditambah deteksi wajah YuNet—tanpa pengenalan teks atau unduhan model eksternal.',
