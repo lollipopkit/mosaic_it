@@ -13,7 +13,9 @@
 
   type PlatformId = 'ios' | 'macos' | 'android' | 'linux' | 'windows';
   type DeviceKey = 'iphone' | 'iphone-duo';
-  type SceneKey = '1-chat' | '2-bank' | '3-regions' | '4-fill' | '5-mail';
+  type FrameKey = DeviceKey | 'cli';
+  type SceneKey = '1-chat' | '2-bank' | '4-fill' | '6-batch' | '7-export' | '8-selfcheck';
+  type FeatureMedia = { kind: 'app'; scene: SceneKey } | { kind: 'cli' };
 
   const REPO_URL = 'https://github.com/lollipopkit/mosaic_it';
   const RELEASES_URL = `${REPO_URL}/releases`;
@@ -36,12 +38,19 @@
   }[] = [
     { scene: '1-chat', x: -24, y: 8, hoverSlot: -1.5, rotate: -8, hoverRotate: -1.8, motion: 18 },
     { scene: '4-fill', x: -8, y: -4, hoverSlot: -0.5, rotate: -2.5, hoverRotate: -0.6, motion: 12 },
-    { scene: '3-regions', x: 9, y: 4, hoverSlot: 0.5, rotate: 3, hoverRotate: 0.6, motion: 14 },
+    { scene: '8-selfcheck', x: 9, y: 4, hoverSlot: 0.5, rotate: 3, hoverRotate: 0.6, motion: 14 },
     { scene: '2-bank', x: 24, y: -2, hoverSlot: 1.5, rotate: 8.5, hoverRotate: 1.8, motion: 20 },
   ];
 
-  // Maps each feature card in copy.features.cards to its matching app screenshot.
-  const FEATURE_SCENES: SceneKey[] = ['1-chat', '4-fill', '3-regions', '2-bank', '5-mail', '1-chat'];
+  // 1-to-1 real capture for each feature card in copy.features.cards.
+  const FEATURE_MEDIA: FeatureMedia[] = [
+    { kind: 'app', scene: '1-chat' },
+    { kind: 'app', scene: '4-fill' },
+    { kind: 'app', scene: '8-selfcheck' },
+    { kind: 'app', scene: '6-batch' },
+    { kind: 'app', scene: '7-export' },
+    { kind: 'cli' },
+  ];
 
   const BUILD_COMMANDS = [
     'git clone --recurse-submodules https://github.com/lollipopkit/mosaic_it',
@@ -117,6 +126,16 @@
     const prefix = device === 'iphone-duo' ? 'iphoneduo-inner-landscape' : 'iphone18pro';
     return `/screenshots/${shotLocale}/${prefix}-${scene}.webp`;
   }
+
+  function featureShot(index: number, device: DeviceKey): { frame: FrameKey; src: string } {
+    const media = FEATURE_MEDIA[index] ?? FEATURE_MEDIA[0];
+    if (media.kind === 'cli') {
+      return { frame: 'cli', src: '/screenshots/cli.webp' };
+    }
+    return { frame: device, src: shotUrl(device, media.scene) };
+  }
+
+  let activeFeatureShot = $derived(featureShot(activeFeature, activeDevice));
 
   function handleStackMove(event: MouseEvent) {
     if (prefersReducedMotion()) return;
@@ -436,20 +455,6 @@
           </div>
         {/key}
       </div>
-
-      <div class="device-switcher hero-switcher" role="group" aria-label={copy.nav.screenshots}>
-        {#each DEVICE_VIEWS as view}
-          <button
-            type="button"
-            class="device-pill"
-            class:active={activeDevice === view.key}
-            aria-pressed={activeDevice === view.key}
-            onclick={() => selectDevice(view.key)}
-          >
-            {view.label}
-          </button>
-        {/each}
-      </div>
     </div>
   </section>
 
@@ -459,7 +464,7 @@
       <p>{copy.features.subtitle}</p>
     </div>
 
-    <div class="tour-switcher-bar">
+    <div class="tour-switcher-bar" class:tour-switcher-bar--wide={isWideDevice}>
       <div class="device-switcher" role="group" aria-label={copy.nav.screenshots}>
         {#each DEVICE_VIEWS as view}
           <button
@@ -478,8 +483,8 @@
     <div class="tour" class:tour--wide={isWideDevice} bind:this={tourEl}>
       <ol class="tour-list">
         {#each copy.features.cards as card, index}
-          {@const scene = FEATURE_SCENES[index] ?? '1-chat'}
-          <li bind:this={featureItems[index]} class={`tour-card--${activeDevice}`}>
+          {@const itemShot = featureShot(index, activeDevice)}
+          <li bind:this={featureItems[index]} class={`tour-card--${itemShot.frame}`}>
             <button
               type="button"
               class="tour-item"
@@ -496,8 +501,8 @@
               <span class="tour-desc">{card.description}</span>
             </button>
             <img
-              class={`tour-shot-inline tour-shot-inline--${activeDevice}`}
-              src={shotUrl(activeDevice, scene)}
+              class={`tour-shot-inline tour-shot-inline--${itemShot.frame}`}
+              src={itemShot.src}
               alt=""
               loading="lazy"
               decoding="async"
@@ -506,23 +511,25 @@
         {/each}
       </ol>
 
-      <div class="tour-device" class:tour-device--wide={isWideDevice}>
-        <div class={`device-frame device-frame--${activeDevice}`}>
-          {#key activeDevice}
+      <div class="tour-device" class:tour-device--wide={activeFeatureShot.frame !== 'iphone'}>
+        <div class={`device-frame device-frame--${activeFeatureShot.frame}`}>
+          {#key activeFeatureShot.frame}
             <div
               class="device-frame-layer"
               in:scale={{ start: 0.96, duration: transitionMs(340), easing: cubicOut }}
               out:fade={{ duration: transitionMs(180) }}
             >
               {#each copy.features.cards as _card, index}
-                {@const scene = FEATURE_SCENES[index] ?? '1-chat'}
-                <img
-                  class:shown={index === activeFeature}
-                  src={shotUrl(activeDevice, scene)}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                />
+                {@const itemShot = featureShot(index, activeDevice)}
+                {#if itemShot.frame === activeFeatureShot.frame}
+                  <img
+                    class:shown={index === activeFeature}
+                    src={itemShot.src}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
+                {/if}
               {/each}
             </div>
           {/key}
