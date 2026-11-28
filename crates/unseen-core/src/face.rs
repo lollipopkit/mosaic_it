@@ -1,5 +1,5 @@
 //! Faces in photos and screenshots: YuNet (opencv_zoo, MIT), decoded as
-//! OpenCV's `FaceDetectorYN`. Its boxes match WIDER FACE's (forehead to chin).
+//! OpenCV's `FaceDetectorYN`.
 
 use image::RgbImage;
 use ndarray::{Array4, ArrayView3, Ix3};
@@ -14,10 +14,9 @@ const STRIDES: [usize; 3] = [8, 16, 32];
 const NMS_IOU: f32 = 0.3;
 /// Candidates kept for NMS, as OpenCV's `FaceDetectorYN` `top_k`.
 const TOP_K: usize = 5000;
-/// YuNet finds faces of about 10-300 px, so one pass runs at the native size
-/// (capped at this long side) for small faces and one at [`LARGE_PASS`] for
-/// large ones. On WIDER FACE val at score 0.7 the second pass adds 3.3 points
-/// of recall on faces taller than 100 px (docs/design.md, faces).
+/// YuNet detects faces across ~10-300 px, so one pass runs at native size
+/// (capped at [`NATIVE_CAP`]) for small faces and a second pass at [`LARGE_PASS`]
+/// for large faces.
 const NATIVE_CAP: u32 = 3072;
 const LARGE_PASS: u32 = 640;
 
@@ -31,10 +30,7 @@ pub struct FaceDetector {
 }
 
 impl FaceDetector {
-    /// WIDER FACE val (docs/design.md, faces): score 0.7 covers 91.3% of
-    /// faces taller than 100 px and 83.6% of 32-100 px ones at 0.23 boxes per
-    /// image on no face; the review band down to 0.6 adds 1.9 / 3.4 points
-    /// for 0.42 more.
+    /// Creates a face detector with default select/review thresholds.
     pub fn new(backend: Box<dyn Backend>) -> Self {
         Self {
             backend,

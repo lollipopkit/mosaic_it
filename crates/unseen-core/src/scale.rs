@@ -1,8 +1,7 @@
 //! Input scale and graph shapes of a [`crate::Resolution::Pt2`] model:
 //! phone screenshots are scaled to about 2 px per point, everything else
 //! runs at its own pixels, and each image runs on the input shape that
-//! processes the fewest pixels. The training code (`unseen_train.scale`)
-//! mirrors this; `tests/scale_cases.json` pins both.
+//! processes the fewest pixels (`tests/scale_cases.json` pins the cases).
 
 /// Long over short side from which a screenshot is a phone's.
 const PHONE_ASPECT: f64 = 1.9;

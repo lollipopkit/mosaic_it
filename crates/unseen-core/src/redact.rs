@@ -252,7 +252,7 @@ pub fn redaction_patches(img: &RgbImage, boxes: &[[f32; 4]], pad: f32, style: Re
     fills.into_iter().map(|(rect, rgba)| Patch { rect, rgba }).collect()
 }
 
-/// Result of the pre-export self-check (docs/design.md §8).
+/// Result of the pre-export self-check.
 #[derive(Debug, Serialize)]
 pub struct ExportCheck {
     /// Pre-selected detections on the output that are not inside a redacted

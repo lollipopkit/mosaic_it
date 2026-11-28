@@ -1,4 +1,4 @@
-//! Find-all propagation (docs/design.md §7): given one box, find regions that
+//! Find-all propagation: given one box, find regions that
 //! look the same, in the same image or another one at the same scale.
 //!
 //! Identical strings render near-identically, so plain normalised

@@ -91,8 +91,7 @@ Privacy guarantees are enforced at the build, OS permission, and CI level:
 │   └── unseen-cli/           # `unseen` command-line tool
 ├── models/                   # Canonical class list (classes.json) & BLAKE3-pinned manifest.toml
 ├── website/                  # Official website (Svelte 5 + Vite, deployed to mosaic.lollipopkit.com)
-├── worker/feedback/          # Cloudflare Worker serving /feedback and /v1/feedback (R2 + rate limit)
-└── docs/                     # Design spec, detector model notes, model release guide
+└── worker/feedback/          # Cloudflare Worker serving /feedback and /v1/feedback (R2 + rate limit)
 ```
 
 ## Build from Source
@@ -144,12 +143,7 @@ cd worker/feedback && npm test
 
 ## Documentation
 
-- [docs/design.md](docs/design.md) — architecture, tiling, calibration, and redaction design
-- [docs/model.md](docs/model.md) — `unseen-det` weights, training data sources, and known limits
-- [docs/release.md](docs/release.md) — benchmarking, calibrating, hashing, and publishing detector weights
-- [app/README.md](app/README.md) — Flutter app implementation and platform notes
-
-The released detector weights are public under AGPL-3.0; the training code and private labelled datasets are not published.
+- [app/README.md](app/README.md) — Flutter app setup and platform notes
 
 ## Contributing & License
 

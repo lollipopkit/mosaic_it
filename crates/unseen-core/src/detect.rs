@@ -17,9 +17,8 @@ use crate::{
 /// stay whole in the tile that owns them.
 pub const TILE_OVERLAP_X: usize = 384;
 /// Vertical overlap between neighbouring tiles, in pixels.
-/// Smaller than horizontal overlap because UI text rows and small icons are
-/// short (>99.8% of non-person boxes are <= 192 px tall), cutting tile count
-/// on long screenshots and tablets.
+/// Smaller than horizontal overlap to cut tile count on long screenshots and
+/// tablets.
 pub const TILE_OVERLAP_Y: usize = 192;
 /// Maximum tile overlap across axes (kept for validation and compatibility).
 pub const TILE_OVERLAP: usize = if TILE_OVERLAP_X >= TILE_OVERLAP_Y {
@@ -27,8 +26,7 @@ pub const TILE_OVERLAP: usize = if TILE_OVERLAP_X >= TILE_OVERLAP_Y {
 } else {
     TILE_OVERLAP_Y
 };
-/// Largest side a dynamic graph runs on at once: the training crop size, so
-/// attention sees the token counts it was trained on and memory stays bounded.
+/// Largest side a dynamic graph runs on at once so memory stays bounded.
 pub const DYNAMIC_TILE: usize = 1280;
 
 /// Starts of the tiles covering a `len`-long axis with `tile`-long tiles and

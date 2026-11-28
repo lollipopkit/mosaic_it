@@ -1,5 +1,5 @@
 //! Video: detection on keyframes, ByteTrack across them, and the boxes to
-//! redact in every frame (docs/design.md §9, M5).
+//! redact in every frame.
 //!
 //! A frame becomes a keyframe when it differs from the last keyframe
 //! anywhere on a coarse grid, or after `max_gap` frames. Frames between two

@@ -91,8 +91,7 @@ MosaicIt 在设备本地直接定位截图与照片中的敏感隐私区域—�
 │   └── unseen-cli/           # `unseen` 命令行工具
 ├── models/                   # 标准类别表（classes.json）与 BLAKE3 校验清单（manifest.toml）
 ├── website/                  # 官方网站（Svelte 5 + Vite，部署于 mosaic.lollipopkit.com）
-├── worker/feedback/          # Cloudflare Worker（/feedback 与 /v1/feedback，R2 + 边缘限流）
-└── docs/                     # 设计文档、检测器说明与模型发布指南
+└── worker/feedback/          # Cloudflare Worker（/feedback 与 /v1/feedback，R2 + 边缘限流）
 ```
 
 ## 从源码构建
@@ -144,12 +143,7 @@ cd worker/feedback && npm test
 
 ## 文档
 
-- [docs/design.md](docs/design.md) — 架构、分块检测、校准与打码设计
-- [docs/model.md](docs/model.md) — `unseen-det` 权重、训练数据来源与已知限制
-- [docs/release.md](docs/release.md) — 模型测速、校准、哈希锁定与发布流程
-- [app/README.md](app/README.md) — Flutter 客户端实现与平台说明
-
-已发布的检测器权重遵循 AGPL-3.0 协议公开；训练代码与私有标注数据集不公开。
+- [app/README.md](app/README.md) — Flutter 客户端配置与平台说明
 
 ## 贡献与开源协议
 
