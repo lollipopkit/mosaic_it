@@ -30,7 +30,7 @@ entitlement). Platform builds bundle the pinned detector release from
 [models/manifest.toml](../models/manifest.toml) via `tool/bundle-model.sh`
 (`unseen-det-tile.onnx` on Apple/Linux/Windows, `unseen-det.tflite` on Android).
 A local model (`*.onnx` or `*.tflite` with its `.json` sidecar) can also be
-imported by hand in Settings ([docs/model.md](../docs/model.md)). On narrow
+imported by hand in Settings. On narrow
 screens the region list is in a drawer.
 
 - Open several images at once; a strip at the bottom switches between them,

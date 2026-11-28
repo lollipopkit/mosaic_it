@@ -1,5 +1,5 @@
 //! Per-class pre-selection thresholds with a recall guarantee
-//! (Learn-then-Test, fixed-sequence testing; see docs/design.md §6).
+//! (Learn-then-Test, fixed-sequence testing).
 //!
 //! For every ground-truth box we record `s*`, the highest threshold at which
 //! same-class detections still cover it. A box is missed at threshold `λ`

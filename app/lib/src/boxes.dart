@@ -65,7 +65,7 @@ class EditBox {
   bool selected;
 
   /// Boxes with the same group are one value printed over several lines (one
-  /// box per line, as the synthetic labels' `part`); null: a value of its own.
+  /// box per line); null: a value of its own.
   int? group;
 
   final BoxSource source;

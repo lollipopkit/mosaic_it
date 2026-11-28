@@ -1,32 +1,11 @@
 # Model releases pinned by BLAKE3. Weights are not committed. Check files with
 #   unseen models verify <model.onnx>...
-# and add entries with `unseen models hash` (steps: docs/release.md). The sidecar (<file>.json) holds the
-# classes and calibration, so recalibrating changes its hash.
+# and add entries with `unseen models hash`. The sidecar (<file>.json) holds the
+# classes and thresholds, so updating it changes its hash.
 #
 # `models/publish.sh` uploads an entry's files to its `url` and this file,
-# signed, to https://pub.lolli.tech/models/unseen/manifest.signed, where the app
-# looks for a newer release. `format` (default 1) stays inside each build's
-# `MIN_FORMAT..=FORMAT` window when compatibility breaks.
-#
-# 0.1.0 to 0.3.2 were trained on synthetic screenshots only and were not
-# published (10 classes; 0.3.2 is 0.3.1's weights with a new calibration).
-#
-# 0.4.0: 15 classes (adds finance, organization, device_id and secret),
-# trained on synthetic and labelled real screenshots (docs/model.md). The
-# sidecar selects every class at 0.45 with no review band and certifies none.
-#
-# 0.5.0: 18 classes (adds person, health, personal_info), format = 3 (pt2
-# multi-shape 896x1280 / 1280x896 / 1280x1280, strides 8/16/32), FP16 ONNX
-# (tiled, 18.1 MiB) and FP16 LiteRT (.tflite, 19.6 MiB). Trained on synthetic,
-# all labelled real screenshots, and WebPII. The sidecar selects every class
-# at 0.50 with no review band and certifies none.
-#
-# 0.6.0: 18 classes, format = 3, FP16 ONNX (tiled, 18.1 MiB) and FP16 LiteRT
-# (.tflite, 19.6 MiB). 3-way same-basin model soup adding edge-crop partial
-# screenshot augmentation (+35% relative recall on half-clipped edge regions,
-# -12.9% public-price finance false positives, 0.585 recall at 0.5 FP/image on
-# held-out mobile screenshots). The sidecar selects every class at 0.50 with no
-# review band and certifies none.
+# signed, to https://pub.lolli.tech/models/unseen/manifest.signed.
+# `format` (default 1) stays inside each build's `MIN_FORMAT..=FORMAT` window.
 
 [[model]]
 name = "unseen-det"
