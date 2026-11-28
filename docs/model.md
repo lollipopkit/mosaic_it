@@ -17,10 +17,10 @@ The detector the app downloads. Releases are listed in
 
 ```
 https://pub.lolli.tech/models/unseen/manifest.signed
-https://pub.lolli.tech/models/unseen/0.5.0/unseen-det-tile.onnx
-https://pub.lolli.tech/models/unseen/0.5.0/unseen-det-tile.onnx.json
-https://pub.lolli.tech/models/unseen/0.5.0/unseen-det.tflite
-https://pub.lolli.tech/models/unseen/0.5.0/unseen-det.tflite.json
+https://pub.lolli.tech/models/unseen/0.6.0/unseen-det-tile.onnx
+https://pub.lolli.tech/models/unseen/0.6.0/unseen-det-tile.onnx.json
+https://pub.lolli.tech/models/unseen/0.6.0/unseen-det.tflite
+https://pub.lolli.tech/models/unseen/0.6.0/unseen-det.tflite.json
 ```
 
 `unseen models verify <file>` checks a download against the manifest
@@ -43,7 +43,7 @@ code or weights are involved.
 
 ## Limits
 
-- 0.5.0 certifies no class: its sidecar selects every class at score 0.50
+- 0.6.0 certifies no class: its sidecar selects every class at score 0.50
   without a recall guarantee ([design.md](design.md) §6). Check the boxes
   before exporting; the app's export check re-runs the detector on the
   output.

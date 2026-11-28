@@ -22,7 +22,7 @@ English | [简体中文](README_zh.md)
 
 MosaicIt detects private information directly in screenshots and photos on device — without running OCR — and lets you inspect, adjust, and redact regions before exporting.
 
-The app ships with bundled `unseen-det 0.5.0` weights and contains no networking code or network permissions. Images never leave your device.
+The app ships with bundled `unseen-det 0.6.0` weights and contains no networking code or network permissions. Images never leave your device.
 
 ## Download
 
@@ -41,7 +41,7 @@ Every GitHub Release includes `BLAKE3SUMS` and `SHA256SUMS` for verification. Do
 
 **OCR-Free On-Device Detection**
 
-- Bundled `unseen-det 0.5.0` (FP16 ONNX on macOS, iOS, Linux, and Windows; FP16 LiteRT on Android) detects **18 PII classes** across UI screenshots without reading or indexing text, paired with YuNet for **face** detection (19 classes total):
+- Bundled `unseen-det 0.6.0` (FP16 ONNX on macOS, iOS, Linux, and Windows; FP16 LiteRT on Android) detects **18 PII classes** across UI screenshots without reading or indexing text, paired with YuNet for **face** detection (19 classes total):
   `person_name`, `address`, `phone`, `email`, `id_number`, `bank_card`, `plate`, `account_id`, `avatar`, `qr`, `barcode`, `finance`, `organization`, `device_id`, `secret`, `person`, `health`, `personal_info`, `face`.
 - Local adaptive threshold preference learns from your keep/uncheck choices on device; custom `.onnx` / `.tflite` models can also be imported in Settings.
 
@@ -112,7 +112,7 @@ cargo build --release -p unseen-cli --features coreml   # macOS CoreML / ANE
 
 ### Flutter App
 
-Platform builds on macOS, iOS, Android, and Linux automatically stage and BLAKE3-verify the pinned `0.5.0` weights via `app/tool/bundle-model.sh` (using `UNSEEN_MODEL_DIR` if set, otherwise caching from `models/manifest.toml`). On Windows, run `tool/bundle-model.sh tiled build/windows/x64/runner/Release/models` in Git Bash after building.
+Platform builds on macOS, iOS, Android, and Linux automatically stage and BLAKE3-verify the pinned `0.6.0` weights via `app/tool/bundle-model.sh` (using `UNSEEN_MODEL_DIR` if set, otherwise caching from `models/manifest.toml`). On Windows, run `tool/bundle-model.sh tiled build/windows/x64/runner/Release/models` in Git Bash after building.
 
 ```sh
 cd app

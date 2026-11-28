@@ -31,7 +31,7 @@ export const de: Copy = {
     title: 'Für schnelles, nachvollziehbares Unkenntlichmachen.',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: 'Lokale Erkennung ohne OCR',
         description:
           'Mitgelieferte FP16 ONNX / LiteRT-Gewichte erkennen 18 Klassen sensibler Daten in UI-Screenshots plus Gesichtserkennung via YuNet — ganz ohne Texterkennung oder externe Modell-Downloads.',

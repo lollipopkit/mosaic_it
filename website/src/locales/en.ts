@@ -31,7 +31,7 @@ export const en: Copy = {
     title: 'Built for fast, verifiable redaction.',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: 'On-Device Detection Without OCR',
         description:
           'Bundled FP16 ONNX / LiteRT weights detect 18 PII classes across UI screenshots plus YuNet face detection—no text recognition or external model downloads.',

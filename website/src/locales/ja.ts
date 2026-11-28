@@ -31,7 +31,7 @@ export const ja: Copy = {
     title: '高速で検証可能なローカル遮蔽。',
     cards: [
       {
-        tag: 'unseen-det 0.5.0',
+        tag: 'unseen-det 0.6.0',
         title: 'OCR 不要のオンデバイス検出',
         description:
           '同梱された FP16 ONNX / LiteRT モデルで 18 クラスの PII と YuNet による顔領域を端末内で検出。テキスト認識や外部ダウンロードは行いません。',
